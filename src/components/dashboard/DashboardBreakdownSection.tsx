@@ -4,6 +4,7 @@ import { BreakdownRow } from './DashboardParts'
 import { getNetAvailableConfig } from '../../services/settings'
 import type { DashboardData, DashboardNavTarget, NetAvailableConfig } from '../../types'
 import { asOfEndLabel } from '../../utils/periodLabel'
+import { unquotedBreakdownNote } from '../../utils/vaultUnquotedText'
 import Card from '../ui/Card'
 import {
   assetBreakdownClass,
@@ -25,15 +26,6 @@ type BreakdownItem = {
   parts?: { label: string; value: number }[]
   /** A warning under the row (a value that is only a floor). */
   note?: string
-}
-
-/** Says which live-priced vault assets are missing from the total because tgju gave no quote. */
-function unquotedNote(names: string[] | undefined): string | undefined {
-  if (!names?.length) return undefined
-
-  const them = names.length > 1 ? 'آن‌ها' : 'آن'
-
-  return `قیمت لحظه‌ای ${names.join('، ')} در دسترس نیست؛ ارزش ${them} حساب نشده`
 }
 
 type DashboardBreakdownSectionProps = {
@@ -119,7 +111,7 @@ export default function DashboardBreakdownSection({
         (financial?.treasuryByClass?.length ?? 0) > 1
           ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
           : undefined,
-      note: unquotedNote(financial?.treasuryUnquoted)
+      note: unquotedBreakdownNote(financial?.treasuryUnquoted)
     },
     // Inside the vault total, but counted by its own net-available switch.
     ...(goalsTotal > 0

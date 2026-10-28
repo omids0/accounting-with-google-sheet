@@ -104,6 +104,7 @@ export default function DashboardContent({
           totalExpense={data.totalExpense}
           periodNoun={period.noun}
           asOfLabel={asOfEndLabel(data.financial.walletAsOf)}
+          unquotedAssets={data.financial.treasuryUnquoted}
           onConfigure={nav.onConfigureNetAvailable}
           previousMonth={period.kind === 'month' ? data.previousMonth : undefined}
         />

@@ -79,9 +79,12 @@ export function computeHoldings(
  * are never listed: their price is the user's own.
  */
 export function unquotedHoldings(holdings: VaultHolding[]): VaultHolding[] {
-  return holdings.filter(
-    holding => holding.asset.priceSource !== 'manual' && holding.currentUnitPrice <= 0
-  )
+  return holdings.filter(isUnquoted)
+}
+
+/** A live-priced holding with no quote: its value is unknown, not 0. */
+export function isUnquoted(holding: VaultHolding): boolean {
+  return holding.asset.priceSource !== 'manual' && holding.currentUnitPrice <= 0
 }
 
 /** True when any asset in `transactions` is priced by a live quote (a manual one needs no network). */

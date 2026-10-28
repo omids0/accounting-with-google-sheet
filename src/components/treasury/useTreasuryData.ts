@@ -9,33 +9,17 @@ import { fetchTgjuPrices, getCachedTgjuPrices } from '../../services/tgju'
 import {
   getDisplayTgjuPrices,
   getSummableTgjuPrices,
-  vaultPriceKeys,
-  type TgjuPriceTable
+  vaultPriceKeys
 } from '../../services/tgjuCurrency'
 import { ensureTreasurySheet, fetchVaultTransactions } from '../../services/treasury'
 import { getAssetClassLabel, getVaultCatalog } from '../../services/treasuryCatalog'
 import { seedVaultCatalog } from '../../services/treasuryCatalogSheet'
 import { computeHoldings } from '../../services/treasuryHoldings'
-import type { VaultAsset, VaultHolding } from '../../types'
 import { requireAuth } from '../../utils/authGuard'
 import { matchSearch } from '../../utils/search'
 import { handleSheetError } from '../../utils/sheetError'
 import { showError } from '../../utils/toast'
 import { toUserMessage } from '../../utils/userMessage'
-
-/**
- * Holdings valued with `prices`. While there are none (tgju still loading or unreachable) only the
- * manual-priced assets show: they need no quote, and a live-priced one would read as a false 0.
- */
-export function holdingsForPrices(
-  transactions: TransactionWithRow[],
-  prices: TgjuPriceTable | null,
-  catalog: VaultAsset[]
-): VaultHolding[] {
-  const holdings = computeHoldings(transactions, prices ?? {}, catalog)
-
-  return prices ? holdings : holdings.filter(holding => holding.asset.priceSource === 'manual')
-}
 
 export function useTreasuryData(active: boolean, searchQuery: string) {
   const [transactions, setTransactions] = useState<TransactionWithRow[]>([])
@@ -126,7 +110,8 @@ export function useTreasuryData(active: boolean, searchQuery: string) {
   const visibleTransactions = useMemo(() => visible(transactions), [visible, transactions])
 
   const holdings = useMemo(
-    () => holdingsForPrices(visibleTransactions, summablePrices, catalog),
+    // Every holding is listed without prices too; a live-priced one has no price then (`isUnquoted`).
+    () => computeHoldings(visibleTransactions, summablePrices ?? {}, catalog),
     [summablePrices, visibleTransactions, catalog]
   )
 

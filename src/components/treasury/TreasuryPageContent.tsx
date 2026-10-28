@@ -178,8 +178,7 @@ export default function TreasuryPageContent({ active = true }: { active?: boolea
       {hasAnything && (
         <TreasuryClassChips
           counts={classFilter.counts}
-          goalsCount={goals.visibleGoals.length}
-          archivedGoalsCount={goals.archivedGoals.length}
+          goalsCount={goals.goals.length}
           value={chipValue}
           onChange={classFilter.select}
         />

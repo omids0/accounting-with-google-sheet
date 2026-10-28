@@ -26,7 +26,7 @@ vi.mock('./tgju', async importOriginal => ({
 
 import { ensureVaultPrices } from './tgjuCurrency'
 import { setVaultCatalog, BUILTIN_VAULT_ASSETS } from './treasuryCatalog'
-import { holdingsForPrices } from '../components/treasury/useTreasuryData'
+import { computeHoldings, isUnquoted } from './treasuryHoldings'
 import type { VaultAsset, VaultTransaction } from '../types'
 
 const tx = (assetType: string): VaultTransaction => ({
@@ -45,8 +45,6 @@ const manualCoin: VaultAsset = {
   priceSource: 'manual',
   manualPrice: 30_000_000
 }
-
-const row = (assetType: string) => ({ ...tx(assetType), rowNumber: 2 })
 
 describe('ensureVaultPrices', () => {
   beforeEach(() => {
@@ -81,26 +79,22 @@ describe('ensureVaultPrices', () => {
   })
 })
 
-describe('holdingsForPrices (the vault page before tgju answers)', () => {
-  beforeEach(() => {
-    setVaultCatalog([manualCoin, ...BUILTIN_VAULT_ASSETS.filter(asset => asset.id !== 'sekee')])
-  })
-
-  it('shows the manual-priced holdings only while there are no prices', () => {
-    const rows = holdingsForPrices([row('sekee'), row('nim')], null, [
+describe('isUnquoted (a live-priced holding with no quote is unknown, not 0)', () => {
+  const holdings = (prices: Record<string, number>) =>
+    computeHoldings([tx('sekee'), tx('nim')], prices, [
       manualCoin,
       ...BUILTIN_VAULT_ASSETS.filter(asset => asset.id !== 'sekee')
     ])
 
-    expect(rows.map(row => [row.assetType, row.totalValue])).toEqual([['sekee', 30_000_000]])
-  })
-
-  it('shows everything once prices exist', () => {
-    const rows = holdingsForPrices([row('sekee'), row('nim')], { nim: 20_000_000 }, [
-      manualCoin,
-      ...BUILTIN_VAULT_ASSETS.filter(asset => asset.id !== 'sekee')
-    ])
+  it('lists every holding without prices and flags only the live-priced one', () => {
+    const rows = holdings({})
 
     expect(rows.map(row => row.assetType)).toEqual(['sekee', 'nim'])
+    expect(rows.map(isUnquoted)).toEqual([false, true])
+    expect(rows[0].totalValue).toBe(30_000_000)
+  })
+
+  it('flags nothing once the quote exists', () => {
+    expect(holdings({ nim: 20_000_000 }).some(isUnquoted)).toBe(false)
   })
 })
