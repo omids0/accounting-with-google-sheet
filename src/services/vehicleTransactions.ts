@@ -33,10 +33,31 @@ export async function fetchVehicleTransactions(
   ])
 
   const expenseById = new Map(expenseRecords.map(record => [record.id, record]))
-  const linkedFromMeta = new Set(metaItems.map(item => item.expenseRecordId))
   const transactions: VehicleTransactionItem[] = []
+  // One expense record is one payment, however many rows point at it: a service done through
+  // «ثبت انجام سرویس» is written to the history AND the periodic-service row with the same id,
+  // a manual expense can renew a service, a mechanic visit has its history line. First row wins.
+  const counted = new Set<string>()
+  const claim = (expenseRecordId: string): boolean => {
+    if (counted.has(expenseRecordId)) return false
+    counted.add(expenseRecordId)
+
+    return true
+  }
+  // A row whose expense is no longer in the records (a re-done service replaced it, or the record
+  // was deleted) moves no money any more. Not checked while the expense form is not loaded.
+  const isGone = (expenseRecordId: string): boolean =>
+    expenseForm !== undefined && !expenseById.has(expenseRecordId)
+  // The record is what the books say; the copy kept on the service row can be older.
+  const amountOf = (expenseRecordId: string, kept: number): number => {
+    const record = expenseById.get(expenseRecordId)
+
+    return Math.max(0, record ? parseNumeric(record.values.amount) : kept)
+  }
 
   for (const meta of metaItems) {
+    if (meta.expenseRecordId && !claim(meta.expenseRecordId)) continue
+
     const record = expenseById.get(meta.expenseRecordId)
 
     transactions.push({
@@ -55,50 +76,46 @@ export async function fetchVehicleTransactions(
   }
 
   for (const item of history) {
-    if (!item.expenseRecordId || linkedFromMeta.has(item.expenseRecordId)) continue
+    if (!item.expenseRecordId || isGone(item.expenseRecordId) || !claim(item.expenseRecordId)) {
+      continue
+    }
 
     transactions.push({
       id: item.id,
       source: 'history',
       date: item.date,
       title: item.details || KIND_LABELS[item.recordKind] || 'هزینه خودرو',
-      amount: item.amount,
+      amount: amountOf(item.expenseRecordId, item.amount),
       expenseRecordId: item.expenseRecordId,
       mileage: item.mileage
     })
   }
 
   for (const item of periodics) {
-    if (!item.expenseRecordId || item.amount <= 0 || linkedFromMeta.has(item.expenseRecordId)) {
-      continue
-    }
+    if (!item.expenseRecordId || item.amount <= 0 || isGone(item.expenseRecordId)) continue
+    if (!claim(item.expenseRecordId)) continue
 
     transactions.push({
       id: item.id,
       source: 'periodic',
       date: item.createdAt.split(',')[0] ?? '',
       title: `سرویس دوره‌ای — ${item.serviceType}`,
-      amount: item.amount,
+      amount: amountOf(item.expenseRecordId, item.amount),
       expenseRecordId: item.expenseRecordId,
       mileage: item.currentMileage
     })
   }
 
   for (const visit of mechanicVisits) {
-    if (
-      !visit.expenseRecordId ||
-      visit.totalAmount <= 0 ||
-      linkedFromMeta.has(visit.expenseRecordId)
-    ) {
-      continue
-    }
+    if (!visit.expenseRecordId || visit.totalAmount <= 0 || isGone(visit.expenseRecordId)) continue
+    if (!claim(visit.expenseRecordId)) continue
 
     transactions.push({
       id: visit.id,
       source: 'mechanic',
       date: visit.date,
       title: 'مراجعه مکانیکی',
-      amount: visit.totalAmount,
+      amount: amountOf(visit.expenseRecordId, visit.totalAmount),
       expenseRecordId: visit.expenseRecordId,
       mileage: visit.mileage
     })

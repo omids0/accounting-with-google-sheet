@@ -1,6 +1,6 @@
 import { updateVehicleDeadline } from './vehicleDeadlines'
 import { fetchVehicleExpenseMetaByVehicle } from './vehicleExpenseRecords'
-import { createVehicleExpense, deleteVehicleExpense } from './vehicleExpenses'
+import { createVehicleExpense, replaceVehicleExpense } from './vehicleExpenses'
 import { createVehicleHistoryEntry, fetchVehicleHistory, logMileageReading } from './vehicleHistory'
 import { createVehicleMechanicVisit, formatMechanicItemsSummary } from './vehicleMechanicVisits'
 import { updateVehiclePeriodicService } from './vehiclePeriodicServices'
@@ -123,8 +123,6 @@ export async function completePeriodicService(params: {
     isHistorical = false
   } = params
 
-  const wallet = await deleteVehicleExpense(spreadsheetId, previousExpenseId ?? '')
-
   if (!isHistorical && mileage > vehicle.mileage) {
     await syncVehicleMileage(
       spreadsheetId,
@@ -136,17 +134,15 @@ export async function completePeriodicService(params: {
   }
 
   const nextKm = calculateNextKm(mileage, intervalKm)
-  const expenseRecordId =
-    amount > 0
-      ? await createVehicleExpense(spreadsheetId, {
-          title: `${serviceType} — ${vehicle.title}`,
-          amount,
-          subCategory: serviceType,
-          date,
-          note: [brand, location, notes].filter(Boolean).join(' · '),
-          ...wallet
-        })
-      : ''
+  // The earlier expense of this service is edited into the new one: one balance change, not a
+  // refund followed by a new debit.
+  const expenseRecordId = await replaceVehicleExpense(spreadsheetId, previousExpenseId ?? '', {
+    title: `${serviceType} — ${vehicle.title}`,
+    amount,
+    subCategory: serviceType,
+    date,
+    note: [brand, location, notes].filter(Boolean).join(' · ')
+  })
 
   await updateVehiclePeriodicService(spreadsheetId, rowNumber, {
     currentMileage: mileage,

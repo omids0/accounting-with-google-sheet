@@ -93,6 +93,48 @@ export async function createLinkedIncomeRecord(
   return recordId
 }
 
+/** A record taken out of its form by removeLinkedRecordRow: its cells, before the balance is settled. */
+export interface RemovedLinkedRecord {
+  id: string
+  values: Record<string, string>
+  wallet: LinkedRecordWallet
+}
+
+/**
+ * Deletes the record's row and leaves its balance alone: the caller settles the wallet itself, in
+ * one change with whatever replaces the record (see replaceVehicleExpense). Null when no
+ * record has that id.
+ */
+export async function removeLinkedRecordRow(
+  spreadsheetId: string,
+  formType: 'income' | 'expense',
+  recordId: string
+): Promise<RemovedLinkedRecord | null> {
+  if (!recordId) return null
+
+  const form = getFormByType(formType)
+
+  if (!form) return null
+
+  const records = await fetchRecords(spreadsheetId, form)
+
+  const match = records.find(r => r.id === recordId)
+
+  if (!match) return null
+
+  await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
+
+  return {
+    id: match.id,
+    values: match.values,
+    wallet: {
+      walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
+      walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? '',
+      found: true
+    }
+  }
+}
+
 /**
  * Deletes the record and undoes its wallet effect; returns its account and balance switch,
  * so a record re-created in its place keeps both.
@@ -102,33 +144,18 @@ export async function deleteLinkedRecord(
   formType: 'income' | 'expense',
   recordId: string
 ): Promise<LinkedRecordWallet> {
-  const none = { walletAccount: '', walletApply: '', found: false }
+  const removed = await removeLinkedRecordRow(spreadsheetId, formType, recordId)
 
-  if (!recordId) return none
+  if (!removed) return { walletAccount: '', walletApply: '', found: false }
 
-  const form = getFormByType(formType)
-
-  if (!form) return none
-
-  const records = await fetchRecords(spreadsheetId, form)
-
-  const match = records.find(r => r.id === recordId)
-
-  if (!match) return none
-
-  await deleteRecord(spreadsheetId, form, match.rowNumber, match.sheetName)
   await applyWalletChanges(
     spreadsheetId,
-    walletEffectOf(formType, match.values),
+    walletEffectOf(formType, removed.values),
     null,
-    recordLedgerContext(match.values, 'حذف', match.id)
+    recordLedgerContext(removed.values, 'حذف', removed.id)
   )
 
-  return {
-    walletAccount: match.values[WALLET_ACCOUNT_FIELD_ID] ?? '',
-    walletApply: match.values[WALLET_APPLY_FIELD_ID] ?? '',
-    found: true
-  }
+  return removed.wallet
 }
 
 export async function deleteLinkedExpenseRecord(
