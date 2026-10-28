@@ -202,20 +202,39 @@ function otherCopies(
   )
 }
 
-/** Deletes the record and every other copy of it, so an archived copy cannot come back. */
+/**
+ * Deletes the record and every other copy of it, so an archived copy cannot come back. With
+ * `expectedId` the row at `rowNumber` is only deleted while it still holds that id: a retry after
+ * the row is already gone must not remove whatever slid into its place. Resolves with whether any
+ * row was deleted (false: the record was already gone).
+ */
 export async function deleteRecord(
   spreadsheetId: string,
   form: CustomForm,
   rowNumber: number,
-  sheetName: string = form.sheetName
-): Promise<void> {
-  const id = cellToString(getSheetAllRows(spreadsheetId, sheetName)?.[rowNumber - 1]?.[0]).trim()
+  sheetName: string = form.sheetName,
+  expectedId?: string
+): Promise<boolean> {
+  const tab = getSheetAllRows(spreadsheetId, sheetName)
 
-  const copies = id ? otherCopies(spreadsheetId, form, id, { sheetName, rowNumber }) : []
+  const held = cellToString(tab?.[rowNumber - 1]?.[0]).trim()
+
+  const id = expectedId ?? held
+
+  // A tab that is not in the mirror cannot be checked: the row number is trusted as before.
+  const here = expectedId === undefined || !tab || held === expectedId
+
+  const copies = id
+    ? otherCopies(spreadsheetId, form, id, { sheetName, rowNumber: here ? rowNumber : 0 })
+    : []
 
   // Bottom rows first, so a second copy in the same tab keeps its row number.
-  const targets = [{ sheetName, rowNumber }, ...copies].sort((a, b) => b.rowNumber - a.rowNumber)
+  const targets = [...(here ? [{ sheetName, rowNumber }] : []), ...copies].sort(
+    (a, b) => b.rowNumber - a.rowNumber
+  )
 
   for (const target of targets)
     await deleteSheetRow(spreadsheetId, target.sheetName, target.rowNumber)
+
+  return targets.length > 0
 }

@@ -48,7 +48,9 @@ export function useEngagementReminders(): void {
             return m.runNetWorthSnapshot(spreadsheetId)
           }),
           // Round 7, Task I: the weekly zip to Drive, then the 14-day notice.
-          import('../services/driveBackupRun').then(m => m.runAutoBackup(spreadsheetId))
+          import('../services/driveBackupRun').then(m => m.runAutoBackup(spreadsheetId)),
+          // A record delete cut short by a reload: its instalment / check / debt payment is reopened.
+          import('../services/recordLinkHeal').then(m => m.runRecordLinkHeal(spreadsheetId))
         ])
       } catch {
         /* non-blocking background setup */

@@ -6,6 +6,7 @@ import { refreshOpeningBalancesInBackground } from '../../services/openingBalanc
 import { syncLinkedOnRecordDeleted, syncLinkedOnRecordUpdated } from '../../services/recordLinks'
 import {
   applyWalletChanges,
+  prepareWalletChanges,
   recordLedgerContext,
   walletEffectOf
 } from '../../services/recordWallet'
@@ -173,34 +174,61 @@ export async function submitRecordEdit({
 /**
  * The sheet write behind an undoable delete. `record` must carry its current
  * row and tab. Throws on failure so the undo hook can report it and restore.
+ *
+ * Safe to run again for the same record after an interruption (reload, killed app): each step
+ * checks whether it is already done, so a retry finishes the missing parts only. The order makes
+ * every interrupted state recoverable:
+ *  1. every network read first, nothing written yet (a kill here changes nothing);
+ *  2. the refund (balance + «حذف» history line), skipped on a retry once its line exists;
+ *  3. the row delete, skipped when the row is gone. A deleted row therefore always has its refund,
+ *     and while the row is still listed the user (or a retry) can delete it again;
+ *  4. the payments linked to the record (instalment, check, debt…). These re-read the sheet, so
+ *     they are the only long step. If it is cut short, `healOrphanedRecordLinks` finishes it at
+ *     the next start.
  */
 export async function deleteStoredRecord({
   spreadsheetId,
   record,
   form,
-  sharedAnswer = 'one'
+  sharedAnswer = 'one',
+  leaving = false
 }: {
   spreadsheetId: string
   record: StoredRecord
   form: CustomForm
   /** A linked record: its shared copy goes too, or stays unlinked (`SharedDeleteChoiceSheet`). */
   sharedAnswer?: 'both' | 'one'
+  /** The app is being closed or hidden: no balance re-read, so the writes start at once. */
+  leaving?: boolean
 }): Promise<void> {
   const category = String(record.values.category ?? '')
+
+  const refund = await prepareWalletChanges(
+    spreadsheetId,
+    walletEffectOf(form.type, record.values),
+    null,
+    recordLedgerContext(record.values, 'حذف', record.id),
+    { refresh: !leaving }
+  )
 
   if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
     await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
   }
 
-  await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
-  logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
-  if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
-  await applyWalletChanges(
+  await refund()
+
+  const removed = await deleteRecord(
     spreadsheetId,
-    walletEffectOf(form.type, record.values),
-    null,
-    recordLedgerContext(record.values, 'حذف', record.id)
+    form,
+    record.rowNumber,
+    record.sheetName,
+    record.id
   )
+
+  if (removed) {
+    logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
+    if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
+  }
   // The delete is committed: payments of a debt or receivable that pointed at the record go with it.
   await syncLinkedOnRecordDeleted(spreadsheetId, record.id, form.type)
   if (form.type === 'expense' && isBuildingExpenseValues(record.values)) {

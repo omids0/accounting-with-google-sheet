@@ -87,6 +87,36 @@ export function syncLinkedOnRecordDeleted(
   )
 }
 
+/**
+ * Finishes a record delete that was cut short: every payment (instalment, check, debt or receivable
+ * payment) that points at a record `recordExists` does not know is taken off its item, exactly as
+ * `syncLinkedOnRecordDeleted` does when the delete is live. Silent: no toast, and a failure leaves
+ * the item as it was for the next start. Personal books only. Returns how many records it settled.
+ */
+export async function reopenLinksToMissingRecords(
+  spreadsheetId: string,
+  recordExists: (recordId: string) => boolean
+): Promise<number> {
+  if (!isPersonalWorkspace(spreadsheetId)) return 0
+
+  let settled = 0
+
+  for (const adapter of ADAPTERS) {
+    const missing = new Set(adapter.linkedRecordIds(spreadsheetId).filter(id => !recordExists(id)))
+
+    for (const recordId of missing) {
+      try {
+        await adapter.onRecordDeleted(spreadsheetId, recordId)
+        settled += 1
+      } catch {
+        /* still linked: the next start tries again */
+      }
+    }
+  }
+
+  return settled
+}
+
 const amountOf = (values: Record<string, string | number | undefined>) =>
   roundMoney(Math.abs(parseNumeric(String(values.amount ?? ''))))
 

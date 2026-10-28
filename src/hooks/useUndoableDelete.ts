@@ -12,8 +12,11 @@ export interface UndoableDelete {
   id: string
   /** What was deleted, e.g. «چک ۱۲۳۴۵۶»; the toast reads «… حذف شد». */
   label: string
-  /** The real delete (sheet write). Runs only once the undo window closes. */
-  commit: () => Promise<void>
+  /**
+   * The real delete (sheet write). Runs only once the undo window closes. `leaving` is true when
+   * the page is being hidden or closed: skip optional network reads so the writes start at once.
+   */
+  commit: (context?: { leaving: boolean }) => Promise<void>
   /** Extra list updates beyond hiding the row by id. */
   optimisticRemove?: () => void
   /** Undoes `optimisticRemove`; also runs when `commit` fails. */
@@ -36,7 +39,7 @@ export function useUndoableDelete() {
   const [pendingId, setPendingId] = useState<string | null>(null)
   const { pathname } = useLocation()
 
-  const flush = useCallback(async () => {
+  const flush = useCallback(async ({ leaving = false }: { leaving?: boolean } = {}) => {
     const pending = pendingRef.current
 
     if (!pending) return
@@ -45,7 +48,8 @@ export function useUndoableDelete() {
     clearTimeout(pending.timer)
     dismissUndoToast(pending.toastId)
     try {
-      await pending.commit()
+      // Nothing before this call awaits: the commit starts inside the event that closes the page.
+      await pending.commit({ leaving })
     } catch (err) {
       handleSheetError(err, { fallbackMessage: pending.errorMessage ?? 'خطا در حذف' })
       pending.restore?.()
@@ -70,6 +74,9 @@ export function useUndoableDelete() {
 
   const schedule = useCallback(
     async (entry: UndoableDelete) => {
+      // The write path loads this module on demand; load it now, so a commit forced by closing
+      // the page does not wait for a download before its first row is written.
+      void import('../services/sheetSync').catch(() => undefined)
       // One pending delete per list: a second delete writes the first one now.
       await flush()
       entry.optimisticRemove?.()
@@ -86,9 +93,9 @@ export function useUndoableDelete() {
 
   useEffect(() => {
     const onHidden = () => {
-      if (document.visibilityState === 'hidden') void flush()
+      if (document.visibilityState === 'hidden') void flush({ leaving: true })
     }
-    const onLeave = () => void flush()
+    const onLeave = () => void flush({ leaving: true })
 
     document.addEventListener('visibilitychange', onHidden)
     window.addEventListener('pagehide', onLeave)
