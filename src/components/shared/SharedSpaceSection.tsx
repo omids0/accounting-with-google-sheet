@@ -30,6 +30,7 @@ import {
 import { forgetUnreachableShared } from '../../services/sharedForget'
 import { loadSharedNet } from '../../services/sharedLeave'
 import { sharedNameOf } from '../../services/sharedWorkspace'
+import { verifySpreadsheetExists } from '../../services/sheets'
 import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
 import { confirmDelete } from '../../utils/confirmDelete'
 import { showError, showSuccess } from '../../utils/toast'
@@ -80,6 +81,12 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
     let cancelled = false
 
     setMembers(knownSharedMembers(accountId))
+    // Marked unreachable earlier (this session or a past one): the card heals when the file opens.
+    if (isSharedAccessLost(accountId)) {
+      void verifySpreadsheetExists(accountId)
+        .then(readable => readable && !cancelled && clearSharedAccessLost(accountId))
+        .catch(() => undefined)
+    }
     // Offline: the card stays without avatars and role, «باز کردن» still works.
     void loadSharedMembers(accountId)
       .then(async list => {

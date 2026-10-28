@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { isSharedAccessLost } from './sharedAccessLost'
 import { clearInaccessibleSpreadsheet, getInaccessibleSpreadsheet } from './spreadsheetAccess'
 import { resolveSpreadsheetSession } from './spreadsheetSetup'
+import { setWorkspaceType } from './workspace'
 
 const verifySpreadsheetExists = vi.fn<(id: string) => Promise<boolean>>()
 
@@ -65,5 +67,29 @@ describe('resolveSpreadsheetSession when drive.file cannot reach the active shee
       spreadsheetId: ACTIVE.id
     })
     expect(getInaccessibleSpreadsheet()).toBeNull()
+  })
+
+  it('marks a shared account lost, persistently, and clears it when it opens again', async () => {
+    localStorage.clear()
+    setWorkspaceType(ACTIVE.id, 'shared')
+    verifySpreadsheetExists.mockResolvedValue(false)
+    syncSpreadsheetsFromDrive.mockResolvedValue([ACTIVE, APP_MADE])
+    await resolveSpreadsheetSession()
+
+    expect(isSharedAccessLost(ACTIVE.id)).toBe(true)
+
+    verifySpreadsheetExists.mockResolvedValue(true)
+    await resolveSpreadsheetSession()
+
+    expect(isSharedAccessLost(ACTIVE.id)).toBe(false)
+  })
+
+  it('leaves the lost mark alone for a personal sheet', async () => {
+    localStorage.clear()
+    verifySpreadsheetExists.mockResolvedValue(false)
+    syncSpreadsheetsFromDrive.mockResolvedValue([ACTIVE, APP_MADE])
+    await resolveSpreadsheetSession()
+
+    expect(isSharedAccessLost(ACTIVE.id)).toBe(false)
   })
 })

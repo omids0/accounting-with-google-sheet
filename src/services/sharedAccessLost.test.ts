@@ -1,20 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { getDefaultSettings, saveSettings } from './settings'
 import {
   classifySharedFailure,
   clearSharedAccessLost,
+  inaccessibleScreen,
+  isRegisteredSharedLost,
   isSharedAccessLost,
   markSharedAccessLost,
+  SHARED_LOST_KEY_PREFIX,
   SHARED_NO_ACCESS_MESSAGE,
+  sharedNoAccessNamed,
   subscribeSharedAccessLost
 } from './sharedAccessLost'
 import { SheetsApiError } from './sheetsApi'
 import { SPREADSHEET_NO_ACCESS_MESSAGE, SpreadsheetNoAccessError } from './spreadsheetAccess'
+import { setWorkspaceType } from './workspace'
 import { toUserMessage } from '../utils/userMessage'
 
 beforeEach(() => {
-  clearSharedAccessLost('s1')
-  clearSharedAccessLost('s2')
+  localStorage.clear()
 })
 
 describe('classifySharedFailure', () => {
@@ -63,10 +68,39 @@ describe('lost accounts', () => {
 
     expect(isSharedAccessLost('s1')).toBe(true)
     expect(isSharedAccessLost('s2')).toBe(false)
-    expect(isSharedAccessLost()).toBe(true)
+    expect(isRegisteredSharedLost()).toBe(false)
     clearSharedAccessLost('s1')
 
-    expect(isSharedAccessLost()).toBe(false)
+    expect(isSharedAccessLost('s1')).toBe(false)
+  })
+
+  it('survive a reload: the mark is in localStorage under its own key', () => {
+    markSharedAccessLost('s1')
+
+    expect(localStorage.getItem(SHARED_LOST_KEY_PREFIX + 's1')).toBe('true')
+    expect(isSharedAccessLost('s1')).toBe(true)
+    clearSharedAccessLost('s1')
+
+    expect(localStorage.getItem(SHARED_LOST_KEY_PREFIX + 's1')).toBeNull()
+  })
+
+  it('make the guard read the registered shared account only', () => {
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheets: [{ id: 's1', name: 'حسابداری · مشترک خانه', createdAt: '', kind: 'shared' }]
+    })
+    expect(isRegisteredSharedLost()).toBe(false)
+    markSharedAccessLost('s2')
+    expect(isRegisteredSharedLost()).toBe(false)
+    markSharedAccessLost('s1')
+
+    expect(isRegisteredSharedLost()).toBe(true)
+  })
+
+  it('never mark an empty id', () => {
+    markSharedAccessLost('')
+
+    expect(isSharedAccessLost('')).toBe(false)
   })
 
   it('tell listeners only about real changes', () => {
@@ -81,5 +115,31 @@ describe('lost accounts', () => {
     markSharedAccessLost('s1')
 
     expect(listener).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe('the start screen of a sheet the app could not open', () => {
+  it('uses the shared account screen for a registered shared account with a personal sheet', () => {
+    expect(inaccessibleScreen({ id: 's1', kind: 'shared' }, { id: 'p1' })).toBe('shared')
+
+    setWorkspaceType('s9', 'shared')
+
+    expect(inaccessibleScreen({ id: 's9' }, { id: 'p1' })).toBe('shared')
+  })
+
+  it('keeps the usual screen for a personal or building sheet', () => {
+    expect(inaccessibleScreen({ id: 'p2' }, { id: 'p1' })).toBe('default')
+    expect(inaccessibleScreen({ id: 'b1', kind: 'building' }, { id: 'p1' })).toBe('default')
+  })
+
+  it('keeps the usual screen when there is no personal sheet to go to', () => {
+    expect(inaccessibleScreen({ id: 's1', kind: 'shared' }, undefined)).toBe('default')
+  })
+
+  it('names the account in plain words', () => {
+    expect(sharedNoAccessNamed('خرج خانه')).toBe(
+      'به حساب مشترک «خرج خانه» دسترسی نداری. شاید مالک تو را حذف کرده یا این دستگاه اجازه ندارد.'
+    )
+    expect(sharedNoAccessNamed('x')).not.toMatch(/شیت|اپ|Picker|گوگل/)
   })
 })

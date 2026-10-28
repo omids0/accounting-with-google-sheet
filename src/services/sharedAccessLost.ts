@@ -1,5 +1,8 @@
 import { isSpreadsheetAccessDeniedError } from './sheetsApi'
 import { SpreadsheetNoAccessError } from './spreadsheetAccess'
+import { getItem, removeItem, setItem } from './storage'
+import { isSharedEntry, sharedSpreadsheetId } from './workspace'
+import type { SpreadsheetEntry } from '../types'
 
 /**
  * Said when the shared account's file cannot be opened from this device. Google answers the same
@@ -8,6 +11,10 @@ import { SpreadsheetNoAccessError } from './spreadsheetAccess'
  */
 export const SHARED_NO_ACCESS_MESSAGE =
   'به این حساب مشترک دسترسی نداری. شاید مالک تو را حذف کرده یا این دستگاه اجازه ندارد.'
+
+/** The same words for the start screen, which names the account. */
+export const sharedNoAccessNamed = (name: string) =>
+  `به حساب مشترک «${name}» دسترسی نداری. شاید مالک تو را حذف کرده یا این دستگاه اجازه ندارد.`
 
 /** The little badge on the card of an account this device cannot open. */
 export const SHARED_NO_ACCESS_BADGE = 'دسترسی ندارید'
@@ -23,10 +30,13 @@ export function classifySharedFailure(err: unknown): SharedFailure {
 }
 
 /**
- * Accounts found unreachable in this session. In memory on purpose: a reload re-reads the file, so
- * a share the owner gave back is never held against the user.
+ * Per account, on this device: `accounting_shared_lost_<id>`. Listed in `ACCOUNT_KEY_PREFIXES`
+ * (localDataWipe.ts), so signing out clears it. It outlives a reload so a cold start already knows
+ * (the card, the `/shared` redirect); it goes as soon as the file opens again.
  */
-const lost = new Set<string>()
+export const SHARED_LOST_KEY_PREFIX = 'accounting_shared_lost_'
+
+const keyOf = (spreadsheetId: string) => SHARED_LOST_KEY_PREFIX + spreadsheetId
 
 const listeners = new Set<() => void>()
 
@@ -43,16 +53,37 @@ export function subscribeSharedAccessLost(listener: () => void): () => void {
 }
 
 export function markSharedAccessLost(spreadsheetId: string): void {
-  if (!spreadsheetId || lost.has(spreadsheetId)) return
-  lost.add(spreadsheetId)
+  if (!spreadsheetId || isSharedAccessLost(spreadsheetId)) return
+  setItem(keyOf(spreadsheetId), true)
   emit()
 }
 
 export function clearSharedAccessLost(spreadsheetId: string): void {
-  if (lost.delete(spreadsheetId)) emit()
+  if (!isSharedAccessLost(spreadsheetId)) return
+  removeItem(keyOf(spreadsheetId))
+  emit()
 }
 
-/** Whether this account was found unreachable; without an id, whether any account was. */
-export function isSharedAccessLost(spreadsheetId?: string): boolean {
-  return spreadsheetId ? lost.has(spreadsheetId) : lost.size > 0
+/** Whether this account was found unreachable from this device. */
+export function isSharedAccessLost(spreadsheetId: string): boolean {
+  return Boolean(spreadsheetId) && getItem<boolean>(keyOf(spreadsheetId)) === true
+}
+
+/** Whether the shared account registered on this device is the one found unreachable. */
+export function isRegisteredSharedLost(): boolean {
+  const id = sharedSpreadsheetId()
+
+  return id ? isSharedAccessLost(id) : false
+}
+
+/**
+ * Which start screen the sheet the app could not open on startup gets: the shared account's calm
+ * one when it is a registered shared account and a personal sheet can take over, else the usual
+ * sheet-picker notice (personal and building sheets keep their screen).
+ */
+export function inaccessibleScreen(
+  sheet: Pick<SpreadsheetEntry, 'id' | 'kind'>,
+  personal: { id: string } | undefined
+): 'shared' | 'default' {
+  return personal && isSharedEntry(sheet) ? 'shared' : 'default'
 }
