@@ -10,8 +10,14 @@
 //
 //   curl -s localhost:4301/do -d '{"action":"goto","path":"/"}'
 //
+// Two phones, one fake Google (shared account): start mockGoogle.mjs, then give every phone
+//   --backend http://127.0.0.1:4900 --email mother@test.local [--name مادر]
+// Every Google request then goes to that backend as that user, and the user's personal
+// spreadsheet is created there from --data the first time the email is seen (README-shared.md).
+//
 // Actions: goto{path} click{text|selector,nth?} fill{label|selector,value} type{text}
 //   press{key} scroll{dy} back reload wait{ms} shot{name} text eval{js} close
+//   sheet{title,n,spreadsheet?=<id>|active} requests{n} backend{path} (with --backend: GET a /__debug path)
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:http'
@@ -20,6 +26,7 @@ import { pathToFileURL } from 'node:url'
 
 import { chromium } from '@playwright/test'
 
+import { backendGet, ensureBackendUser, installBackendRoutes, seedBackendSession } from './backendClient.mjs'
 import { createSheetsMock, installSheetsMock } from './sheetsMock.mjs'
 
 const args = parseArgs(process.argv.slice(2))
@@ -34,8 +41,9 @@ mkdirSync(dir, { recursive: true })
 const { mockGoogleApis, seedMockAppState } = await import(
   pathToFileURL(resolve(root, 'e2e/helpers/mockAppState.ts')).href
 )
+const backend = args.backend ? String(args.backend).replace(/\/$/, '') : null
 const sheets = args.data ? JSON.parse(readFileSync(resolve(args.data), 'utf8')) : null
-const log = { consoleErrors: [], pageErrors: [], actions: [] }
+const log = { consoleErrors: [], pageErrors: [], actions: [], failed: [] }
 const preview = args.base ? null : await startPreview()
 const browser = await chromium.launch({ channel: 'chrome', headless: !args.headed })
 const context = await browser.newContext({
@@ -54,12 +62,32 @@ page.on('request', r => {
 })
 await mockGoogleApis(page)
 const seed = JSON.parse(readFileSync(resolve(root, 'e2e/helpers/mockAppSeed.json'), 'utf8'))
-const sheetsMock = createSheetsMock(sheets, Object.keys(seed.sheets))
+let sheetsMock = null
+let me = null
 
-await installSheetsMock(page, sheetsMock)
+if (backend) {
+  if (!args.email) fail('--backend needs --email <google account>')
+  const email = String(args.email).trim().toLowerCase()
+  const name = String(args.name ?? email.split('@')[0])
+
+  me = await ensureBackendUser(backend, {
+    email,
+    name,
+    title: `حسابداری · ${name}`,
+    data: sheets ?? {},
+    tabNames: Object.keys(seed.sheets)
+  }).catch(error => fail(error.message))
+  await installBackendRoutes(page, backend, email, (method, path, status) => {
+    if (status >= 400) log.failed.push(`${status} ${method} ${path}`)
+  })
+  await seedBackendSession(page, { seed, user: me, sheets })
+} else {
+  sheetsMock = createSheetsMock(sheets, Object.keys(seed.sheets))
+  await installSheetsMock(page, sheetsMock)
+}
 if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(resolve(args.sms), 'utf8')))
-await seedMockAppState(page)
-if (sheets) await seedSheetStore(page, sheets)
+if (!backend) await seedMockAppState(page)
+if (sheets && !backend) await seedSheetStore(page, sheets)
 // Runs in the page before the app, after the seed: edits localStorage (settings, currency).
 if (args.init) await page.addInitScript({ path: resolve(args.init) })
 // The app takes its theme from the saved settings, not from the browser's colour scheme.
@@ -108,8 +136,14 @@ async function run(cmd) {
   else if (action === 'wait') await page.waitForTimeout(cmd.ms ?? 500)
   else if (action === 'eval') return { ok: true, result: await page.evaluate(cmd.js) }
   else if (action === 'text') return { ok: true, url: page.url(), text: await visibleText() }
-  else if (action === 'sheet')
-    return { ok: true, rows: (sheetsMock.tabs.get(cmd.title)?.rows ?? []).slice(-(cmd.n ?? 20)) }
+  else if (action === 'sheet') {
+    if (!backend) return { ok: true, rows: (sheetsMock.tabs.get(cmd.title)?.rows ?? []).slice(-(cmd.n ?? 20)) }
+    const active = cmd.spreadsheet === 'active' ? await page.evaluate(() => JSON.parse(localStorage.getItem('accounting_settings') ?? '{}').spreadsheetId) : null
+    const query = new URLSearchParams({ spreadsheet: active ?? cmd.spreadsheet ?? me.spreadsheetId, tab: cmd.title ?? '', n: String(cmd.n ?? 20) })
+
+    return { ok: true, ...(await backendGet(backend, `/__debug/state?${query}`)) }
+  } else if (action === 'backend' && backend) return { ok: true, result: await backendGet(backend, cmd.path) }
+  else if (action === 'me') return { ok: true, me, backend }
   else if (action === 'requests') return { ok: true, requests: log.requests.slice(-(cmd.n ?? 15)) }
   else if (action === 'close') return close()
   else if (action === 'shot') {
