@@ -47,7 +47,8 @@ export default function SharedAddSheet({
   initialType = 'expense',
   onClose
 }: SharedAddSheetProps) {
-  const people = shared.pair ?? [shared.me]
+  // Members only: a removed partner stays in the balance but cannot pay or bear a new expense.
+  const people = shared.activePair ?? [shared.me]
   const [type, setType] = useState<RecordType>(initialType)
   const [amount, setAmount] = useState<number | ''>('')
   const [title, setTitle] = useState('')

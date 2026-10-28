@@ -13,11 +13,29 @@ export const SHARED_NAME_PREFIX = 'مشترک '
 export const ONE_SHARED_ACCOUNT_MESSAGE =
   'شما از قبل یک حساب مشترک دارید؛ اگر خاموشش کرده‌اید، از «فضاهای من» دوباره روشنش کنید'
 
+/** «مشترک» as a word of its own, with more after it («مشترک خرج خانه», not «مشترکین»). */
+const PREFIX_WORD = /^مشترک\s+(?=\S)/
+
+/** The sheet label «مشترک <name>»; a name that already starts with «مشترک» is not prefixed again. */
 export function sharedLabel(name: string): string {
-  return SHARED_NAME_PREFIX + name.trim()
+  const trimmed = name.trim()
+
+  return PREFIX_WORD.test(trimmed) ? trimmed : SHARED_NAME_PREFIX + trimmed
 }
 
-/** The account's own name from its sheet label («مشترک <name>» → `<name>`). */
+/** An older doubled label («مشترک مشترک خرج خانه») reads once («مشترک خرج خانه»); others stay. */
+export function collapseSharedPrefix(label: string): string {
+  return label.replace(/^(مشترک\s+)(?:مشترک\s+(?=\S))+/, '$1')
+}
+
+/**
+ * The account's own name from its sheet label («مشترک <name>» → `<name>`); every leading «مشترک»
+ * goes, so a doubled older label gives the same name as a single one.
+ */
 export function sharedNameOf(label: string): string {
-  return label.startsWith(SHARED_NAME_PREFIX) ? label.slice(SHARED_NAME_PREFIX.length) : label
+  let name = label
+
+  while (PREFIX_WORD.test(name)) name = name.replace(PREFIX_WORD, '')
+
+  return name
 }

@@ -270,7 +270,9 @@ describe('sharedBalanceWarning', () => {
     expect(sharedBalanceWarning(net, 'me@x.com', names)).toBe(
       'مینا ۳٬۱۴۰٬۰۰۰ تومان به شما بدهکار است.'
     )
-    expect(sharedBalanceWarning(net, 'mina@x.com', {})).toBe('شما ۳٬۱۴۰٬۰۰۰ تومان به me بدهکارید.')
+    expect(sharedBalanceWarning(net, 'mina@x.com', {})).toBe(
+      'شما ۳٬۱۴۰٬۰۰۰ تومان به شریک بدهکارید.'
+    )
   })
 
   it('is null when the account is settled', () => {

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 
+import { recordDeleteMessage } from './recordDeleteMessage'
 import { deleteStoredRecord } from './recordsMutations'
 import { getFormField, type StoredRecord } from './recordsUtils'
 import {
@@ -13,7 +14,7 @@ import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { hasSharedAccount } from '../../services/workspace'
 import type { CustomForm } from '../../types'
 import { requireSpreadsheetId } from '../../utils/authGuard'
-import { confirmDelete, undoableDeleteMessage } from '../../utils/confirmDelete'
+import { confirmDelete } from '../../utils/confirmDelete'
 import { isLinked } from '../form/sharedFields'
 
 type UseRecordsDeleteOptions = {
@@ -57,7 +58,11 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
       const title = titleFieldId ? String(record.values[titleFieldId] ?? '').trim() : ''
       const label = title ? `تراکنش «${title}»` : 'تراکنش'
 
-      if (!(await confirmDelete({ label, message: undoableDeleteMessage(label) }))) return
+      // The shared copy is asked about in a later window; the first question already says so.
+      const hasSharedCopy = isLinked(record.values) && hasSharedAccount()
+      const message = recordDeleteMessage(label, hasSharedCopy)
+
+      if (!(await confirmDelete({ label, message }))) return
 
       const answer = await ask(record.attachments ?? [])
 
@@ -73,8 +78,7 @@ export function useRecordsDelete({ forms, records, loadRecords }: UseRecordsDele
       }
 
       // A record with a copy in the shared account: from both, or from the personal one only.
-      const sharedAnswer =
-        isLinked(record.values) && hasSharedAccount() ? await askShared(title) : 'one'
+      const sharedAnswer = hasSharedCopy ? await askShared(title) : 'one'
 
       if (!sharedAnswer) return
 
