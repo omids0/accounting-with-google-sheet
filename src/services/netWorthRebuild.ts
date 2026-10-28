@@ -167,6 +167,34 @@ export function earliestNetMonth(monthlyNet: Map<string, MonthlyNetTotals>): str
   return keys[0] ?? null
 }
 
+/** True when an income or expense record is dated after `monthKey` (today's wallet is then not that month's). */
+export function hasFlowAfterMonth(
+  monthlyNet: Map<string, MonthlyNetTotals>,
+  monthKey: string
+): boolean {
+  for (const [key, totals] of monthlyNet) {
+    if (key > monthKey && (totals.income !== 0 || totals.expense !== 0)) return true
+  }
+
+  return false
+}
+
+/**
+ * The rebuilt month-end values of a past month, worked back from today. `null` for a month before
+ * the first income or expense record, where the wallet cannot be told from the opening balance.
+ */
+export function rebuiltMonthEnd(
+  input: NetWorthRebuildInput,
+  monthKey: string,
+  config: NetAvailableConfig
+): Pick<NetWorthSnapshot, 'netWorth' | 'assets' | 'liabilities'> | null {
+  const first = earliestNetMonth(input.monthlyNet)
+
+  if (!first || monthKey < first) return null
+
+  return rebuildMonthValues(input, monthKey, config)
+}
+
 /**
  * A reader of «دارایی قابل اتکا» at the end of any past month, worked back from today for reports
  * that have no stored snapshot (nothing is written anywhere). It is an estimate, and it is blind to
@@ -179,11 +207,5 @@ export function monthEndNetWorthReader(
   input: NetWorthRebuildInput,
   config: NetAvailableConfig
 ): (monthKey: string) => number | null {
-  const first = earliestNetMonth(input.monthlyNet)
-
-  return monthKey => {
-    if (!first || monthKey < first) return null
-
-    return rebuildMonthValues(input, monthKey, config)?.netWorth ?? null
-  }
+  return monthKey => rebuiltMonthEnd(input, monthKey, config)?.netWorth ?? null
 }

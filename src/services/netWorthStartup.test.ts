@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const sheet = vi.hoisted(() => ({ rows: [] as { monthKey: string }[], appended: [] as unknown[] }))
+const rebuild = vi.hoisted(() => ({
+  monthlyNet: new Map<string, { income: number; expense: number }>(),
+  fails: false
+}))
 
 vi.mock('./netWorthSheet', () => ({
   fetchNetWorthSnapshots: vi.fn(async () => sheet.rows),
@@ -14,17 +18,21 @@ vi.mock('./netWorthSheet', () => ({
 vi.mock('./netWorthSources', () => ({
   loadTodayNetWorth: vi.fn(async () => ({ netWorth: 900, assets: 1000, liabilities: 100 })),
   loadNetWorthRecords: vi.fn(async () => ({})),
-  loadRebuildInput: vi.fn(async () => ({
-    walletTotal: 1000,
-    monthlyNet: new Map([['1405-04', { income: 100, expense: 0 }]]),
-    vaultTransactions: [],
-    prices: null,
-    goalsTotal: 0,
-    receivables: [],
-    installmentPlans: [],
-    checks: [],
-    dangs: []
-  }))
+  loadRebuildInput: vi.fn(async () => {
+    if (rebuild.fails) throw new Error('unreadable')
+
+    return {
+      walletTotal: 1000,
+      monthlyNet: rebuild.monthlyNet,
+      vaultTransactions: [],
+      prices: null,
+      goalsTotal: 0,
+      receivables: [],
+      installmentPlans: [],
+      checks: [],
+      dangs: []
+    }
+  })
 }))
 
 vi.mock('./settings', () => ({
@@ -53,6 +61,8 @@ describe('runNetWorthSnapshot', () => {
     localStorage.clear()
     sheet.rows = []
     sheet.appended = []
+    rebuild.monthlyNet = new Map([['1405-04', { income: 100, expense: 0 }]])
+    rebuild.fails = false
   })
 
   it('writes last month once, rebuilds the earlier months once, then stays quiet', async () => {
@@ -92,6 +102,79 @@ describe('runNetWorthSnapshot', () => {
 
     expect(sheet.appended).toEqual([])
     expect(readNetWorthGate('S1').checkedMonth).toBe('1405-07')
+  })
+})
+
+describe('the previous month auto row when the app is first opened late', () => {
+  // 21 Mehr 1405: the month just ended is Shahrivar (1405-06).
+  const gateOpenedBefore = () =>
+    localStorage.setItem(
+      'accounting_net_worth_v1',
+      JSON.stringify({ S1: { checkedMonth: '1405-05', rebuiltAt: 'x' } })
+    )
+  const autoRow = () =>
+    sheet.appended.find(row => (row as { monthKey: string }).monthKey === '1405-06') as
+      | { netWorth: number; assets: number; liabilities: number; source: string }
+      | undefined
+
+  beforeEach(() => {
+    localStorage.clear()
+    sheet.rows = []
+    sheet.appended = []
+    rebuild.fails = false
+    gateOpenedBefore()
+  })
+
+  it('writes the month-end value, not the value of today, when records are dated after the month end', async () => {
+    rebuild.monthlyNet = new Map([
+      ['1405-04', { income: 100, expense: 0 }],
+      ['1405-07', { income: 300, expense: 100 }]
+    ])
+
+    await runNetWorthSnapshot('S1')
+
+    // Wallet today 1000 minus the net 200 of Mehr: 800 at the end of Shahrivar, not today's 900.
+    expect(autoRow()).toEqual(
+      expect.objectContaining({ netWorth: 800, assets: 800, liabilities: 0, source: 'auto' })
+    )
+  })
+
+  it('writes the value of today when no record is dated after the month end', async () => {
+    rebuild.monthlyNet = new Map([['1405-04', { income: 100, expense: 0 }]])
+
+    await runNetWorthSnapshot('S1')
+
+    expect(autoRow()).toEqual(
+      expect.objectContaining({ netWorth: 900, assets: 1000, liabilities: 100, source: 'auto' })
+    )
+  })
+
+  it('writes the value of today when the month is before the first record', async () => {
+    rebuild.monthlyNet = new Map([['1405-07', { income: 300, expense: 100 }]])
+
+    await runNetWorthSnapshot('S1')
+
+    expect(autoRow()).toEqual(expect.objectContaining({ netWorth: 900, source: 'auto' }))
+  })
+
+  it('writes the value of today when the records cannot be read', async () => {
+    rebuild.fails = true
+
+    await runNetWorthSnapshot('S1')
+
+    expect(autoRow()).toEqual(expect.objectContaining({ netWorth: 900, source: 'auto' }))
+  })
+
+  it('does not overwrite a month that already has a row', async () => {
+    rebuild.monthlyNet = new Map([
+      ['1405-04', { income: 100, expense: 0 }],
+      ['1405-07', { income: 300, expense: 100 }]
+    ])
+    sheet.rows = [{ monthKey: '1405-06' }]
+
+    await runNetWorthSnapshot('S1')
+
+    expect(sheet.appended).toEqual([])
   })
 })
 
