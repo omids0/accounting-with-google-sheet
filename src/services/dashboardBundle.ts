@@ -25,10 +25,10 @@ import { loadSavingsGoals, sumGoalBalances } from './savingsGoalsSheet'
 import { getDefaultNetAvailableConfig } from './settings'
 import { withoutSettlementRows } from './sharedSettlement'
 import { fetchRecords } from './sheets'
-import { getSummableTgjuPrices } from './tgjuCurrency'
+import { ensureVaultPrices, getSummableTgjuPrices } from './tgjuCurrency'
 import { fetchVaultTransactions } from './treasury'
 import { loadVaultCatalog } from './treasuryCatalogSheet'
-import { computeHoldings, totalsByClass } from './treasuryHoldings'
+import { computeHoldings, totalsByClass, unquotedHoldings } from './treasuryHoldings'
 import { fetchWalletAccounts } from './wallet'
 import { walletForPeriod } from './walletAtDate'
 import { workspaceTypeOf } from './workspace'
@@ -54,7 +54,8 @@ async function fetchDashboardBundleUncached(
 
   const monthKey = getJalaliMonthKey(range.start)
 
-  const shouldFetchVault = netAvailableConfig.assets.treasury && getSummableTgjuPrices() != null
+  // The vault is read on a cold start too: assets with a manual price need no tgju quote.
+  const shouldFetchVault = netAvailableConfig.assets.treasury
 
   const [
     incomeRecords,
@@ -76,7 +77,12 @@ async function fetchDashboardBundleUncached(
           fetchVaultTransactions(settings.spreadsheetId),
           loadVaultCatalog(settings.spreadsheetId)
         ]).then(
-          ([transactions]) => transactions,
+          // Live-priced assets need tgju's quotes: fetched once, beside the other reads.
+          async ([transactions]) => {
+            await ensureVaultPrices(transactions)
+
+            return transactions
+          },
           () => []
         )
       : Promise.resolve([]),
@@ -139,10 +145,10 @@ async function fetchDashboardBundleUncached(
     getTodayIso()
   )
 
-  // After the catalog loads, so user-added tgju keys and manual prices count.
-  const tgjuPrices = getSummableTgjuPrices()
-
-  const holdings = tgjuPrices ? computeHoldings(vaultTransactions, tgjuPrices) : []
+  // After the catalog loads, so manual prices count. Without quotes (offline) a live-priced asset is
+  // valued 0 and named; manual-priced ones still count.
+  const holdings = computeHoldings(vaultTransactions, getSummableTgjuPrices() ?? {})
+  const treasuryUnquoted = unquotedHoldings(holdings).map(holding => holding.asset.name)
 
   const goalsTotal = sumGoalBalances(goals)
 
@@ -172,6 +178,7 @@ async function fetchDashboardBundleUncached(
     walletAsOf,
     treasuryTotal,
     treasuryByClass,
+    treasuryUnquoted,
     goalsTotal,
     receivablesTotal,
     installmentsDue,

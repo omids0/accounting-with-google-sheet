@@ -8,6 +8,7 @@ import Card from '../ui/Card'
 import {
   assetBreakdownClass,
   assetSettingsHintClass,
+  assetUnquotedNoteClass,
   chartTitleClass,
   dashboardAssetsCardClass,
   dashboardLiabilitiesCardClass
@@ -22,6 +23,17 @@ type BreakdownItem = {
   target: DashboardNavTarget
   /** Parts of this row (the vault per asset class). */
   parts?: { label: string; value: number }[]
+  /** A warning under the row (a value that is only a floor). */
+  note?: string
+}
+
+/** Says which live-priced vault assets are missing from the total because tgju gave no quote. */
+function unquotedNote(names: string[] | undefined): string | undefined {
+  if (!names?.length) return undefined
+
+  const them = names.length > 1 ? 'آن‌ها' : 'آن'
+
+  return `قیمت لحظه‌ای ${names.join('، ')} در دسترس نیست؛ ارزش ${them} حساب نشده`
 }
 
 type DashboardBreakdownSectionProps = {
@@ -66,6 +78,7 @@ function BreakdownCard({
             {item.parts?.map(part => (
               <BreakdownRow key={part.label} label={part.label} value={part.value} sub />
             ))}
+            {item.note && <p className={assetUnquotedNoteClass}>{item.note}</p>}
           </Fragment>
         ))}
         <BreakdownRow label={totalLabel} value={total} total />
@@ -105,7 +118,8 @@ export default function DashboardBreakdownSection({
       parts:
         (financial?.treasuryByClass?.length ?? 0) > 1
           ? financial?.treasuryByClass?.map(({ label, total }) => ({ label, value: total }))
-          : undefined
+          : undefined,
+      note: unquotedNote(financial?.treasuryUnquoted)
     },
     // Inside the vault total, but counted by its own net-available switch.
     ...(goalsTotal > 0

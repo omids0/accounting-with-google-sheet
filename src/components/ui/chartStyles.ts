@@ -89,6 +89,9 @@ export const assetExcludedTagClass = 'ms-1 text-[0.62rem] font-normal text-muted
 export const assetSettingsHintClass =
   'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.64rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
 
+/** Under a breakdown row whose value is a floor (a live quote is missing). */
+export const assetUnquotedNoteClass = 'm-0 text-[0.64rem] leading-[1.6] text-warning'
+
 export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] md:gap-3'
 
 export const statGrid2Class = 'grid-cols-2'

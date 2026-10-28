@@ -51,6 +51,8 @@ export interface FinancialSummary {
   treasuryTotal: number
   /** Vault value per asset class (classes with holdings); sums to `treasuryTotal`. */
   treasuryByClass?: { assetClass: VaultAssetClass; label: string; total: number }[]
+  /** Names of live-priced vault assets with no quote (valued 0, so the vault total is a floor). */
+  treasuryUnquoted?: string[]
   /** Savings goal balances, already inside `treasuryTotal`. */
   goalsTotal?: number
   receivablesTotal: number

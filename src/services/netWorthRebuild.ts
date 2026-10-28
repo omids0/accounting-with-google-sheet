@@ -3,7 +3,7 @@ import { applyNetAvailableConfig } from './dashboardNetAvailable'
 import { totalInstallmentsInRange } from './installmentsCalculations'
 import type { NetWorthSnapshot } from './netWorth'
 import type { MonthlyNetTotals } from './openingBalanceDerive'
-import { computeHoldings } from './treasuryHoldings'
+import { computeHoldings, unquotedHoldings } from './treasuryHoldings'
 import { walletAtMonthEnd } from './walletAtDate'
 import type {
   Check,
@@ -26,7 +26,7 @@ export interface NetWorthRebuildInput {
   /** Income and expense per Jalali month (`aggregateMonthlyNet`). */
   monthlyNet: Map<string, MonthlyNetTotals>
   vaultTransactions: VaultTransaction[]
-  /** tgju prices; `null` leaves the vault out (as the dashboard does without prices). */
+  /** tgju prices; `null` (not loaded) values manual-priced assets only, live-priced ones count 0. */
   prices: Record<string, number> | null
   catalog?: VaultAsset[]
   /** Goal balances today. */
@@ -48,16 +48,27 @@ function stampDay(stamp: string): string {
   return normalizeSheetDate(stamp.split(/[،,s]/)[0])
 }
 
-/** Vault holdings bought by `endIso`, valued at today's prices. */
-function vaultAt(input: NetWorthRebuildInput, endIso: string): number {
-  if (!input.prices) return 0
-
+/** Vault holdings bought by `endIso`, valued at today's prices (manual prices alone when there are none). */
+function vaultHoldingsAt(input: NetWorthRebuildInput, endIso: string) {
   const held = input.vaultTransactions.filter(tx => isOnOrBefore(tx.transactionDate, endIso))
 
-  return computeHoldings(held, input.prices, input.catalog).reduce(
-    (sum, holding) => sum + holding.totalValue,
-    0
-  )
+  return computeHoldings(held, input.prices ?? {}, input.catalog)
+}
+
+function vaultAt(input: NetWorthRebuildInput, endIso: string): number {
+  return vaultHoldingsAt(input, endIso).reduce((sum, holding) => sum + holding.totalValue, 0)
+}
+
+/**
+ * Names of the live-priced vault assets held at the end of `monthKey` that have no quote. Such a month
+ * is valued without them, so a value stored for it would be too low.
+ */
+export function unquotedVaultAssetsAt(input: NetWorthRebuildInput, monthKey: string): string[] {
+  const range = getJalaliMonthRange(monthKey)
+
+  return range
+    ? unquotedHoldings(vaultHoldingsAt(input, range.end)).map(holding => holding.asset.name)
+    : []
 }
 
 /** What borrowers still owed at `endIso`: lent by then, minus repayments by then. */
@@ -201,11 +212,15 @@ export function rebuiltMonthEnd(
  * whatever is not an income or expense record: vault buys and sells, goal transfers, manual balance
  * edits and bank-SMS balance overwrites move the wallet without a record, while a record without an
  * account counts as income or expense although it never touched the wallet. `null` for a month
- * before the first record, where the wallet cannot be told from the opening balance.
+ * before the first record, where the wallet cannot be told from the opening balance, and for a month
+ * holding a live-priced vault asset with no quote (a value without it would be too low to show).
  */
 export function monthEndNetWorthReader(
   input: NetWorthRebuildInput,
   config: NetAvailableConfig
 ): (monthKey: string) => number | null {
-  return monthKey => rebuiltMonthEnd(input, monthKey, config)?.netWorth ?? null
+  return monthKey =>
+    unquotedVaultAssetsAt(input, monthKey).length > 0
+      ? null
+      : rebuiltMonthEnd(input, monthKey, config)?.netWorth ?? null
 }
