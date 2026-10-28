@@ -45,7 +45,9 @@ export function validateTransferDraft(draft: TransferDraft): TransferErrors {
  */
 export function transferOverdraftHint(
   draft: Pick<TransferDraft, 'fromAccountId' | 'amount'>,
-  accounts: Pick<WalletAccount, 'id' | 'balance'>[]
+  accounts: Pick<WalletAccount, 'id' | 'balance'>[],
+  /** What takes the money, as «بعد از …» reads: «انتقال», or «واریز» for a savings goal. */
+  action = 'انتقال'
 ): string {
   const amount = Number(draft.amount)
   const from = accounts.find(account => account.id === draft.fromAccountId)
@@ -54,7 +56,7 @@ export function transferOverdraftHint(
 
   return `موجودی حساب مبدأ (${formatMoney(
     from.balance
-  )}) از این مبلغ کمتر است؛ بعد از انتقال منفی می‌شود`
+  )}) از این مبلغ کمتر است؛ بعد از ${action} منفی می‌شود`
 }
 
 /** A transfer needs two accounts to move money between. */

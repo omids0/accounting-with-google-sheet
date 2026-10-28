@@ -11,6 +11,11 @@ export type ConfirmDeleteOptions = {
   message: string
   /** An extra choice, e.g. «رکوردهای مالی مرتبط هم حذف شوند». */
   checkbox?: { label: string; defaultChecked?: boolean }
+  /**
+   * For a question that is not a delete («‹نام› بایگانی شود؟»): the whole title, the confirm button
+   * and the tone. Without it the dialog is the delete question.
+   */
+  wording?: { title: string; confirmLabel: string; tone?: 'default' | 'danger' }
 }
 
 export type ConfirmDeleteResult = {

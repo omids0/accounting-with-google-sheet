@@ -1,4 +1,32 @@
+import {
+  AMOUNT_DIGITS_ONLY_MESSAGE,
+  AMOUNT_NEGATIVE_MESSAGE,
+  amountInputRejection
+} from '../utils/amountInput'
 import { normalizeDigits } from '../utils/normalizeDigits'
+
+/** Above this many units (coins, shares, grams) the field asks the user to look again. */
+export const LARGE_QUANTITY = 100_000
+
+/** Shown, without blocking, under a quantity above `LARGE_QUANTITY`. */
+export const LARGE_QUANTITY_HINT = 'مقدار خیلی زیاد است؛ یک بار دیگر بررسی کن'
+
+/**
+ * The notice for what `sanitizeQuantityText` drops without a word: a minus sign («-۳» is kept
+ * as 3) or scientific notation («1e3» is read as 13). Same texts as the money field.
+ */
+export function quantityInputNotice(raw: string): string {
+  const rejected = amountInputRejection(raw)
+
+  if (rejected === 'negative') return AMOUNT_NEGATIVE_MESSAGE
+
+  return rejected === 'digits' ? AMOUNT_DIGITS_ONLY_MESSAGE : ''
+}
+
+/** A non-blocking note for an absurd quantity; '' otherwise. */
+export function largeQuantityHint(qty: number | ''): string {
+  return typeof qty === 'number' && qty > LARGE_QUANTITY ? LARGE_QUANTITY_HINT : ''
+}
 
 /**
  * Keeps what the user typed as a quantity with at most `decimals` fraction digits
