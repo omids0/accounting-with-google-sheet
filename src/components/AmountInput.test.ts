@@ -3,7 +3,12 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import AmountInput from './AmountInput'
-import { AMOUNT_INTEGER_ONLY_HINT, AMOUNT_MAX_MESSAGE } from '../utils/amountInput'
+import {
+  AMOUNT_DIGITS_ONLY_MESSAGE,
+  AMOUNT_INTEGER_ONLY_HINT,
+  AMOUNT_MAX_MESSAGE,
+  AMOUNT_NEGATIVE_MESSAGE
+} from '../utils/amountInput'
 
 const setNativeValue = (input: HTMLInputElement, value: string) => {
   Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set?.call(input, value)
@@ -158,5 +163,96 @@ describe('AmountInput typed key by key', () => {
     edit(() => '12.5')
     expect(latest).toBe(12)
     expect(notice()).toBe(AMOUNT_INTEGER_ONLY_HINT)
+  })
+})
+
+describe('AmountInput minus sign and exponent notices', () => {
+  let container: HTMLDivElement
+
+  let root: Root
+
+  let latest: number | ''
+
+  const Harness = () => {
+    const [value, setValue] = useState<number | ''>('')
+
+    latest = value
+
+    return createElement(AmountInput, { value, onChange: setValue })
+  }
+
+  const input = () => container.querySelector('input') as HTMLInputElement
+
+  const notice = () => container.querySelector('p[role]')?.textContent ?? ''
+
+  const edit = (change: (shown: string) => string) => {
+    act(() => {
+      setNativeValue(input(), change(input().value))
+      input().dispatchEvent(new Event('input', { bubbles: true }))
+    })
+  }
+
+  beforeEach(() => {
+    ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
+    container = document.createElement('div')
+    document.body.appendChild(container)
+    root = createRoot(container)
+    act(() => root.render(createElement(Harness)))
+  })
+
+  afterEach(() => {
+    act(() => root.unmount())
+    container.remove()
+  })
+
+  it.each(['-500', '−500', '–500'])('keeps 500 and says the minus is not accepted for %s', raw => {
+    edit(() => raw)
+
+    expect(latest).toBe(500)
+    expect(notice()).toBe(AMOUNT_NEGATIVE_MESSAGE)
+  })
+
+  it('clears the minus notice on the next valid keystroke', () => {
+    edit(() => '-')
+    expect(latest).toBe('')
+    expect(notice()).toBe(AMOUNT_NEGATIVE_MESSAGE)
+
+    edit(shown => shown + '5')
+    expect(latest).toBe(5)
+    expect(notice()).toBe('')
+  })
+
+  it('clears the minus notice on blur', () => {
+    edit(() => '-5')
+    expect(notice()).toBe(AMOUNT_NEGATIVE_MESSAGE)
+
+    act(() => {
+      input().dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
+    })
+    expect(notice()).toBe('')
+  })
+
+  it('shows the minus notice even after a decimal point cut the number', () => {
+    edit(() => '12.5')
+    edit(shown => shown + '-')
+
+    expect(latest).toBe(12)
+    expect(notice()).toBe(AMOUNT_NEGATIVE_MESSAGE)
+  })
+
+  it('tells a pasted 1e9 that only digits are allowed', () => {
+    edit(() => '1e9')
+
+    expect(notice()).toBe(AMOUNT_DIGITS_ONLY_MESSAGE)
+    expect(AMOUNT_DIGITS_ONLY_MESSAGE).toBe('فقط رقم وارد کنید')
+  })
+
+  it('tells a typed e after a digit the same, and clears on the next digit', () => {
+    edit(() => '1')
+    edit(shown => shown + 'e')
+    expect(notice()).toBe(AMOUNT_DIGITS_ONLY_MESSAGE)
+
+    edit(shown => shown + '2')
+    expect(notice()).toBe('')
   })
 })

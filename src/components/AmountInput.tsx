@@ -15,7 +15,14 @@ import {
   amountWordsClass
 } from './ui/formControlStyles'
 import { formErrorClass, formHintClass } from './ui/formStyles'
-import { amountIntegerHint, amountMaxMessage, parseAmountInput } from '../utils/amountInput'
+import {
+  AMOUNT_DIGITS_ONLY_MESSAGE,
+  AMOUNT_NEGATIVE_MESSAGE,
+  amountInputRejection,
+  amountIntegerHint,
+  amountMaxMessage,
+  parseAmountInput
+} from '../utils/amountInput'
 import { cn } from '../utils/cn'
 import { formatPersianNumber, getCurrencySymbol } from '../utils/formatMoney'
 import { numberToPersianWords } from '../utils/numberToWords'
@@ -66,29 +73,35 @@ export default function AmountInput({
 
   const suffix = unit ?? getCurrencySymbol()
 
-  const [notice, setNotice] = useState<'integer' | 'max' | null>(null)
+  const [notice, setNotice] = useState<'integer' | 'max' | 'negative' | 'digits' | null>(null)
 
   const noticeId = useId()
 
-  const noticeText =
-    notice === 'max'
-      ? amountMaxMessage(unit ? undefined : suffix)
-      : amountIntegerHint(unit ? undefined : suffix)
+  const noticeTexts = {
+    max: amountMaxMessage(unit ? undefined : suffix),
+    integer: amountIntegerHint(unit ? undefined : suffix),
+    negative: AMOUNT_NEGATIVE_MESSAGE,
+    digits: AMOUNT_DIGITS_ONLY_MESSAGE
+  }
+
+  const noticeText = notice ? noticeTexts[notice] : ''
 
   const describedBy = notice ? `${noticeId} ${ariaDescribedBy ?? ''}`.trim() : ariaDescribedBy
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { digits, cutDecimal, overMax } = parseAmountInput(e.target.value, { previous: display })
+    // A minus sign or «1e9» is dropped, so the user is told instead of saving another amount.
+    const rejected = amountInputRejection(e.target.value)
 
     // After a decimal point every later digit is ignored until the user deletes something,
     // clears the field or leaves it: each keystroke is its own change event.
     if (afterDecimalRef.current && (digits.length > raw.length || digits === raw)) {
-      setNotice('integer')
+      setNotice(rejected ?? 'integer')
 
       return
     }
     afterDecimalRef.current = cutDecimal && !overMax
-    setNotice(overMax ? 'max' : cutDecimal ? 'integer' : null)
+    setNotice(overMax ? 'max' : rejected ?? (cutDecimal ? 'integer' : null))
     // Past the maximum the field keeps what it had; it stops taking digits.
     if (overMax) return
     onChange(digits === '' ? '' : Number(digits))

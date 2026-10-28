@@ -76,6 +76,9 @@ export default function FormModal({
   const submitLock = useSubmitLock()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    // Always, and before the lock: a click the lock swallows would otherwise submit the form
+    // natively and navigate the page (to «/wallet?»). Callers need not prevent it themselves.
+    event.preventDefault()
     event.stopPropagation()
     const form = event.currentTarget
 
