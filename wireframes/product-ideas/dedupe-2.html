@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>قبلاً ثبت شده؟ - دوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- prettier-ignore -->
+    <style>
+.v{padding:8px 10px;border-radius:8px;font-weight:700}
+.v.ok{background:var(--success-soft);color:var(--success)}
+.v.warn{background:var(--warn-soft);color:var(--warn)}
+.btn{width:100%}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.opt{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+.opt:last-of-type{border-bottom:0}
+.opt > span{flex:1}
+.opt.undone{opacity:.55}
+.undo{font:inherit;font-size:.75rem;border:1px solid var(--primary);background:transparent;color:var(--primary);border-radius:999px;padding:0 10px;cursor:pointer}
+.seg button{font:inherit;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 12px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--primary);color:#fff}
+</style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>قبلاً ثبت شده؟ (۲)</h1>
+      <p class="lead">
+        ادامهٔ همین موضوع: کارت بازبینی پیامک، و تنظیمات حساسیت با امکان برگرداندن ادغام. قانون
+        ثابت: اپ همیشه می‌پرسد و هیچ ادغامی بدون تأیید کاربر انجام نمی‌شود. امروز: ۶ آبان ۱۴۰۵.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+        <a href="dedupe.html">← ایده‌های «هشدار هر منبع» و «ثبت همه» در صفحهٔ اول</a>
+      </p>
+      <div class="tabs">
+        <button data-idea="idea-c">ج) کارت بازبینی پیامک</button>
+        <button data-idea="idea-d">د) تنظیم حساسیت و واگرد</button>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>بازبینی پیامک‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>پیامک بانک ملی <span class="chip warn">تکراری؟</span></h3>
+                <div class="num pos">واریز ۳۸٬۰۰۰٬۰۰۰</div>
+                <small>۶ آبان · حساب ملی</small>
+                <div class="btns">
+                  <button class="btn">ثبت</button><button class="btn ghost">نادیده</button>
+                </div>
+              </div>
+              <small class="muted"
+                >نشان «تکراری؟» هست ولی نمی‌گوید با کدام رکورد و چه باید کرد.</small
+              >
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده</div>
+            <div class="app-bar"><span>بازبینی پیامک‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>پیامک بانک ملی <span class="chip warn">تکراری؟</span></h3>
+                <div class="num pos">واریز ۳۸٬۰۰۰٬۰۰۰</div>
+                <small>۶ آبان · حساب ملی</small>
+                <div class="card new" data-idea="ایدهٔ ج" style="margin-top: 14px">
+                  <small class="muted">رکورد مشابه ثبت‌شده:</small>
+                  <div class="row"><span>کمک‌هزینه · ۵ آبان</span><b>۳۸٬۰۰۰٬۰۰۰</b></div>
+                  <span class="chip">ثبت دستی</span>
+                </div>
+                <div class="btns new" data-idea="ایدهٔ ج" style="margin-top: 14px">
+                  <button class="btn" data-demo="toggle" data-target="after">یکی کن</button>
+                  <button class="btn ghost">جدا ثبت کن</button>
+                </div>
+                <button class="btn ghost" style="margin-top: 6px">نادیده</button>
+              </div>
+              <div class="card" id="after" hidden>
+                <h3>بعد از یکی‌کردن <span class="chip ok">یک رکورد</span></h3>
+                <div class="row"><span>کمک‌هزینه · ۵ آبان</span><b>۳۸٬۰۰۰٬۰۰۰</b></div>
+                <span class="chip">پیامک + دستی</span>
+                <small class="muted"
+                  >دسته و یادداشت دستی می‌ماند، متن پیامک هم کنارش نگه داشته می‌شود.</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ج: کارت بازبینی پیامک با ادغام</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              نشان «تکراری؟» می‌گوید مشکلی هست ولی نه با کدام رکورد؛ کاربر یا ثبت می‌کند و تکرار
+              می‌شود یا نادیده می‌گیرد و خبر از دست می‌رود.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              همان کارت، رکورد ثبت‌شدهٔ مشابه را درون خودش نشان بدهد. دکمهٔ «یکی کن» یک رکورد با
+              منبع «پیامک + دستی» می‌سازد و هر دو منبع را نگه می‌دارد؛ «جدا ثبت کن» و «نادیده» هم
+              هست. دکمهٔ «یکی کن» را بزن.
+            </dd>
+            <dt>چرا</dt>
+            <dd>پیامک ورودی مکمل ثبت دستی است، نه رقیب آن؛ کاربر باید بدون جست‌وجو تصمیم بگیرد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span> (ادغام و نگه‌داشتن دو منبع کار اصلی است)</dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              کارت بازبینی پیامک‌ها. منطق ادغام باید در مسیر مشترک نوشتن رکورد باشد تا برای تکرار و
+              ثبت دستی هم به کار بیاید، نه فقط پیامک.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: نشان «تکراری؟» روی کارت. تازه: لینک رکورد مشابه و ادغام. اگر «منبع» تک‌مقدار
+              است، پشتیبانی از دو منبع تغییر ساختار شیت است؛ جایگزین ارزان‌تر: ستون «شناسهٔ پیامک»
+              کنار رکورد دستی. این تصمیم با مالک است.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              مثبت کاذب: دو واریز هم‌مبلغ در دو روز نزدیک ممکن است واقعاً دو درآمد باشد. پس «جدا ثبت
+              کن» به‌اندازهٔ «یکی کن» دیده شود و ادغام خودکار نداشته باشیم.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>قفل برنامه</span><input type="checkbox" checked /></div>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <span>یادآوری سررسیدها</span><input type="checkbox" checked />
+                </div>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <span>خواندن پیامک بانکی</span><input type="checkbox" checked />
+                </div>
+              </div>
+              <small class="muted">هشدار تکراری امروز تنظیم ندارد.</small>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده</div>
+            <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ د">
+                <div class="row"><b>بررسی تکراری بودن</b><input type="checkbox" checked /></div>
+                <div class="seg">
+                  <button data-s="exact">دقیق</button>
+                  <button data-s="mid" class="on">متوسط</button>
+                </div>
+                <small class="muted" id="sDesc"
+                  >مبلغ و دسته یکسان در دو روز قبل و بعد؛ هشدار بیشتر.</small
+                >
+              </div>
+              <div class="card new" data-idea="ایدهٔ د">
+                <h3>موارد یکی‌شدهٔ این ماه <span class="chip">سه مورد</span></h3>
+                <div class="opt">
+                  <span
+                    >کمک‌هزینه ۶ آبان <b>۳۸٬۰۰۰٬۰۰۰</b><br /><small class="muted"
+                      >پیامک + دستی</small
+                    ></span
+                  ><button class="undo">برگردان</button>
+                </div>
+                <div class="opt">
+                  <span
+                    >اینترنت ۴ آبان <b>۴۵۰٬۰۰۰</b><br /><small class="muted"
+                      >تکرار + پیامک</small
+                    ></span
+                  ><button class="undo">برگردان</button>
+                </div>
+                <div class="opt">
+                  <span
+                    >قبض برق ۳ آبان <b>۸۰۰٬۰۰۰</b><br /><small class="muted"
+                      >پیامک + دستی</small
+                    ></span
+                  ><button class="undo">برگردان</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ د: تنظیم حساسیت و واگرد</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              یک حساسیت برای همه جواب نمی‌دهد: کسی که روزی سه قهوه می‌خرد از هشدار زیاد خسته می‌شود،
+              و کسی که یک ادغام اشتباه کرده راهی برای پشیمانی ندارد.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              کلید «بررسی تکراری بودن» با دو حالت: «دقیق» (مبلغ، دسته و روز یکسان) و «متوسط» (مبلغ و
+              دسته یکسان در ±۲ روز). زیرش فهرست «موارد یکی‌شدهٔ ماه» با دکمهٔ «برگردان» که رکورد را
+              به دو رکورد اولیه برمی‌گرداند. هر دو را امتحان کن.
+            </dd>
+            <dt>چرا</dt>
+            <dd>کنترل و اعتماد: کاربر می‌داند هر ادغام جایی ثبت می‌شود و می‌تواند برگردد.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip ok">کوچک</span> تا <span class="chip warn">متوسط</span> (تنظیم کوچک
+              است؛ واگرد باید رکوردهای اولیه را نگه دارد)
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>تنظیمات، بخش «ثبت و پیامک»؛ فهرست یکی‌شده‌ها زیر همان بخش.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: هیچ تنظیم یا ردپایی برای تکراری‌ها نیست. تازه: یک مقدار تنظیم (خاموش، دقیق،
+              متوسط) و ثبت «چه چیزی یکی شد» برای برگردان.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              واگرد ناقص اعتماد را می‌شکند؛ باید دقیقاً دو رکورد اولیه را بسازد. حالت خاموش هم هشدار
+              فرم دستی را غیرفعال می‌کند و باید توضیح داده شود.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <!-- prettier-ignore -->
+    <script>
+;(() => {
+  const desc = { exact: 'مبلغ، دسته و روز یکسان؛ هشدار کمتر.', mid: 'مبلغ و دسته یکسان در دو روز قبل و بعد؛ هشدار بیشتر.' }
+  const segs = [...document.querySelectorAll('[data-s]')]
+  segs.forEach(b => (b.onclick = () => { segs.forEach(x => x.classList.toggle('on', x === b)); document.getElementById('sDesc').textContent = desc[b.dataset.s] }))
+  document.querySelectorAll('.undo').forEach(b => (b.onclick = () => { b.closest('.opt').classList.add('undone'); b.textContent = 'دو رکورد شد'; b.disabled = true }))
+})()
+</script>
+  </body>
+</html>
