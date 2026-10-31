@@ -6,35 +6,7 @@
     <title>فروشنده و مدیر ساختمان، بخش سوم</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .card .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-      .ln {
-        fill: none;
-        stroke: var(--primary);
-        stroke-width: 2;
-      }
-      .z {
-        stroke: var(--muted);
-        stroke-dasharray: 3;
-      }
-      svg text {
-        fill: var(--muted);
-        font-size: 9px;
-      }
-      input[type='range'] {
-        width: 100%;
-        accent-color: var(--primary);
-      }
-    </style>
+    <link rel="stylesheet" href="shop-building-3.css" />
   </head>
   <body>
     <div class="top">
@@ -72,7 +44,10 @@
               <div class="card new" data-idea="ایدهٔ ۵">
                 <h3>تا امروز ۶۱٪ بودجه خرج شده</h3>
                 <div class="bar"><i style="width: 61%"></i></div>
-                <small>جمع ۲۱۸٬۸۰۰٬۰۰۰ از ۳۶۰٬۰۰۰٬۰۰۰؛ ۶۱٪ سال هم گذشته، پس در مسیر است.</small>
+                <small
+                  >جمع ۲۱۸٬۸۰۰٬۰۰۰ از ۳۶۰٬۰۰۰٬۰۰۰؛ ۶۱٪ سال هم گذشته، ولی آسانسور ۹۲٪ شده و تعمیر
+                  بزرگ دی (۶۰ میلیون) هنوز در پیش است.</small
+                >
                 <div class="row">
                   <span>نظافت و نگهبان</span><small>خرج ۷۲ از ۱۴۴ میلیون</small
                   ><span class="chip ok">۵۰٪</span>
@@ -82,7 +57,7 @@
                   ><span class="chip ok">۶۰٪</span>
                 </div>
                 <div class="row">
-                  <span>آسانسور (تعمیر ۶٬۰۰۰٬۰۰۰)</span><small>خرج ۵۵ از ۶۰ میلیون</small
+                  <span>آسانسور (قرارداد و سرویس)</span><small>خرج ۵۵ از ۶۰ میلیون</small
                   ><span class="chip bad">۹۲٪</span>
                 </div>
                 <div class="row">
@@ -96,7 +71,9 @@
               </div>
               <div class="card">
                 <small
-                  >هزینه‌های واقعی هر نوع از قبل در صفحهٔ هزینه‌ها هست؛ ستون بودجه تازه است.</small
+                  >تعمیر بزرگ آسانسور در دی (۶۰ میلیون) داخل این ۳۶۰ میلیون نیست؛ با آن هزینهٔ سال
+                  ۴۲۰ میلیون می‌شود. هزینه‌های واقعی هر نوع از قبل در صفحهٔ هزینه‌ها هست؛ ستون بودجه
+                  تازه است.</small
                 >
               </div>
             </div>
@@ -109,7 +86,9 @@
                 <div class="row"><span>موجودی صندوق امروز</span><b>۱۲۵٬۲۶۵٬۰۰۰</b></div>
               </div>
               <div class="card new" data-idea="ایدهٔ ۵">
-                <h3 id="note" class="neg">صندوق تا مرداد کم می‌آورد (کمبود حدود ۲۷ میلیون)</h3>
+                <h3 id="note" class="neg">
+                  <span class="est">برآورد</span> صندوق تا مرداد کم می‌آورد (کمبود حدود ۲۷ میلیون)
+                </h3>
                 <svg
                   viewBox="0 0 300 130"
                   width="100%"
@@ -122,6 +101,8 @@
                     class="ln"
                     points="289,20 258,23 227,62 196,65 165,68 134,71 103,87.8 72,90.8 41,93.8 10,111.2"
                   />
+                  <text x="22" y="92" text-anchor="middle">۰</text>
+                  <text x="238" y="14" text-anchor="middle">۱۲۵ میلیون</text>
                   <text x="289" y="124" text-anchor="middle">آبان</text>
                   <text x="227" y="124" text-anchor="middle">دی</text>
                   <text x="165" y="124" text-anchor="middle">اسفند</text>
@@ -129,8 +110,9 @@
                   <text x="20" y="124" text-anchor="middle">مرداد</text>
                 </svg>
                 <small
-                  >دی: تعمیر آسانسور ۶۰ میلیون؛ اردیبهشت: نما ۲۳ میلیون؛ مرداد: بیمه ۲۴ میلیون. با
-                  فرض ۹۰٪ وصول شارژ.</small
+                  >دی: تعمیر بزرگ آسانسور ۶۰ میلیون؛ اردیبهشت: نما ۲۳ میلیون؛ مرداد: بیمه ۲۴ میلیون.
+                  با فرض ۹۰٪ وصول شارژ (برآورد). معوقات شارژ ۱۹٬۲۰۰٬۰۰۰ (بخش د) در این پیش‌بینی
+                  نیست.</small
                 >
                 <label
                   >شارژ هر واحد، <b id="val">۲٬۴۰۰٬۰۰۰</b>
@@ -213,27 +195,6 @@
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      const base = [125, 120, 55, 50, 45, 40, 12, 7, 2, -27],
-        fa = n => n.toLocaleString('fa-IR')
-      const $ = id => document.getElementById(id)
-      const draw = () => {
-        const c = +$('chg').value,
-          e = ((c - 2400000) * 12) / 1e6
-        const v = base.map((b, i) => b + e * i),
-          low = Math.min(...v),
-          bad = low < 0
-        $('line').setAttribute(
-          'points',
-          v.map((x, i) => `${289 - 31 * i},${Math.min(120, 95 - x * 0.6).toFixed(1)}`).join(' ')
-        )
-        $('note').textContent = bad
-          ? `صندوق تا مرداد کم می‌آورد (کمبود حدود ${fa(Math.round(-low))} میلیون)`
-          : 'صندوق تا مرداد کم نمی‌آورد'
-        $('note').className = bad ? 'neg' : 'pos'
-        $('val').textContent = fa(c)
-      }
-      $('chg').addEventListener('input', draw)
-    </script>
+    <script src="shop-building-3.js"></script>
   </body>
 </html>

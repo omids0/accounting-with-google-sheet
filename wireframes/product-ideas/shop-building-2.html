@@ -6,50 +6,7 @@
     <title>فروشنده و مدیر ساختمان، بخش دوم</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .sheet {
-        border-top: 3px solid var(--primary);
-        background: var(--surface);
-        padding: 10px 12px;
-        display: grid;
-        gap: 6px;
-      }
-      .field {
-        display: flex;
-        justify-content: space-between;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px 8px;
-      }
-      .field input {
-        width: 64px;
-        font: inherit;
-        text-align: center;
-        background: var(--bg);
-        color: var(--text);
-      }
-      .card .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .dim {
-        opacity: 0.45;
-        display: grid;
-        gap: 8px;
-      }
-      .msg {
-        background: var(--primary-soft);
-        border-radius: 10px;
-        padding: 8px;
-        font-size: 0.82rem;
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="shop-building-2.css" />
   </head>
   <body>
     <div class="top">
@@ -82,52 +39,97 @@
         <div class="phones">
           <div class="phone">
             <div class="cap">بستن صندوق، شمارش اسکناس</div>
-            <div class="app-bar"><span>حساب نقدی</span><span>☰</span></div>
+            <div class="app-bar"><span>صندوق مغازه</span><span>☰</span></div>
             <div class="screen">
               <div class="card">
-                <div class="row"><span>موجودی صندوق طبق اپ</span><b>۶٬۸۵۰٬۰۰۰</b></div>
+                <div class="row"><span>موجودی صندوق مغازه طبق اپ</span><b>۶٬۸۵۰٬۰۰۰</b></div>
+                <small class="muted">جدا از حساب «نقدی» شخصی (۴۱۰٬۰۰۰).</small>
               </div>
               <div class="card new" data-idea="ایدهٔ ۳">
                 <h3>شمارش امشب، تعداد هر اسکناس</h3>
                 <label class="field"
                   ><span>اسکناس ۱۰۰٬۰۰۰</span
-                  ><input type="number" min="0" value="48" data-v="100000"
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    value="۴۸"
+                    data-v="100000"
                 /></label>
                 <label class="field"
-                  ><span>اسکناس ۵۰٬۰۰۰</span><input type="number" min="0" value="28" data-v="50000"
+                  ><span>اسکناس ۵۰٬۰۰۰</span
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    value="۲۸"
+                    data-v="50000"
                 /></label>
                 <label class="field"
-                  ><span>اسکناس ۲۰٬۰۰۰</span><input type="number" min="0" value="18" data-v="20000"
+                  ><span>اسکناس ۲۰٬۰۰۰</span
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    value="۱۸"
+                    data-v="20000"
                 /></label>
                 <label class="field"
-                  ><span>اسکناس ۱۰٬۰۰۰</span><input type="number" min="0" value="15" data-v="10000"
+                  ><span>اسکناس ۱۰٬۰۰۰</span
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    value="۱۵"
+                    data-v="10000"
                 /></label>
                 <label class="field"
-                  ><span>اسکناس ۵٬۰۰۰</span><input type="number" min="0" value="16" data-v="5000"
+                  ><span>اسکناس ۵٬۰۰۰</span
+                  ><input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    value="۱۶"
+                    data-v="5000"
                 /></label>
                 <div class="row"><span>جمع شمارش</span><b id="cnt">۶٬۷۹۰٬۰۰۰</b></div>
                 <div class="row">
                   <span>اختلاف با اپ</span><b id="diff" class="neg">کسری ۶۰٬۰۰۰</b>
                 </div>
-                <small>عددها را عوض کن تا اختلاف همان لحظه عوض شود.</small>
+                <small>تعداد را عوض کن تا اختلاف و برگهٔ ثبت همان لحظه عوض شود.</small>
+                <small class="neg" id="err" hidden>فقط عدد صحیح ۰ تا ۹٬۹۹۹ پذیرفته می‌شود.</small>
+                <small class="neg" id="zero" hidden>همهٔ شمارش‌ها صفر است.</small>
               </div>
             </div>
           </div>
           <div class="phone">
             <div class="cap">برگهٔ ثبت اختلاف</div>
-            <div class="app-bar"><span>حساب نقدی</span><span>✕</span></div>
+            <div class="app-bar"><span>صندوق مغازه</span><span>✕</span></div>
             <div class="screen">
-              <div class="dim"><div class="card">شمارش ۶٬۷۹۰٬۰۰۰، طبق اپ ۶٬۸۵۰٬۰۰۰</div></div>
-              <div class="sheet new" data-idea="ایدهٔ ۳">
-                <h3 class="neg">کسری ۶۰٬۰۰۰ تومان</h3>
-                <div class="field"><span>دلیل</span><b>کسری شمارش شبانه</b></div>
+              <div class="dim">
+                <div class="card" id="dim">شمارش ۶٬۷۹۰٬۰۰۰، طبق اپ ۶٬۸۵۰٬۰۰۰</div>
+              </div>
+              <div class="sheet new" data-idea="ایدهٔ ۳" id="sheet">
+                <h3 class="neg" id="sTitle">کسری ۶۰٬۰۰۰ تومان</h3>
+                <div class="field"><span>دلیل</span><b id="sReason">کسری شمارش شبانه</b></div>
                 <small>این تعدیل ساخته می‌شود، نه خرج معمولی:</small>
                 <div class="card">
-                  <div class="row"><b>تعدیل صندوق، ۶ آبان ۱۴۰۵</b><b class="neg">−۶۰٬۰۰۰</b></div>
+                  <div class="row">
+                    <b>تعدیل صندوق، ۶ آبان ۱۴۰۵</b
+                    ><b class="neg" id="sAdj"><bdi dir="ltr">−۶۰٬۰۰۰</bdi></b>
+                  </div>
                 </div>
-                <small>موجودی اپ می‌شود ۶٬۷۹۰٬۰۰۰ و با کشو یکی است.</small>
-                <button class="btn">ثبت اختلاف</button>
-                <button class="btn ghost">بعداً دوباره می‌شمارم</button>
+                <small id="sAfter">موجودی اپ می‌شود ۶٬۷۹۰٬۰۰۰ و با کشو یکی است.</small>
+                <button
+                  class="btn"
+                  id="save"
+                  data-demo-msg="تعدیل صندوق با مبلغ اختلاف همین شمارش ثبت می‌شود"
+                >
+                  ثبت اختلاف
+                </button>
+                <button class="btn ghost" data-demo-msg="برگه بسته می‌شود و هیچ تعدیلی ثبت نمی‌شود">
+                  بعداً دوباره می‌شمارم
+                </button>
               </div>
             </div>
           </div>
@@ -167,26 +169,40 @@
             <div class="app-bar"><span>شارژ آبان</span><span>☰</span></div>
             <div class="screen">
               <div class="card">
-                <h3>هر واحد ۲٬۴۰۰٬۰۰۰، هفت واحد پرداخت کرده</h3>
+                <h3>شارژ آبان: هر واحد ۲٬۴۰۰٬۰۰۰</h3>
+                <small class="muted">۷ واحد از ۱۲ واحد پرداخت کرده‌اند؛ ۵ واحد بدهکارند.</small>
                 <label class="row"
-                  ><span>واحد ۳، آقای احمدی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                  ><span>واحد ۳، آقای احمدی<br /><small>۱ ماه: آبان</small></span
+                  ><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
                 >
                 <label class="row"
-                  ><span>واحد ۵، خانم موسوی</span><b class="neg">۴٬۸۰۰٬۰۰۰</b></label
+                  ><span>واحد ۵، خانم موسوی<br /><small>۲ ماه: مهر و آبان</small></span
+                  ><b class="neg">۴٬۸۰۰٬۰۰۰</b></label
                 >
                 <label class="row"
-                  ><span>واحد ۷، آقای تقوی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                  ><span>واحد ۷، آقای تقوی<br /><small>۱ ماه: آبان</small></span
+                  ><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
                 >
                 <label class="row"
-                  ><span>واحد ۹، خانم فرهادی</span><b class="neg">۷٬۲۰۰٬۰۰۰</b></label
+                  ><span>واحد ۹، خانم فرهادی<br /><small>۳ ماه: شهریور تا آبان</small></span
+                  ><b class="neg">۷٬۲۰۰٬۰۰۰</b></label
                 >
                 <label class="row"
-                  ><span>واحد ۱۱، آقای نجفی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                  ><span>واحد ۱۱، آقای نجفی<br /><small>۱ ماه: آبان</small></span
+                  ><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
                 >
               </div>
               <div class="card new" data-idea="ایدهٔ ۴">
-                <div class="row"><span>پنج واحد، جمع بدهی</span><b>۱۹٬۲۰۰٬۰۰۰</b></div>
-                <button class="btn">یادآوری به پنج واحد</button>
+                <div class="row">
+                  <span>پنج واحد، جمع بدهی (۲٫۴ + ۴٫۸ + ۲٫۴ + ۷٫۲ + ۲٫۴ میلیون)</span
+                  ><b>۱۹٬۲۰۰٬۰۰۰</b>
+                </div>
+                <button
+                  class="btn"
+                  data-demo-msg="برای هر پنج واحد متن آمادهٔ یادآوری ساخته می‌شود"
+                >
+                  یادآوری به پنج واحد
+                </button>
               </div>
             </div>
           </div>
@@ -208,28 +224,39 @@
                   واریز کرده‌اید، تصویر رسید را بفرستید. ممنون از همکاری شما.
                 </div>
                 <small>متن را می‌شود پیش از ارسال ویرایش کرد.</small>
-                <button class="btn ghost">باز کردن در برنامهٔ پیام</button>
+                <button class="btn ghost" data-demo-msg="برنامهٔ پیام با متن آماده باز می‌شود">
+                  باز کردن در برنامهٔ پیام
+                </button>
               </div>
             </div>
           </div>
           <div class="phone">
-            <div class="cap">رسید پرداخت</div>
+            <div class="cap">رسید پرداخت (نمونه: وقتی واحد ۵ بدهی را بدهد)</div>
             <div class="app-bar"><span>رسید</span><span>✕</span></div>
             <div class="screen">
               <div class="card">
                 <h3>رسید پرداخت شارژ</h3>
-                <div class="row"><span>واحد ۵، خانم موسوی</span><b>۴٬۸۰۰٬۰۰۰</b></div>
+                <div class="row">
+                  <span>واحد ۵، خانم موسوی<br /><small>۲ ماه: مهر و آبان</small></span
+                  ><b>۴٬۸۰۰٬۰۰۰</b>
+                </div>
                 <div class="row"><span>تاریخ پرداخت</span><b>۶ آبان ۱۴۰۵</b></div>
                 <div class="row"><span>مانده بعد از پرداخت</span><b class="pos">صفر</b></div>
                 <div class="row">
-                  <button class="btn ghost">اشتراک رسید</button
-                  ><button class="btn ghost">تصویر</button>
+                  <button class="btn ghost" data-demo-msg="برگهٔ اشتراک‌گذاری رسید باز می‌شود">
+                    اشتراک رسید</button
+                  ><button class="btn ghost" data-demo-msg="رسید به‌صورت تصویر ذخیره می‌شود">
+                    تصویر
+                  </button>
                 </div>
               </div>
               <div class="card new" data-idea="ایدهٔ ۴">
                 <div class="row">
-                  <button class="btn ghost">فایل PDF</button
-                  ><button class="btn">ارسال برای ساکن</button>
+                  <button class="btn ghost" data-demo-msg="رسید به‌صورت PDF ساخته می‌شود">
+                    فایل PDF</button
+                  ><button class="btn" data-demo-msg="رسید با متن تشکر برای ساکن فرستاده می‌شود">
+                    ارسال برای ساکن
+                  </button>
                 </div>
                 <small>رسید همان لحظه با متن آمادهٔ تشکر فرستاده می‌شود.</small>
               </div>
@@ -266,26 +293,6 @@
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      const $ = id => document.getElementById(id),
-        fa = n => n.toLocaleString('fa-IR')
-      const inputs = [...document.querySelectorAll('[data-v]')]
-      const calc = () => {
-        const total = inputs.reduce((sum, i) => sum + i.value * i.dataset.v, 0),
-          d = total - 6850000
-        $('cnt').textContent = fa(total)
-        $('diff').textContent = d ? (d < 0 ? 'کسری ' : 'اضافه ') + fa(Math.abs(d)) : 'بدون اختلاف'
-        $('diff').className = d ? 'neg' : 'pos'
-      }
-      inputs.forEach(i => i.addEventListener('input', calc))
-      const btns = [...document.querySelectorAll('[data-ch]')]
-      btns.forEach(b =>
-        b.addEventListener('click', () => {
-          $('m-sms').hidden = b.dataset.ch !== 'sms'
-          $('m-wa').hidden = b.dataset.ch !== 'wa'
-          btns.forEach(x => x.classList.toggle('ghost', x !== b))
-        })
-      )
-    </script>
+    <script src="shop-building-2.js"></script>
   </body>
 </html>

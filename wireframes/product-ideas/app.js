@@ -86,6 +86,6 @@
       .replace(/[۰-۹]/g, d => String(faDigits.indexOf(d)))
       .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632))
 
-  window.faNum = n => String(n).replace(/d/g, d => faDigits[d])
+  window.faNum = n => String(n).replace(/\d/g, d => faDigits[d])
   window.enNum = toEn
 })()
