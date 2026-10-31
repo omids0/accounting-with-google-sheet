@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>اعتماد و حسابرسی (۲)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      .sheet {
+        border-radius: 16px 16px 0 0;
+        margin: 0 -12px -12px;
+      }
+      .acts {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        flex-wrap: wrap;
+      }
+      button.chip {
+        font: inherit;
+        border: 0;
+        cursor: pointer;
+      }
+      button.chip.on {
+        background: var(--primary);
+        color: #fff;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.66rem;
+      }
+      th,
+      td {
+        border-bottom: 1px dashed var(--border);
+        padding: 2px;
+        text-align: start;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>اعتماد و حسابرسی (۲): بررسی یکپارچگی و خروجی حسابدار</h1>
+      <p class="lead">
+        موجودی ثبت‌شده باید با گردش حساب بخواند، و حسابدار باید فایل مرتبی بگیرد. بستن ماه و ردپا در
+        <a href="trust.html">صفحهٔ اول</a> هستند.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+      </p>
+      <div class="tabs">
+        <a class="chip" href="trust.html#idea-a">الف) بستن ماه (صفحهٔ اول) ←</a>
+        <a class="chip" href="trust.html#idea-b">ب) ردپای حسابرسی (صفحهٔ اول) ←</a>
+        <button data-idea="idea-c">ج) بررسی یکپارچگی</button>
+        <button data-idea="idea-d">د) خروجی برای حسابدار</button>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">تنظیمات و کارت تطبیق کیف پول</div>
+            <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>قفل برنامه</span><span class="chip">روشن</span></div>
+                <div class="row">
+                  <span>خروجی CSV</span><span class="muted">همهٔ فهرست‌ها</span>
+                </div>
+                <div class="row">
+                  <span>گزارش همگام‌سازی</span><span class="muted">آخرین: امروز</span>
+                </div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <h3>سلامت داده‌ها</h3>
+                <button class="btn">بررسی یکپارچگی</button>
+                <small>آخرین بررسی: هرگز</small>
+              </div>
+              <div class="card">
+                <h3>اختلاف کیف پول</h3>
+                <small
+                  >هر حساب را جدا می‌توان دستی تطبیق داد؛ سنجش یک‌جا برای همهٔ حساب‌ها نیست.</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">نتیجهٔ بررسی</div>
+            <div class="app-bar"><span>بررسی یکپارچگی</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card sheet new" data-idea="ایدهٔ ۳" style="margin-top: 40px">
+                <h3>موجودی ثبت‌شده با مانده از روی گردش حساب</h3>
+                <div class="row">
+                  <span>ملی<br /><small>ثبت‌شده ۶۴٬۱۷۱٬۲۵۰ · از گردش ۶۴٬۱۷۱٬۲۵۰</small></span
+                  ><span class="chip ok">یکی است</span>
+                </div>
+                <div class="row">
+                  <span>ملت<br /><small>ثبت‌شده ۷۱٬۱۵۰٬۰۰۰ · از گردش ۷۱٬۶۵۰٬۰۰۰</small></span
+                  ><span class="chip warn">۵۰۰٬۰۰۰ تفاوت</span>
+                </div>
+                <div class="row">
+                  <span>نقدی<br /><small>ثبت‌شده ۴۱۰٬۰۰۰ · از گردش ۴۱۰٬۰۰۰</small></span
+                  ><span class="chip ok">یکی است</span>
+                </div>
+                <small
+                  >احتمالاً واریز ۵۰۰٬۰۰۰ تومانی ۲ آبان فقط در گردش حساب ملت دیده شده است.</small
+                >
+                <div class="acts">
+                  <button class="btn" data-demo="toggle" data-target="fix-c">
+                    اصلاح با ردیف تطبیق
+                  </button>
+                </div>
+                <p id="fix-c" class="pos" hidden>
+                  ردیف تطبیق ۵۰۰٬۰۰۰ تومانی به ملت اضافه شد و در ردپا دیده می‌شود.
+                </p>
+                <small
+                  >هیچ ردیفی بی‌صدا بازنویسی نمی‌شود؛ فقط یک ردیف «تطبیق» دیدنی اضافه می‌شود.</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ج) بررسی یکپارچگی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              موجودی ثبت‌شده با جمع واقعی گردش ممکن است بی‌خبر از هم فاصله بگیرد (پیامک جاافتاده،
+              ویرایش دستی).
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              یک دکمه در تنظیمات که برای هر حساب دو عدد را کنار هم می‌گذارد و در صورت تفاوت فقط ردیف
+              تطبیق می‌سازد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>خطا زود پیدا می‌شود، پیش از آنکه به گزارش ماه و ترازِ خانواده برسد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: کارت تطبیق کیف پول و ردیاب کیف پول هست. تازه: دکمهٔ سلامت داده‌ها و برگهٔ
+              مقایسهٔ همهٔ حساب‌ها.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>موجودی اولیهٔ هر حساب و همهٔ گردش آن؛ ردیف نوع «تطبیق» با ارجاع به همین بررسی.</dd>
+            <dt>خطر</dt>
+            <dd>
+              بازمحاسبهٔ همهٔ گردش روی گوشی کند است: باید تکه‌تکه و در پس‌زمینه انجام شود. تفاوت
+              ممکن است از موجودی اولیهٔ غلط باشد، نه از گردش.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز: خروجی CSV</div>
+            <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>خروجی CSV</h3>
+                <small>یک فایل از هر فهرست، بدون انتخاب بازه یا ستون.</small>
+                <button class="btn ghost">دریافت فایل</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: برگهٔ خروجی</div>
+            <div class="app-bar"><span>خروجی برای حسابدار</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card sheet new seg" data-idea="ایدهٔ ۴" style="margin-top: 20px">
+                <h3>بازه</h3>
+                <div class="acts">
+                  <button class="chip on">مهر ۱۴۰۵</button><button class="chip">سه ماه</button
+                  ><button class="chip">سال ۱۴۰۵</button>
+                </div>
+                <h3 style="margin-top: 8px">قالب</h3>
+                <div class="acts">
+                  <button class="chip on">اکسل</button><button class="chip">فایل CSV</button>
+                </div>
+                <h3 style="margin-top: 8px">پیش‌نمایش ستون‌ها</h3>
+                <table>
+                  <tr>
+                    <th>تاریخ</th>
+                    <th>شرح</th>
+                    <th>بدهکار</th>
+                    <th>بستانکار</th>
+                    <th>حساب</th>
+                    <th>دسته</th>
+                  </tr>
+                  <tr>
+                    <td>۱ مهر</td>
+                    <td>حقوق</td>
+                    <td>۰</td>
+                    <td>۶۵٬۰۰۰٬۰۰۰</td>
+                    <td>ملی</td>
+                    <td>درآمد</td>
+                  </tr>
+                  <tr>
+                    <td>۵ مهر</td>
+                    <td>اجاره</td>
+                    <td>۱۸٬۰۰۰٬۰۰۰</td>
+                    <td>۰</td>
+                    <td>ملت</td>
+                    <td>مسکن</td>
+                  </tr>
+                  <tr>
+                    <td>۱۰ مهر</td>
+                    <td>قسط لپ‌تاپ</td>
+                    <td>۳٬۱۰۰٬۰۰۰</td>
+                    <td>۰</td>
+                    <td>ملی</td>
+                    <td>اقساط</td>
+                  </tr>
+                </table>
+                <div class="acts"><button class="btn">اشتراک‌گذاری فایل</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: فایل آماده شد</div>
+            <div class="app-bar"><span>خروجی برای حسابدار</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <h3>فایل آماده شد</h3>
+                <div class="row">
+                  <span>حسابداری مهر ۱۴۰۵ · قالب اکسل</span><span class="chip">۱۸ کیلوبایت</span>
+                </div>
+                <small>۱۴۲ ردیف، از ۱ تا ۳۰ مهر. اصلاحیه‌ها با ستون «ارجاع» دیده می‌شوند.</small>
+                <div class="acts">
+                  <button class="chip">ایمیل</button><button class="chip">تلگرام</button
+                  ><button class="chip">ذخیره</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>د) خروجی برای حسابدار</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>حسابدار فایل تاریخ‌دار و ستون‌دار می‌خواهد، نه خروجی خام همهٔ فهرست‌ها.</dd>
+            <dt>ایده</dt>
+            <dd>
+              برگه‌ای برای انتخاب بازه و قالب (Excel یا CSV)، پیش‌نمایش ستون‌ها و دکمهٔ
+              اشتراک‌گذاری.
+            </dd>
+            <dt>چرا</dt>
+            <dd>پایان سال و مالیات بی‌دردسر می‌شود و نیازی به بازنویسی دستی نیست.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip warn">متوسط</span> CSV کوچک است؛ Excel واقعی کتابخانه می‌خواهد.
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: خروجی CSV در تنظیمات. تازه: برگهٔ بازه و قالب، ستون‌های حسابداری، اشتراک‌گذاری.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>همان ردیف‌های موجود، با نگاشت به بدهکار و بستانکار و نام حساب و دسته.</dd>
+            <dt>خطر</dt>
+            <dd>
+              کدگذاری فارسی در Excel و ستون تاریخ جلالی (متن، نه عدد). تعریف بدهکار و بستانکار برای
+              حساب شخصی باید روشن باشد. حجم کتابخانه در سقف حجم اپ.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      document.querySelectorAll('.seg .acts').forEach(group => {
+        group.addEventListener('click', e => {
+          if (e.target.tagName !== 'BUTTON') return
+          group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target))
+        })
+      })
+    </script>
+  </body>
+</html>
