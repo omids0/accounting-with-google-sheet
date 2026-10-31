@@ -6,37 +6,7 @@
     <title>اعتماد و حسابرسی</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      [hidden] {
-        display: none !important;
-      }
-      .sheet {
-        border-radius: 16px 16px 0 0;
-        margin: 0 -12px -12px;
-      }
-      .acts {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      button.chip {
-        font: inherit;
-        border: 0;
-        cursor: pointer;
-        white-space: nowrap;
-      }
-      .chip.new::after {
-        top: -17px;
-        font-size: 0.6rem;
-      }
-      .card:has(.chip.new) .row {
-        padding-top: 14px;
-      }
-      button.chip.on {
-        background: var(--primary);
-        color: var(--on-primary);
-      }
-    </style>
+    <link rel="stylesheet" href="trust.css" />
   </head>
   <body>
     <div class="top">
@@ -74,19 +44,23 @@
               <div class="card">
                 <h3>دارایی قابل اتکا</h3>
                 <div class="num">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+                <small>مجموع حساب‌ها ۱۳۵٬۷۳۱٬۲۵۰ منهای بدهی‌های این دوره ۱۹٬۴۵۰٬۰۰۰</small>
               </div>
               <div class="card new" data-idea="ایدهٔ ۱">
-                <h3>مهر ۱۴۰۵ آماده بسته شدن است</h3>
+                <h3>مهر ۱۴۰۵ تقریباً آماده بسته شدن است</h3>
                 <div class="row">
                   <span>پیامک‌های معوق</span><span class="chip ok">۰ مورد</span>
                 </div>
                 <div class="row">
-                  <span>اختلاف کیف پول</span><span class="chip ok">۰ تومان</span>
+                  <span>اختلاف کیف پول (ملت)</span><span class="chip warn">۵۰۰٬۰۰۰ تومان</span>
                 </div>
                 <div class="row">
                   <span>چک‌های بدون وضعیت</span><span class="chip warn">۱ مورد</span>
                 </div>
-                <small>مورد باز فقط هشدار است و جلوی بستن را نمی‌گیرد.</small>
+                <small
+                  >مورد باز فقط هشدار است و جلوی بستن را نمی‌گیرد؛ جزئیات اختلاف در «بررسی یکپارچگی»
+                  (ج).</small
+                >
               </div>
               <div class="card sheet new" data-idea="ایدهٔ ۱">
                 <h3>بستن مهر ۱۴۰۵؟</h3>
@@ -95,7 +69,11 @@
                   وقت بخواهی ماه را دوباره باز می‌کنی.</small
                 >
                 <div class="acts">
-                  <button class="btn">بستن ماه</button><button class="btn ghost">فعلاً نه</button>
+                  <button class="btn" data-demo-msg="مهر ۱۴۰۵ بسته می‌شود و ۱۴۲ ردیف قفل می‌شود">
+                    بستن ماه</button
+                  ><button class="btn ghost" data-demo-msg="برگه بسته می‌شود و ماه باز می‌ماند">
+                    فعلاً نه
+                  </button>
                 </div>
               </div>
             </div>
@@ -108,14 +86,14 @@
                 <div class="row">
                   <span
                     >اجارهٔ خانه · ۵ مهر
-                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                    <span class="chip new" data-idea="ایدهٔ ۱">ماه بسته</span></span
                   >
                   <b>۱۸٬۰۰۰٬۰۰۰</b>
                 </div>
                 <div class="row">
                   <span
                     >قسط لپ‌تاپ · ۱۰ مهر
-                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                    <span class="chip new" data-idea="ایدهٔ ۱">ماه بسته</span></span
                   >
                   <b>۳٬۱۰۰٬۰۰۰</b>
                 </div>
@@ -130,7 +108,14 @@
                   و یک ردیف اصلاحیه به تاریخ امروز (۶ آبان) ثبت می‌شود.</small
                 >
                 <div class="acts">
-                  <button class="btn">ثبت اصلاحیه</button><button class="btn ghost">انصراف</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="ردیف اصلاحیهٔ ۱٬۰۰۰٬۰۰۰ به تاریخ امروز ثبت می‌شود و ردیف اصلی دست‌نخورده می‌ماند"
+                  >
+                    ثبت اصلاحیه</button
+                  ><button class="btn ghost" data-demo-msg="برگه بسته می‌شود و چیزی تغییر نمی‌کند">
+                    انصراف
+                  </button>
                 </div>
               </div>
             </div>
@@ -143,7 +128,7 @@
                 <div class="row">
                   <span
                     >اجارهٔ خانه · ۵ مهر
-                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                    <span class="chip new" data-idea="ایدهٔ ۱">ماه بسته</span></span
                   >
                   <b>۱۸٬۰۰۰٬۰۰۰</b>
                 </div>
@@ -216,19 +201,39 @@
                 </div>
                 <div class="row" data-by="me">
                   <span>۵ آبان ۱۹:۱۰ · مادر · مبلغ از ۸۰۰٬۰۰۰ به ۸۵۰٬۰۰۰</span
-                  ><button class="chip warn">بازگردانی</button>
+                  ><button
+                    class="chip warn"
+                    data-demo-msg="ورودی تازهٔ بازگردانی در ردپا ثبت می‌شود و چیزی پاک نمی‌شود"
+                  >
+                    بازگردانی
+                  </button>
                 </div>
                 <div class="row" data-by="partner">
                   <span>۴ آبان ۲۱:۴۵ · قسط لپ‌تاپ · شریک آن را پرداخت‌شده کرد</span
-                  ><button class="chip warn">بازگردانی</button>
+                  ><button
+                    class="chip warn"
+                    data-demo-msg="ورودی تازهٔ بازگردانی در ردپا ثبت می‌شود و چیزی پاک نمی‌شود"
+                  >
+                    بازگردانی
+                  </button>
                 </div>
                 <div class="row" data-by="me del">
                   <span>۳ آبان ۰۹:۲۰ · کارت هدیه · حذف شد</span
-                  ><button class="chip bad">بازگردانی حذف</button>
+                  ><button
+                    class="chip bad"
+                    data-demo-msg="ردیف حذف‌شده با ورودی تازه در ردپا برمی‌گردد"
+                  >
+                    بازگردانی حذف
+                  </button>
                 </div>
                 <div class="row" data-by="partner del">
                   <span>۲۸ مهر ۱۱:۰۰ · کارمزد کارت · شریک آن را حذف کرد</span
-                  ><button class="chip bad">بازگردانی حذف</button>
+                  ><button
+                    class="chip bad"
+                    data-demo-msg="ردیف حذف‌شده با ورودی تازه در ردپا برمی‌گردد"
+                  >
+                    بازگردانی حذف
+                  </button>
                 </div>
               </div>
             </div>
@@ -246,7 +251,14 @@
                   ثبت می‌شود.</small
                 >
                 <div class="acts">
-                  <button class="btn">بازگردانی</button><button class="btn ghost">انصراف</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="ورودی تازهٔ بازگردانی در ردپا ثبت می‌شود و چیزی پاک نمی‌شود"
+                  >
+                    بازگردانی</button
+                  ><button class="btn ghost" data-demo-msg="برگه بسته می‌شود و چیزی تغییر نمی‌کند">
+                    انصراف
+                  </button>
                 </div>
               </div>
             </div>
@@ -283,17 +295,6 @@
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      const fs = [...document.querySelectorAll('[data-f]')]
-      const rows = [...document.querySelectorAll('[data-by]')]
-      fs.forEach(b =>
-        b.addEventListener('click', () => {
-          fs.forEach(x => x.classList.toggle('on', x === b))
-          rows.forEach(r => {
-            r.hidden = b.dataset.f !== 'all' && !r.dataset.by.split(' ').includes(b.dataset.f)
-          })
-        })
-      )
-    </script>
+    <script src="trust.js"></script>
   </body>
 </html>
