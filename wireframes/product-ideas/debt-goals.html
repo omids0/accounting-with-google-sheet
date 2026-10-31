@@ -30,7 +30,6 @@
         align-items: flex-end;
         gap: 2px;
         height: 48px;
-        direction: ltr;
       }
       .strip i {
         flex: 1;
@@ -90,6 +89,10 @@
                 <h3>کارت اعتباری</h3>
                 <small>مانده ۵٬۲۰۰٬۰۰۰ · حداقل پرداخت ۸۰۰٬۰۰۰</small>
               </div>
+              <div class="card">
+                <h3>قرض خانوادگی</h3>
+                <small>مانده ۶٬۸۰۰٬۰۰۰ · بدون قسط و بدون سود (در برنامه‌ریز نیست)</small>
+              </div>
               <small>هر بدهی جداست؛ ترتیب و مبلغ اضافه پیشنهاد نمی‌شود.</small>
             </div>
           </div>
@@ -104,9 +107,12 @@
                 </div>
                 <label for="rg">مبلغ اضافه ماهانه: <b id="exv"></b> تومان</label>
                 <input id="rg" type="range" min="0" max="10000000" step="500000" value="2000000" />
-                <div class="row"><span>پایان همهٔ بدهی‌ها</span><b id="po"></b></div>
                 <div class="row">
-                  <span>کل سود <span class="chip warn">تخمین</span></span
+                  <span>پایان بدهی‌های قسطی <span class="chip warn">برآورد</span></span
+                  ><b id="po"></b>
+                </div>
+                <div class="row">
+                  <span>کل سود <span class="chip warn">برآورد</span></span
                   ><b id="ti"></b>
                 </div>
                 <div class="row">
@@ -114,8 +120,10 @@
                 </div>
                 <div class="row"><span>زودتر از برنامهٔ فعلی</span><b class="pos" id="mo"></b></div>
                 <small id="or"></small>
-                <small>مانده بدهی در هر ماه (از آبان ۱۴۰۵):</small>
-                <div class="strip" id="st"></div>
+                <small class="muted" id="nt"></small>
+                <small>مانده بدهی در هر ماه (از راست: آبان ۱۴۰۵):</small>
+                <div class="strip" id="st" role="img" aria-label="مانده بدهی هر ماه"></div>
+                <div class="axis muted"><small id="sa"></small><small id="sb"></small></div>
                 <small
                   >نرخ‌ها تخمینی‌اند (وام ۲۲٪، کارت ۳۰٪، لپ‌تاپ بدون سود). نرخ دقیق را از بانک بپرس
                   و وارد کن.</small
@@ -164,8 +172,13 @@
                 <div class="row"><span>مبلغ هدف</span><b>۵۰۰٬۰۰۰٬۰۰۰ تومان</b></div>
                 <div class="row"><span>تا</span><b>اسفند ۱۴۰۸</b></div>
                 <div class="row"><span>شروع (فروردین ۱۴۰۵)</span><b>۵۶٬۰۰۰٬۰۰۰</b></div>
-                <small>ماهانه حدود ۹٬۶۰۰٬۰۰۰ افزایش لازم است؛ سرعت فعلی تو ۸٬۶۰۰٬۰۰۰ است.</small>
-                <button class="btn">ذخیرهٔ هدف</button>
+                <small
+                  >از امروز ماهانه حدود ۹٬۵۹۳٬۰۰۰ افزایش لازم است (۳۸۳٬۷۱۸٬۷۵۰ ÷ ۴۰ ماه مانده)؛ سرعت
+                  فعلی تو حدود ۸٬۶۱۱٬۰۰۰ است (۶۰٬۲۸۱٬۲۵۰ رشد در ۷ ماه).</small
+                >
+                <button class="btn" data-demo-msg="هدف ۵۰۰ میلیون تا اسفند ۱۴۰۸ ذخیره می‌شود">
+                  ذخیرهٔ هدف
+                </button>
               </div>
             </div>
           </div>
@@ -176,54 +189,55 @@
               <div class="card">
                 <h3>دارایی قابل اتکا</h3>
                 <div class="num">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+                <small
+                  >پیش از کم‌کردن اصل بدهی؛ با اصل بدهی ۳۱٬۱۸۱٬۲۵۰ می‌شود (صفحهٔ دوم، ایدهٔ
+                  د).</small
+                >
               </div>
               <div class="card new" data-idea="ایدهٔ ۲">
-                <h3>مسیر ۵۰۰ میلیون <span class="chip warn">۶ میلیون عقبی</span></h3>
+                <h3>مسیر ۵۰۰ میلیون <span class="chip warn">۵٬۸۵۰٬۰۰۰ عقبی</span></h3>
                 <svg
                   viewBox="0 0 300 150"
                   width="100%"
                   role="img"
-                  aria-label="نمودار دارایی خالص و مسیر لازم"
-                  style="direction: ltr"
+                  aria-label="نمودار دارایی؛ زمان از راست (فروردین ۱۴۰۵) به چپ (اسفند ۱۴۰۸)"
                 >
                   <line
-                    x1="20"
+                    x1="290"
                     y1="116.6"
-                    x2="290"
+                    x2="20"
                     y2="10"
                     style="stroke: var(--muted); stroke-dasharray: 4 3"
                   />
                   <polyline
-                    points="20,116.6 25.7,114.9 31.5,113 37.2,110.8 43,108.4 48.7,106.5 54.5,104.1 60.2,102.1"
+                    points="290,116.6 284.3,114.9 278.5,113 272.8,110.8 267,108.4 261.3,106.5 255.5,104.1 249.8,102.1"
                     style="fill: none; stroke: var(--primary); stroke-width: 2.5"
                   />
                   <line
-                    x1="60.2"
+                    x1="249.8"
                     y1="102.1"
-                    x2="290"
+                    x2="20"
                     y2="19.4"
                     style="stroke: var(--primary); stroke-dasharray: 2 3"
                   />
-                  <circle cx="60.2" cy="102.1" r="3.5" style="fill: var(--primary)" />
-                  <text x="20" y="146" style="fill: var(--muted); font-size: 9px">
-                    فروردین ۱۴۰۵
-                  </text>
-                  <text
-                    x="290"
-                    y="146"
-                    text-anchor="end"
-                    style="fill: var(--muted); font-size: 9px"
-                  >
-                    اسفند ۱۴۰۸
-                  </text>
+                  <circle cx="249.8" cy="102.1" r="3.5" style="fill: var(--primary)" />
+                  <g text-anchor="middle" style="fill: var(--text); font-size: 11px">
+                    <text x="95" y="12">هدف: ۵۰۰ میلیون</text>
+                    <text x="262" y="131">شروع: ۵۶ میلیون</text>
+                    <text x="205" y="116">امروز: ۱۱۶٫۳ میلیون</text>
+                  </g>
+                  <g text-anchor="middle" style="fill: var(--muted); font-size: 11px">
+                    <text x="255" y="146">فروردین ۱۴۰۵</text>
+                    <text x="55" y="146">اسفند ۱۴۰۸</text>
+                  </g>
                 </svg>
                 <small
                   >خط‌چین خاکستری مسیر لازم، خط پررنگ دارایی تو و نقطه‌چین ادامهٔ همین سرعت
                   است.</small
                 >
                 <small
-                  >مسیر لازم تا امروز ۱۲۲٬۱۳۰٬۰۰۰ است؛ با همین سرعت اسفند ۱۴۰۸ حدود ۴۶۰٬۰۰۰٬۰۰۰
-                  می‌شوی.</small
+                  >مسیر لازم تا امروز ۱۲۲٬۱۳۰٬۰۰۰ است (۵۶٬۰۰۰٬۰۰۰ + ۷ × ۹٬۴۴۷٬۰۰۰)؛ با همین سرعت
+                  اسفند ۱۴۰۸ حدود ۴۶۰٬۷۰۰٬۰۰۰ می‌شوی (برآورد).</small
                 >
               </div>
             </div>
@@ -235,7 +249,7 @@
               <div class="card new" data-idea="ایدهٔ ۲">
                 <h3>مسیر ۵۰۰ میلیون <span class="chip ok">در مسیر هستی</span></h3>
                 <div class="num pos">۲٬۱۰۰٬۰۰۰ جلوتر</div>
-                <small>اگر ماهانه ۹٬۶۰۰٬۰۰۰ را نگه داری، اسفند ۱۴۰۸ به ۵۰۰ میلیون می‌رسی.</small>
+                <small>اگر ماهانه ۹٬۵۹۳٬۰۰۰ را نگه داری، اسفند ۱۴۰۸ به ۵۰۰ میلیون می‌رسی.</small>
               </div>
             </div>
           </div>

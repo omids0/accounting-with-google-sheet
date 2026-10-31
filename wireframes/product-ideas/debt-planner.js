@@ -35,7 +35,7 @@ function sim(extra, roll) {
 function render() {
   const ex = +rg.value,
     a = sim(0, false),
-    c = sim(ex, true),
+    c = sim(ex, ex > 0),
     end = 6 + c.i
   const out = {
     exv: fa(ex),
@@ -49,7 +49,13 @@ function render() {
         .sort(by[mode])
         .map(x => x.n)
         .join(' ← '),
-    st: c.bars.map(v => `<i style="height:${(v / c.bars[0]) * 100}%"></i>`).join('')
+    st: c.bars.map(v => `<i style="height:${(v / c.bars[0]) * 100}%"></i>`).join(''),
+    sa: 'آبان ۱۴۰۵: ' + fa(c.bars[0]),
+    sb: M[end % 12] + ' ' + fa(1405 + Math.floor(end / 12), { useGrouping: false }) + ': ۰',
+    nt:
+      ex > 0
+        ? 'با مبلغ اضافه، قسط‌های تمام‌شده هم روی بدهی بعدی می‌غلتند (برآورد).'
+        : 'بدون مبلغ اضافه همان برنامهٔ فعلی است؛ پس‌انداز و ماه زودتر صفر است.'
   }
   Object.entries(out).forEach(([k, v]) => (document.getElementById(k).innerHTML = v))
 }
