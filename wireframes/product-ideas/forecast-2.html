@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پیش‌بینی و تقویم نقدینگی - دوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- prettier-ignore -->
+    <style>
+input[type=range]{width:100%;accent-color:var(--primary)}
+button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
+.sheet{border-radius:16px 16px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18);display:grid;gap:8px}
+.scrim{opacity:.4}
+.v{padding:8px 10px;border-radius:8px;font-weight:700}
+.v.ok{background:var(--success-soft);color:var(--success)}
+.v.warn{background:var(--warn-soft);color:var(--warn)}
+.v.bad{background:var(--danger-soft);color:var(--danger)}
+.bar.ok > i{background:var(--success)}
+.wk{padding:6px 0;border-bottom:1px dashed var(--border);display:grid;gap:3px}
+.in{width:100%;font:inherit;font-size:1.1rem;font-weight:800;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--surface);color:var(--text)}
+</style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>پیش‌بینی و تقویم نقدینگی (۲)</h1>
+      <p class="lead">
+        ادامهٔ همین موضوع: سنجیدن یک خرج پیش از انجام، و برگ حساب چک‌ها برای مغازه‌دار. هر دو روی
+        همان موتور پیش‌بینی صفحهٔ اول ساخته می‌شوند. امروز: ۶ آبان ۱۴۰۵.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+        <span class="chip warn">همهٔ اعداد این صفحه نمونه و تخمین‌اند</span>
+        <a href="forecast.html">← ایده‌های «تا آخر ماه» و «تقویم سررسید» در صفحهٔ اول</a>
+      </p>
+      <div class="tabs">
+        <button data-idea="idea-c">ج) می‌توانم بخرم؟</button>
+        <button data-idea="idea-d">د) پول لازم ۳۰ روز آینده</button>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>ثبت هزینه</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>مبلغ</h3>
+                <div class="num">۵٬۰۰۰٬۰۰۰ تومان</div>
+              </div>
+              <div class="card">
+                <h3>دسته</h3>
+                <small>لوازم خانه</small>
+              </div>
+              <div class="card">
+                <h3>حساب</h3>
+                <small>ملی</small>
+              </div>
+              <button class="btn ghost new" data-idea="ایدهٔ ج">پیش از ثبت: می‌توانم بخرم؟</button>
+              <button class="btn">ثبت هزینه</button>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: برگهٔ پایین</div>
+            <div class="app-bar"><span>ثبت هزینه</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card scrim">
+                <h3>مبلغ</h3>
+                <div class="num">۵٬۰۰۰٬۰۰۰ تومان</div>
+              </div>
+              <div class="card sheet new" data-idea="ایدهٔ ج">
+                <h3>می‌توانم بخرم؟ <span class="chip warn">تخمین</span></h3>
+                <label class="muted"
+                  >مبلغ خرید: <b id="aOut">۵٬۰۰۰٬۰۰۰</b> تومان
+                  <input type="range" id="amt" min="0" max="15000000" step="500000" value="5000000"
+                /></label>
+                <div>
+                  <button class="chip" data-v="2000000">دو میلیون</button>
+                  <button class="chip" data-v="5000000">پنج میلیون</button>
+                  <button class="chip" data-v="10000000">ده میلیون</button>
+                </div>
+                <div class="row"><small>بدون خرید، کمترین مانده</small><small id="m0"></small></div>
+                <div class="row"><small>با خرید، کمترین مانده</small><small id="m1"></small></div>
+                <div class="v" id="verdict"></div>
+                <small id="tip"></small>
+                <div class="row">
+                  <button class="btn">ثبت کن</button><button class="btn ghost">یادآوری بعدی</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ج: «می‌توانم بخرم؟»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              پیش از خرید بزرگ، کسی نمی‌داند مانده‌اش تا حقوق بعدی کم می‌آید یا نه؛ بعد از ثبت دیر
+              است.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              برگه‌ای که مبلغ را می‌گیرد و کمترین مانده ۳۰ روز آینده را قبل و بعد از خرید نشان
+              می‌دهد. حکم: «می‌توانی ولی ۲۳ آبان کم می‌آوری» و پیشنهاد عقب انداختن تا روزی که امن
+              است. نوار را بکش.
+            </dd>
+            <dt>چرا</dt>
+            <dd>تصمیم پیش از خرج، نه حسرت بعد از آن؛ همان دلیلی که کاربران پیش‌بینی خواستند.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip ok">کوچک</span> اگر موتور ایدهٔ الف ساخته شده باشد؛ فقط یک برگه و یک
+              تابع «کمترین مانده».
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم ثبت هزینه (دکمهٔ کنار مبلغ) و منوی میان‌بر داشبورد.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: مانده حساب‌ها و سررسیدها. تازه: موتور پیش‌بینی با گزینهٔ «یک خرج فرضی در روز
+              X».
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              حکم قطعی نیست؛ همیشه «تخمین» بنویس و فرض‌ها را از همان برگه قابل‌دیدن کن. «عقب بینداز»
+              فقط پیشنهاد است و چیزی را خودکار تغییر نمی‌دهد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>چک‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>پرداختی</h3>
+                <div class="row"><span>چک آقای احمدی</span><b>۲۲٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>چک فروشگاه نور</span><b>۱۱٬۵۳۱٬۲۵۰</b></div>
+              </div>
+              <div class="card">
+                <h3>دریافتی</h3>
+                <div class="row"><span>چک آقای رضایی</span><b>۸٬۰۰۰٬۰۰۰</b></div>
+              </div>
+              <small class="muted">فهرست ساده است؛ جمع هر هفته و مانده دیده نمی‌شود.</small>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده (نمونهٔ مغازه‌دار، بدون حقوق ثابت)</div>
+            <div class="app-bar"><span>چک‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ د">
+                <h3>پول لازم ۳۰ روز آینده <span class="chip warn">تخمین</span></h3>
+                <div class="v bad" id="alert"></div>
+                <label class="muted"
+                  ><input type="checkbox" id="late" /> اگر چک‌های دریافتی یک هفته دیر وصول
+                  شوند</label
+                >
+                <div id="weeks"></div>
+                <small class="muted">فقط چک‌ها؛ فروش و خرج روزانه حساب نشده‌اند.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ د: کارت «پول لازم ۳۰ روز آینده»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مغازه‌دار با ده‌ها چک پرداختی و دریافتی کار می‌کند و تا وقتی هفته منفی نشده نمی‌فهمد
+              کجا کم می‌آورد.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              برای هر هفته: جمع چک‌های پرداختی در برابر دریافتی و مانده جاری. هشدار «از این هفته
+              منفی می‌شود». تیک «وصول دیر» نشان می‌دهد اگر مشتری دیر پرداخت کند چه می‌شود.
+            </dd>
+            <dt>چرا</dt>
+            <dd>مغازه‌دار با یک نگاه می‌فهمد کدام هفته باید پول جور کند یا چک را جابه‌جا کند.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip warn">متوسط</span> (جمع‌زدن هفتگی ساده است؛ سخت‌ترش نمایش خوانا برای
+              ده‌ها چک است)
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>بالای صفحهٔ چک‌ها؛ در داشبورد فقط وقتی هفته‌ای منفی شود.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: چک‌های پرداختی و دریافتی با تاریخ سررسید. تازه: جمع هفتگی و مانده جاری (بدون
+              ستون جدید).
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              فروش آینده نیست پس تخمین بدبینانه است؛ این فرض باید نوشته شود. چک برگشتی یا جابه‌جا
+              شده تخمین را عوض می‌کند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <!-- prettier-ignore -->
+    <script>
+;(() => {
+  const S = 64581250, SAFE = 5e6, q = id => document.getElementById(id)
+  const fa = n => Math.abs(Math.round(n)).toLocaleString('fa-IR')
+  const money = n => (n < 0 ? 'منفی ' : '') + fa(n)
+  const day = i => (i < 25 ? `${fa(6 + i)} آبان` : `${fa(i - 24)} آذر`)
+  const ev = [[4, -3100000], [6, -4350000], [8, -22e6], [12, -800000], [16, -11531250], [19, 8e6], [25, 65e6], [29, -18e6]]
+  let b = S
+  const bal = Array.from({ length: 30 }, (_, i) => (b += ev.filter(e => e[0] === i).reduce((s, e) => s + e[1], 0) - 1e6))
+  const calc = () => {
+    const A = +q('amt').value, m0 = Math.min(...bal), af = bal.map(v => v - A), m1 = Math.min(...af), neg = af.findIndex(v => v < 0)
+    const k = bal.findIndex((_, k) => bal.slice(k).every(v => v - A >= 0))
+    q('aOut').textContent = fa(A)
+    q('m0').textContent = `${money(m0)} تومان (${day(bal.indexOf(m0))})`
+    q('m1').textContent = `${money(m1)} تومان (${day(af.indexOf(m1))})`
+    const [cls, txt] = m1 < 0 ? ['bad', `می‌توانی ولی ${day(neg)} کم می‌آوری`] : m1 < SAFE ? ['warn', 'می‌توانی ولی حاشیهٔ امنت کم می‌شود'] : ['ok', 'بخر؛ مانده‌ات بالای حاشیهٔ امن می‌ماند']
+    q('verdict').className = 'v ' + cls; q('verdict').textContent = txt
+    q('tip').textContent = m1 < 0 ? `پیشنهاد: خرید را تا ${day(k)} عقب بینداز؛ تا آن روز مانده‌ات بالا می‌رود.` : ''
+  }
+  q('amt').oninput = calc
+  document.querySelectorAll('[data-v]').forEach(c => (c.onclick = () => { q('amt').value = c.dataset.v; calc() }))
+  const W = [['۶ تا ۱۲ آبان', 9e6, 4e6], ['۱۳ تا ۱۹ آبان', 22e6, 6.5e6], ['۲۰ تا ۲۶ آبان', 31531250, 8e6], ['۲۷ آبان تا ۳ آذر', 24e6, 5e6], ['۴ تا ۱۰ آذر', 18e6, 9e6]]
+  const weeks = () => {
+    let r = S, first = -1
+    q('weeks').innerHTML = W.map(([l, o, i], n) => {
+      const inn = q('late').checked ? (n ? W[n - 1][2] : 0) : i
+      r += inn - o; if (r < 0 && first < 0) first = n
+      return `<div class="wk"><b>هفتهٔ ${fa(n + 1)} · ${l}</b><div class="row"><small>چک پرداختی</small><small>${fa(o)}</small></div><div class="bar bad"><i style="width:${(o / 32e6) * 100}%"></i></div>
+        <div class="row"><small>چک دریافتی</small><small>${fa(inn)}</small></div><div class="bar ok"><i style="width:${(inn / 32e6) * 100}%"></i></div>
+        <div class="row"><span>مانده پایان هفته</span><b class="${r < 0 ? 'neg' : 'pos'}">${money(r)}</b></div></div>`
+    }).join('')
+    q('alert').textContent = first < 0 ? 'در این هفته‌ها منفی نمی‌شوی' : `از این هفته منفی می‌شود: هفتهٔ ${fa(first + 1)} (${W[first][0]})`
+    q('alert').className = 'v ' + (first < 0 ? 'ok' : 'bad')
+  }
+  q('late').onchange = weeks
+  calc(); weeks()
+})()
+</script>
+  </body>
+</html>
