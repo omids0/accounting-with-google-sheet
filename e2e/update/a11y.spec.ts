@@ -112,7 +112,10 @@ test.describe('web update banner', () => {
     const menuItem = page.getByRole('button', { name: 'به‌روزرسانی به 9.9.9' })
     await expect(menuItem).toBeVisible()
     await menuItem.click()
-    expect(await page.evaluate(() => (window as HookWindow).__acctWebUpdate?.applied)).toBe(1)
+    // The backup before the update is awaited first (nothing to back up here), so the apply is not instant.
+    await expect
+      .poll(() => page.evaluate(() => (window as HookWindow).__acctWebUpdate?.applied))
+      .toBe(1)
     await expectNoReload(page)
   })
 })

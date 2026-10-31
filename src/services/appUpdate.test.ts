@@ -66,3 +66,27 @@ describe('update channel', () => {
     expect(await checkForUpdate()).toBeNull()
   })
 })
+
+describe('applyUpdate', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('reports whether the installer link opened', async () => {
+    const { applyUpdate } = await loadFor('')
+    const update = { versionName: 'v11', key: '11', apkUrl: 'https://example.test/app.apk' }
+
+    const open = vi.spyOn(window, 'open').mockReturnValueOnce({} as Window)
+
+    expect(applyUpdate(update)).toBe(true)
+    expect(open).toHaveBeenCalledWith('https://example.test/app.apk', '_blank')
+
+    // A browser that refuses a popup opened long after the tap returns null.
+    open.mockReturnValueOnce(null)
+    expect(applyUpdate(update)).toBe(false)
+  })
+
+  it('has nothing to open without an installer link', async () => {
+    const { applyUpdate } = await loadFor('')
+
+    expect(applyUpdate({ versionName: 'v11', key: '11' })).toBe(true)
+  })
+})

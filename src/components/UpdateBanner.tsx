@@ -7,6 +7,7 @@ import {
   updateBannerTextClass
 } from './ui/updateStyles'
 import { useAppUpdateCheck } from '../hooks/useAppUpdateCheck'
+import { useAppUpdateStore } from '../stores/appUpdateStore'
 
 /**
  * «نسخه X آماده است» for the web build (already downloaded, applies on tap) and the
@@ -14,6 +15,8 @@ import { useAppUpdateCheck } from '../hooks/useAppUpdateCheck'
  */
 export default function UpdateBanner() {
   const { update, apply, dismiss } = useAppUpdateCheck()
+  const preparing = useAppUpdateStore(state => state.preparing)
+  const installBlocked = useAppUpdateStore(state => state.installBlocked)
 
   if (!update) return null
 
@@ -30,10 +33,17 @@ export default function UpdateBanner() {
         <span className={updateBannerNoteClass}>{note}</span>
       </p>
       <div className={updateBannerActionsClass}>
-        <Button variant="primary" size="sm" type="button" onClick={apply}>
-          به‌روزرسانی
+        <Button
+          variant="primary"
+          size="sm"
+          type="button"
+          disabled={preparing}
+          aria-busy={preparing}
+          onClick={() => void apply()}
+        >
+          {preparing ? 'در حال پشتیبان…' : installBlocked ? 'باز کردن لینک نصب' : 'به‌روزرسانی'}
         </Button>
-        <button type="button" className={nudgeLinkClass} onClick={dismiss}>
+        <button type="button" className={nudgeLinkClass} disabled={preparing} onClick={dismiss}>
           بعداً
         </button>
       </div>

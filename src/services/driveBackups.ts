@@ -19,6 +19,9 @@ const PROP_SPREADSHEET = 'acctSpreadsheet'
 
 const PROP_KIND = 'acctBackup'
 
+/** The app version that wrote a pre-update copy. */
+const PROP_VERSION = 'acctVersion'
+
 const ZIP_MIME = 'application/zip'
 
 export interface DriveBackupFolder {
@@ -76,7 +79,12 @@ interface DriveListedFile {
   appProperties?: Record<string, string>
 }
 
-function toBackupFile(file: DriveListedFile): DriveBackupFile {
+/** Anything the app did not mark as automatic or pre-update (older files too) is a manual copy. */
+function kindOf(value: string | undefined): DriveBackupKind {
+  return value === 'auto' || value === 'update-dev' || value === 'update-prod' ? value : 'manual'
+}
+
+export function toBackupFile(file: DriveListedFile): DriveBackupFile {
   const size = Number(file.size)
 
   return {
@@ -84,7 +92,8 @@ function toBackupFile(file: DriveListedFile): DriveBackupFile {
     name: file.name,
     size: Number.isFinite(size) ? size : undefined,
     createdAt: file.createdTime ? Date.parse(file.createdTime) : 0,
-    kind: file.appProperties?.[PROP_KIND] === 'auto' ? 'auto' : 'manual'
+    kind: kindOf(file.appProperties?.[PROP_KIND]),
+    ...(file.appProperties?.[PROP_VERSION] ? { appVersion: file.appProperties[PROP_VERSION] } : {})
   }
 }
 
@@ -122,13 +131,18 @@ export async function uploadDriveBackup(
   spreadsheetId: string,
   folderId: string,
   backup: { blob: Blob; name: string; exportedAt: Date },
-  kind: DriveBackupKind
+  kind: DriveBackupKind,
+  appVersion?: string
 ): Promise<DriveBackupFile> {
   const id = await uploadDriveFile(backup.blob, {
     name: backup.name,
     mimeType: ZIP_MIME,
     folderId,
-    appProperties: { [PROP_SPREADSHEET]: spreadsheetId, [PROP_KIND]: kind }
+    appProperties: {
+      [PROP_SPREADSHEET]: spreadsheetId,
+      [PROP_KIND]: kind,
+      ...(appVersion ? { [PROP_VERSION]: appVersion } : {})
+    }
   })
 
   return {
@@ -136,7 +150,8 @@ export async function uploadDriveBackup(
     name: backup.name,
     size: backup.blob.size,
     createdAt: backup.exportedAt.getTime(),
-    kind
+    kind,
+    ...(appVersion ? { appVersion } : {})
   }
 }
 
