@@ -48,6 +48,22 @@ export const bTemplate = await src('services/buildingTemplate.ts')
 export const bSplit = await src('services/buildingExpenseSplit.ts')
 export const jalali = await src('utils/jalaliDate.ts')
 export const jconv = await src('utils/jalaliConvert.ts')
+export const goalsMod = await src('services/savingsGoals.ts')
+export const treasuryCat = await src('services/treasuryCatalog.ts')
+export const treasuryHold = await src('services/treasuryHoldings.ts')
+export const tsRow = await src('services/timesheetRow.ts')
+export const dateTime = await src('utils/datetime.ts')
+export const dangMath = await src('services/dangSplitMath.ts')
+export const dangExp = await src('services/dangSplitExpenses.ts')
+export const dangPeople = await src('services/dangSplitPeople.ts')
+export const netWorthMod = await src('services/netWorth.ts')
+export const plateMod = await src('components/vehicles/iranPlateUtils.ts')
+export const vehProfiles = await src('services/vehicleProfiles.ts')
+export const vehUtils = await src('components/vehicles/utils.ts')
+export const recurringMod = await src('services/recurring.ts')
+export const personalRem = await src('services/personalReminders.ts')
+export const ledgerMod = await src('services/walletLedger.ts')
+export const vehExpUtils = await src('utils/vehicleExpenseUtils.ts')
 
 // ---------------------------------------------------------------- time ---
 
@@ -187,6 +203,36 @@ export class Book {
     return balance
   }
 
+  /** Sum of every account's balance at the end of `date`. */
+  walletTotalAt(date) {
+    return this.accounts.reduce((sum, a) => sum + this.balanceAt(a, date), 0)
+  }
+
+  /**
+   * The account's balance right after the record an SMS event stands for: same account, direction
+   * and amount, within a day of the event, the nearest in time. Throws when there is none.
+   */
+  balanceAfterRecord(account, { day, time, toman, delta }) {
+    const type = delta > 0 ? 'income' : 'expense'
+    const at = instant(day, time)
+    let balance = account.opening
+    let best = null
+
+    for (const r of this.sorted()) {
+      if (r.account !== account || !r.apply) continue
+
+      balance += r.type === 'income' ? r.amount : -r.amount
+
+      const gap = Math.abs(instant(r.date, r.time) - at)
+
+      if (r.type === type && r.amount === toman && gap <= 864e5 && (!best || gap < best.gap)) best = { gap, balance }
+    }
+
+    if (!best) throw new Error(`${account.key}: no record for the recorded SMS of ${toman} on ${day}`)
+
+    return best.balance
+  }
+
   build() {
     const balance = new Map(this.accounts.map(a => [a.id, a.opening]))
     const ledger = []
@@ -217,6 +263,28 @@ export class Book {
     let n = 0
 
     for (const r of this.sorted()) {
+      if (r.ledgerOnly) {
+        // A wallet movement with no income/expense row (savings-goal deposit): only the ledger line.
+        const delta = r.type === 'income' ? r.amount : -r.amount
+
+        balance.set(r.account.id, balance.get(r.account.id) + delta)
+        ledger.push([
+          uid(`${this.tag}:ledger:${r.id}`),
+          stamp(r.date, r.time, n % 50),
+          r.account.id,
+          r.date,
+          String(delta),
+          String(balance.get(r.account.id)),
+          r.title,
+          r.ledgerSource,
+          r.recordId ?? '',
+          YES
+        ])
+        n += 1
+
+        continue
+      }
+
       const values = {
         date: r.date,
         title: r.title,
@@ -519,17 +587,53 @@ export const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d])
 export const money = n => n.toLocaleString('en-US')
 
 /**
- * Bank balance (toman) printed in each SMS: what the app's records say at that moment plus the
- * SMS events that were never recorded (`recorded: false`) up to then.
+ * The «مانده» (toman) printed in each SMS of one account, as a real bank would produce it, so
+ * confirming the pending SMS in the app never makes the balance jump (the app writes the SMS
+ * «مانده» when it is the newest one; see `nextAccountBalance`):
+ *  - The wallet balance in the data file is the balance after every event that is already
+ *    recorded (`recorded: true`). The pending SMS are real transactions it does not include.
+ *  - Recorded SMS: the balance the account had right after that event. Other (non-SMS) records move
+ *    the same accounts, so this is read from the books' own history (`book.balanceAfterRecord`), which
+ *    ends at the wallet balance; check.mjs matches it with the «گردش حساب» line of that record.
+ *  - Pending SMS (oldest first): previous «مانده» +/- own amount, starting from the wallet balance.
+ *  - Every recorded event must be older than every pending one (otherwise the two timelines
+ *    cannot both be true); this throws when a fixture breaks that.
+ *  - `deliberateOff` (toman) is added to the «مانده» of the NEWEST pending SMS only: the one
+ *    intentional «stale/out-of-order» case that makes the app show its balance-jump notice.
+ * Events get `balance` and `status` (`recorded` | `pending` | `pending-off`).
  */
-export function runningBalances(book, account, events) {
+export function chainBalances(book, account, events, { deliberateOff = 0 } = {}) {
   const sorted = [...events].sort((a, b) => `${a.day}${a.time}`.localeCompare(`${b.day}${b.time}`))
-  let unrecorded = 0
+  const wallet = book.balanceAt(account, TODAY)
+  const firstPending = sorted.findIndex(e => !e.recorded)
 
-  for (const e of sorted) {
-    if (!e.recorded) unrecorded += e.delta
-    e.balance = book.balanceAt(account, e.day, e.time) + unrecorded
+  if (firstPending >= 0 && sorted.slice(firstPending).some(e => e.recorded)) {
+    throw new Error(`${account.key}: a recorded SMS event is newer than a pending one`)
   }
+
+  const recorded = firstPending < 0 ? sorted : sorted.slice(0, firstPending)
+  const pending = firstPending < 0 ? [] : sorted.slice(firstPending)
+
+  for (const e of recorded) {
+    e.balance = book.balanceAfterRecord(account, e)
+    e.status = 'recorded'
+  }
+
+  let run = wallet
+
+  pending.forEach((e, i) => {
+    run += e.delta
+    e.balance = run
+    e.status = 'pending'
+    if (deliberateOff && i === pending.length - 1) {
+      e.balance += deliberateOff
+      e.status = 'pending-off'
+      e.off = deliberateOff
+    }
+  })
 
   return sorted
 }
+
+/** What check.mjs needs to know about one SMS: its role in the balance chain. */
+export const chainMeta = (smsItem, status, extra = {}) => ({ id: smsItem.id, status, ...extra })

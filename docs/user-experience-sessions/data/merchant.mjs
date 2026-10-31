@@ -1,5 +1,6 @@
 // Persona 3a: shop owner (55): the PERSONAL/shop books. The building he manages is building.mjs.
 import * as L from './lib.mjs'
+import * as A from './areas.mjs'
 import * as F from './smsFormats.mjs'
 
 const { ago, uid } = L
@@ -60,7 +61,10 @@ export function buildMerchant() {
   const ahmadi = P('ahmadi', 'خانم', 'احمدی', '09121230007')
   const naderi = P('naderi', 'آقای', 'نادری (مالک مغازه)', '09121230008')
   const brother = P('brother', 'اکبر', 'صالحی', '09121230009')
-  const people = [novin, arman, hosseini, karimi, rezaei, kazemi, ebrahimi, asadi, ahmadi, naderi, brother]
+  const nowrouzi = P('nowrouzi', 'استاد', 'نوروزی (مکانیک وانت)', '09127770011')
+  const agent = P('agent', 'بیمه آسیا', '(نمایندگی خانم رستمی)', '02133221100')
+  const sarraf = P('sarraf', 'آقای', 'ملکی (صراف)', '09122220033')
+  const people = [novin, arman, hosseini, karimi, rezaei, kazemi, ebrahimi, asadi, ahmadi, naderi, brother, nowrouzi, agent, sarraf]
 
   const inc = (d, title, category, amount, account, extra = {}) =>
     book.rec({ type: 'income', date: ago(d), title, category, amount, account, ...extra })
@@ -203,10 +207,120 @@ export function buildMerchant() {
     uid(`${TAG}:rem:${key}`), L.stamp(ago(30), '09:00'), category, title, dueDate, recurrence, String(amount), String(daysBefore), 'TRUE'
   ]
 
+  // ---- the delivery van (vehicles module): history, fuel, insurance and inspection reminders, and a
+  // brake service that is overdue BY MILEAGE (due at 185,200 km, the van is at 186,820).
+  const veh = A.vehicleKit(book, TAG)
+  const mechanic = L.fullName(nowrouzi)
+
+  const van = veh.vehicle({
+    key: 'nissan',
+    title: 'نیسان وانت — مغازه',
+    startKm: 182300,
+    since: ago(64),
+    vin: 'NAAN01CA9JK554321',
+    year: '1398',
+    capacity: '2 نفر، ۸۰۰ کیلو بار',
+    plate: A.plate('76', 'ع', '842', '11'),
+    interval: 'every-10-days'
+  })
+
+  // old services typed in afterwards (no expense in the books, no reading)
+  veh.service(van, { type: 'لنت ترمز', d: 300, km: 150200, intervalKm: 35000, brand: 'لنت ایساکو', location: 'تعمیرگاه استاد نوروزی', amount: 3100000, account: biz, historical: true })
+  veh.service(van, { type: 'روغن موتور', d: 190, km: 176900, intervalKm: 5000, brand: 'شل', location: 'روغنی امین', amount: 2100000, account: biz, historical: true })
+
+  veh.reading(van, 60, 182400)
+  veh.fuel(van, 53, 46, 182850, biz)
+  veh.service(van, { type: 'روغن موتور', d: 47, km: 183100, intervalKm: 5000, brand: 'شل هلیکس ۱۰W40', location: 'روغنی امین', amount: 2350000, account: biz })
+  veh.fuel(van, 41, 50, 183540, till)
+  veh.fuel(van, 34, 48, 184010, biz)
+  veh.service(van, { type: 'فیلتر هوا', d: 29, km: 184360, intervalKm: 20000, brand: 'سافیران', location: 'تعمیرگاه استاد نوروزی', amount: 520000, account: till, counterparty: mechanic })
+  veh.fuel(van, 27, 52, 184610, biz)
+
+  veh.mechanic(van, {
+    d: 22,
+    km: 184980,
+    location: 'تعمیرگاه استاد نوروزی',
+    items: [
+      { category: 'فنر', note: 'تعویض تکفنر عقب' },
+      { category: 'جلو بندی', note: 'تعویض rotor چپ' }
+    ],
+    notes: 'بار سنگین، فنر عقب نشست کرده بود',
+    amount: 5600000,
+    account: biz,
+    counterparty: mechanic
+  })
+
+  veh.fuel(van, 20, 47, 185090, till)
+  veh.fuel(van, 14, 51, 185640, biz)
+  veh.fuel(van, 9, 49, 186150, biz)
+  veh.fuel(van, 4, 53, 186640, till)
+  veh.reading(van, 1, 186820)
+
+  veh.deadline(van, { category: 'بیمه شخص ثالث', start: ago(359), end: L.ahead(6), amount: 11200000, reminder: true, daysBefore: 7, renewals: [{ start: ago(724), end: ago(359), km: 128000, amount: 9600000 }] })
+  veh.deadline(van, { category: 'معاینه فنی', start: ago(332), end: L.ahead(33), amount: 1500000, reminder: true, daysBefore: 7 })
+
+  // ---- savings goals: the renovation one is 3 months past its date and not reached; the machine one is reached
+  const goals = A.goalKit(book, TAG)
+  const reno = goals.goal({ key: 'reno', title: 'بازسازی و دکور مغازه', target: 120000000, targetDate: ago(10), account: biz, note: 'ویترین جدید و قفسه‌ها؛ از موعد گذشته', since: ago(55) })
+  const cutter = goals.goal({ key: 'cutter', title: 'خرید دستگاه برش', target: 30000000, targetDate: L.ahead(60), account: biz, note: 'پس‌انداز کامل شد', status: 'reached', since: ago(50) })
+
+  goals.deposit(reno, 51, 30000000)
+  goals.deposit(cutter, 46, 12000000)
+  goals.deposit(reno, 37, 25000000)
+  goals.deposit(cutter, 28, 10000000)
+  goals.deposit(reno, 22, 20000000)
+  goals.deposit(cutter, 11, 8000000)
+  goals.deposit(reno, 8, 10000000)
+
+  // ---- the vault: Emami coins bought over two years (13 bought, 1 sold = 12), dollars, a half coin, silver.
+  // Prices: «سکه امامی» and «دلار» are switched to a manual price (the tgju call returns nothing in the
+  // mock); «نیم سکه» keeps the tgju source (no price here); silver is a user asset with a stale manual price.
+  const vault = A.vaultKit(TAG)
+  const silver = vault.custom('silver', { assetClass: 'other', name: 'نقره ۹۹۹', symbol: 'نقره', unit: 'گرم', decimals: 0, price: 246000, d: 48 })
+
+  ;[
+    [700, 2, 71000000], [610, 1, 76500000], [520, 2, 84200000], [430, 1, 92700000], [350, 2, 101400000],
+    [270, 1, 110800000], [190, 2, 121900000], [95, 1, 130300000], [40, 1, 136600000]
+  ].forEach(([d, qty, price]) => vault.tx('sekee', 'buy', qty, price, d, 'خرید از صرافی'))
+  vault.tx('sekee', 'sell', 1, 141200000, 12, 'فروش برای تأمین نقدینگی چک')
+
+  ;[[640, 1000, 98200], [380, 1000, 118500], [150, 700, 140300], [60, 300, 150200]].forEach(([d, qty, price]) => vault.tx('usd', 'buy', qty, price, d, 'خرید دلار'))
+  vault.tx('nim', 'buy', 2, 62000000, 200, 'نیم سکه برای هدیه')
+  vault.tx(silver, 'buy', 300, 205000, 300, 'شمش نقره')
+  vault.tx(silver, 'buy', 150, 230000, 80, 'شمش نقره')
+  vault.manualBuiltin('sekee', 142000000, 2)
+  vault.manualBuiltin('usd', 155000, 2)
+
+  // ---- recurring items: the rent is already recorded for Aban, the rest are waiting
+  const recurringRows = [
+    A.recurringRowOf(TAG, 'rent', { type: 'expense', category: 'اجاره و شارژ مغازه', sub: 'اجاره', account: biz, amount: 25000000, title: 'اجاره مغازه', day: 1, lastPosted: '1405-08' }),
+    A.recurringRowOf(TAG, 'wage-hosein', { type: 'expense', category: 'حقوق کارگر', sub: 'حقوق', account: biz, amount: 18000000, title: 'حقوق کارگر — حسین', day: 30, lastPosted: '1405-07' }),
+    A.recurringRowOf(TAG, 'wage-reza', { type: 'expense', category: 'حقوق کارگر', sub: 'حقوق', account: biz, amount: 18000000, title: 'حقوق کارگر — رضا', day: 30, lastPosted: '1405-07' }),
+    A.recurringRowOf(TAG, 'tamin', { type: 'expense', category: 'مالیات و بیمه', sub: 'بیمه', account: biz, amount: 7800000, title: 'بیمه تأمین اجتماعی مغازه', day: 11, lastPosted: '1405-07' })
+  ]
+
+  // ---- net worth: 3 months typed/rebuilt from before the book and last month's... except 1405-07 (Mehr).
+  // The Mehr row is missing on purpose: the app writes it from the records on the first open.
+  // Illustrative values: assets = wallet (+ goals) + vault at the last bought price; liabilities = instalments due in 30 days.
+  const plans = [
+    { dues: loanDue, amount: loanSpec.amount },
+    { dues: equipDue, amount: equipSpec.amount }
+  ]
+  const monthEnd = month => L.jalaliToIso(1405, month, month <= 6 ? 31 : 30)
+  const due30 = end => A.remainingAt(plans, end) - A.remainingAt(plans, L.isoAdd(30, end))
+  const snapshot = (month, wallet, source, at) => ({ month: `1405-${String(month).padStart(2, '0')}`, assets: wallet + vault.valueAt(monthEnd(month)), liabilities: due30(monthEnd(month)), source, at })
+
+  const netWorth = A.netWorthRows([
+    snapshot(3, 95000000, 'manual', ago(60)),
+    snapshot(4, 104000000, 'manual', ago(60)),
+    snapshot(5, 113500000, 'rebuilt', ago(60)),
+    snapshot(6, book.walletTotalAt(monthEnd(6)) + goals.balanceAt(reno, monthEnd(6)) + goals.balanceAt(cutter, monthEnd(6)), 'auto', L.isoAdd(1, monthEnd(6)))
+  ])
+
   const out = book.build()
 
   const incomeCats = ['فروش کارتخوان', 'فروش نقدی', 'چک', 'طلب', 'سود و سرمایه', 'سایر']
-  const expenseCats = ['خرید کالا', 'اجاره و شارژ مغازه', 'حقوق کارگر', 'قبوض', 'مالیات و بیمه', 'تعمیرات', 'خوراک', 'سلامت', 'خانواده و فرزند', 'هدیه و مناسبت', 'قسط', 'چک', 'بدهی', 'انتقال', 'سایر']
+  const expenseCats = ['خرید کالا', 'اجاره و شارژ مغازه', 'حقوق کارگر', 'قبوض', 'مالیات و بیمه', 'تعمیرات', 'خوراک', 'سلامت', 'خانواده و فرزند', 'هدیه و مناسبت', 'خودرو', 'قسط', 'چک', 'بدهی', 'انتقال', 'سایر']
 
   const groups = { ...L.emptyGroups(), income: incomeCats, expense: expenseCats, receivable: ['مشتری', 'شخصی', 'قرض', 'سازمان', 'سایر'] }
 
@@ -226,34 +340,66 @@ export function buildMerchant() {
     [L.names.PERSONAL_REMINDERS_SHEET]: [
       L.heads.PERSONAL_REMINDERS_HEADERS,
       reminder('tamin', 'بیمه', 'بیمه تأمین اجتماعی مغازه', L.ahead(7), 'monthly', 7800000, 3),
-      reminder('vat', 'مالیات', 'ارزش افزوده فصل پاییز', L.ahead(24), 'none', 18000000, 5),
-      reminder('rent', 'سایر', 'اجاره مغازه', L.ahead(25), 'monthly', 25000000, 3)
-    ]
+      reminder('vat', 'مالیات', 'ارزش افزوده فصل پاییز', L.ahead(24), 'none', 18000000, 7),
+      reminder('rent', 'سایر', 'اجاره مغازه', L.ahead(25), 'monthly', 25000000, 3),
+      // one reminder per cheque date: an overdue one, two soon, one to bank
+      A.reminderRowOf(TAG, 'chk-4501234', { category: 'سایر', title: 'چک ۴۵۰۱۲۳۴ نوین‌کالا (از موعد گذشته)', due: ago(3), recurrence: 'none', amount: 18500000, daysBefore: 0 }),
+      A.reminderRowOf(TAG, 'chk-4501235', { category: 'سایر', title: 'موجودی حساب برای چک ۴۵۰۱۲۳۵ پخش آرمان', due: L.ahead(2), recurrence: 'none', amount: 12000000, daysBefore: 2 }),
+      A.reminderRowOf(TAG, 'chk-4501236', { category: 'سایر', title: 'موجودی حساب برای چک ۴۵۰۱۲۳۶ نوین‌کالا', due: L.ahead(9), recurrence: 'none', amount: 22000000, daysBefore: 7 }),
+      A.reminderRowOf(TAG, 'chk-7788003', { category: 'سایر', title: 'وصول چک ۷۷۸۸۰۰۳ آقای کاظمی', due: L.ahead(3), recurrence: 'none', amount: 3500000, daysBefore: 1 })
+    ],
+    [L.names.RECURRING_SHEET]: [L.heads.RECURRING_HEADERS, ...recurringRows],
+    [L.names.TREASURY_GOALS_SHEET]: goals.rows(),
+    [L.names.TREASURY_SHEET]: vault.transactionRows(),
+    [L.names.TREASURY_ASSETS_SHEET]: vault.assetRows(),
+    [L.names.NET_WORTH_SHEET]: netWorth,
+    [L.names.BUDGETS_SHEET]: L.budgetRows(
+      [['خرید کالا', 280000000], ['حقوق کارگر', 36000000], ['اجاره و شارژ مغازه', 25000000], ['قبوض', 5000000], ['خوراک', 12000000], ['خودرو', 5000000]],
+      ago(50)
+    ),
+    ...veh.tabs()
   }
 
   // ---- bank SMS
   const mellatOf = e => F.mellat(e.verb, { toman: e.toman, balance: e.balance, ref: '6104***0099', day: e.day, time: e.time })
   const melliOf = e => F.melli(e.verb, { toman: e.toman, balance: e.balance, acct: pers.acctNo, day: e.day, time: e.time })
 
-  const bizEvents = L.runningBalances(book, biz, [
-    { day: ago(1), time: '10:20', verb: 'برداشت', toman: 18500000, delta: -18500000 }, // = overdue check 4501234
-    { day: ago(2), time: '15:00', verb: 'واریز', toman: 9000000, delta: 9000000 }, // = what Mr Hosseini still owes
-    { day: ago(5), time: '12:05', verb: 'واریز', toman: cardSales[5].amount, delta: cardSales[5].amount, recorded: true },
-    { day: ago(0), time: '07:30', verb: 'برداشت', toman: 6800000, delta: -6800000 }, // = overdue instalment of the equipment plan
-    { day: ago(6), time: '16:01', verb: 'برداشت', toman: 30000000, delta: -30000000, recorded: true }
-  ])
+  // «مانده» chain: see L.chainBalances. The overdue instalment (newest pending on the shop
+  // account) is the deliberate +1M case; the personal account's chain is exact.
+  const bizEvents = L.chainBalances(
+    book,
+    biz,
+    [
+      { day: ago(1), time: '10:20', verb: 'برداشت', toman: 18500000, delta: -18500000 }, // = overdue check 4501234
+      { day: ago(2), time: '15:00', verb: 'واریز', toman: 9000000, delta: 9000000 }, // = what Mr Hosseini still owes
+      { day: ago(5), time: '12:05', verb: 'واریز', toman: cardSales[5].amount, delta: cardSales[5].amount, recorded: true },
+      { day: ago(0), time: '07:30', verb: 'برداشت', toman: 6800000, delta: -6800000 }, // = overdue instalment of the equipment plan
+      { day: ago(6), time: '16:01', verb: 'برداشت', toman: 30000000, delta: -30000000, recorded: true }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
-  const persEvents = L.runningBalances(book, pers, [
+  const persEvents = L.chainBalances(book, pers, [
     { day: ago(6), time: '16:02', verb: 'واریز', toman: 30000000, delta: 30000000, recorded: true },
     { day: ago(2), time: '18:10', verb: 'خرید', toman: 1860000, delta: -1860000 }
   ])
 
   const overdueCheck = bizEvents.find(e => e.toman === 18500000)
 
+  const meta = []
+  const tracked = (account, item, e) => {
+    meta.push(L.chainMeta(item, e.status, { account: account.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+    return item
+  }
+  const checkRepeat = L.sms({ sender: 'BankMellat', day: overdueCheck.day, time: '10:21', body: mellatOf(overdueCheck), idSalt: '#2' })
+
+  meta.push(L.chainMeta(checkRepeat, 'redelivery'))
+
   const smsList = [
-    ...bizEvents.map(e => L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e) })),
-    ...persEvents.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e) })),
-    L.sms({ sender: 'BankMellat', day: overdueCheck.day, time: '10:21', body: mellatOf(overdueCheck), idSalt: '#2' }),
+    ...bizEvents.map(e => tracked(biz, L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e) }), e)),
+    ...persEvents.map(e => tracked(pers, L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e) }), e)),
+    checkRepeat,
     L.sms({ sender: 'BankMellat', day: ago(4), time: '10:00', body: F.promo('بانک ملت') }),
     L.sms({ sender: '10002040', day: ago(1), time: '13:30', body: F.posNotice({ shop: 'پخش آرمان', toman: 4200000, cardTail: '0099', day: ago(1), time: '13:30' }) })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
@@ -272,5 +418,5 @@ export function buildMerchant() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, accounts: [biz, pers, till] }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, accounts: [biz, pers, till] }
 }

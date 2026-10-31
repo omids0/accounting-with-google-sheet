@@ -2,6 +2,7 @@
 // («فضای ساختمان»), so this is a separate data file; run it as the main workbook together with
 // init-merchant-building.js (which marks the workbook as a building).
 import * as L from './lib.mjs'
+import * as A from './areas.mjs'
 import * as F from './smsFormats.mjs'
 
 const { ago, uid } = L
@@ -264,6 +265,12 @@ export function buildBuilding() {
 
   people.push(painter)
 
+  // vendors named in the expenses (counterparties of the fund)
+  people.push(
+    L.person(TAG, 'lift-co', 'شرکت', 'آسانسور پارس', { phones: ['02188001122'], since: ago(60), note: 'قرارداد سرویس و بازرسی آسانسور' }),
+    L.person(TAG, 'plumber', 'تأسیسات', 'رضایی', { phones: ['09121234000'], since: ago(60) })
+  )
+
   const debts = [
     L.dangRowOf(TAG, 'painter', {
       title: 'پیش‌پرداخت رنگ‌آمیزی راه‌پله',
@@ -300,8 +307,17 @@ export function buildBuilding() {
     [L.names.RECURRING_SHEET]: [
       L.heads.RECURRING_HEADERS,
       [uid(`${TAG}:rec:lift`), L.stamp(ago(60), '10:00'), 'expense', 'آسانسور', 'سرویس', bank.id, '3500000', 'سرویس ماهانه آسانسور', '5', 'reminder', '1405-07', 'بله', 'آسانسور', 'fund'],
-      [uid(`${TAG}:rec:clean`), L.stamp(ago(60), '10:01'), 'expense', 'نظافت', 'نظافتچی', bank.id, '6000000', 'حقوق نظافتچی', '30', 'reminder', '1405-07', 'بله', 'نظافت', 'fund']
-    ]
+      [uid(`${TAG}:rec:clean`), L.stamp(ago(60), '10:01'), 'expense', 'نظافت', 'نظافتچی', bank.id, '6000000', 'حقوق نظافتچی', '30', 'reminder', '1405-07', 'بله', 'نظافت', 'fund'],
+      // a building has no personal reminders tab (it is personal-only), so the dated chores live here as monthly items
+      A.recurringRowOf(TAG, 'lift-inspection', { type: 'expense', category: 'آسانسور', sub: 'بازرسی', account: bank, amount: 1250000, title: 'بازرسی و ایمنی آسانسور (قسط قرارداد سالانه)', day: 20, lastPosted: '1405-07', expenseKind: 'آسانسور', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'power', { type: 'expense', category: 'قبوض مشاعات', sub: 'برق', account: bank, amount: 1380000, title: 'قبض برق مشاعات', day: 12, lastPosted: '1405-07', expenseKind: 'قبوض مشاعات', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'garden', { type: 'expense', category: 'فضای سبز', sub: 'نگهداری', account: bank, amount: 900000, title: 'نگهداری فضای سبز', day: 25, lastPosted: '1405-07', expenseKind: 'فضای سبز', payer: 'fund' }),
+      A.recurringRowOf(TAG, 'fire-insurance', { type: 'expense', category: 'بیمه ساختمان', sub: 'آتش‌سوزی', account: bank, amount: 2100000, title: 'قسط بیمه آتش‌سوزی ساختمان', day: 15, lastPosted: '1405-07', expenseKind: 'بیمه ساختمان', payer: 'fund' })
+    ],
+    [L.names.BUDGETS_SHEET]: L.budgetRows(
+      [['آسانسور', 4000000], ['نظافت', 6000000], ['قبوض مشاعات', 3000000], ['تعمیرات', 4000000], ['حقوق سرایدار', 12000000]],
+      ago(50)
+    )
   }
 
   // ---- bank SMS of the fund account (Melli): the payer's card is printed in every deposit
@@ -309,20 +325,28 @@ export function buildBuilding() {
   const masked = p => `${cardOf(p).slice(0, 4)}***${cardOf(p).slice(-4)}`
   const unit = n => units.find(u => u.number === n)
 
-  const events = L.runningBalances(book, bank, [
-    // unit 5 paid Aban on the 26th and the income record exists -> SMS says «already recorded»
-    { day: ago(1), time: '09:31', verb: 'واریز', toman: 2400000, delta: 2400000, recorded: true, payer: debtorOf(unit('5')) },
-    // unit 4 owes Mehr (2.4M): card + amount fit
-    { day: ago(1), time: '16:45', verb: 'واریز', toman: 2400000, delta: 2400000, payer: debtorOf(unit('4')) },
-    // unit 7 (tenant) sends 2 months of charge at once
-    { day: ago(2), time: '12:10', verb: 'واریز', toman: 4800000, delta: 4800000, payer: debtorOf(unit('7')) },
-    // unit 11 pays exactly what is left of Mehr
-    { day: ago(0), time: '08:20', verb: 'واریز', toman: 1400000, delta: 1400000, payer: debtorOf(unit('11')) },
-    // a deposit from a card nobody saved: amount fits many units
-    { day: ago(3), time: '19:05', verb: 'واریز', toman: 2400000, delta: 2400000, payer: { accounts: [{ accountNumber: '5022291188776655' }] } },
-    // elevator service leaves the fund
-    { day: ago(0), time: '11:00', verb: 'برداشت', toman: 3500000, delta: -3500000 }
-  ])
+  // «مانده» chain: see L.chainBalances (every recorded SMS is older than every pending one, so the
+  // unknown-card and unit 7 deposits sit after unit 5's recorded one). The elevator debit (newest
+  // pending) is the deliberate +1M case.
+  const events = L.chainBalances(
+    book,
+    bank,
+    [
+      // unit 5 paid Aban on the 26th and the income record exists -> SMS says «already recorded»
+      { day: ago(1), time: '09:31', verb: 'واریز', toman: 2400000, delta: 2400000, recorded: true, payer: debtorOf(unit('5')) },
+      // a deposit from a card nobody saved: amount fits many units
+      { day: ago(1), time: '11:05', verb: 'واریز', toman: 2400000, delta: 2400000, payer: { accounts: [{ accountNumber: '5022291188776655' }] } },
+      // unit 7 (tenant) sends 2 months of charge at once
+      { day: ago(1), time: '13:10', verb: 'واریز', toman: 4800000, delta: 4800000, payer: debtorOf(unit('7')) },
+      // unit 4 owes Mehr (2.4M): card + amount fit
+      { day: ago(1), time: '16:45', verb: 'واریز', toman: 2400000, delta: 2400000, payer: debtorOf(unit('4')) },
+      // unit 11 pays exactly what is left of Mehr
+      { day: ago(0), time: '08:20', verb: 'واریز', toman: 1400000, delta: 1400000, payer: debtorOf(unit('11')) },
+      // elevator service leaves the fund
+      { day: ago(0), time: '11:00', verb: 'برداشت', toman: 3500000, delta: -3500000 }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
   const bodyOf = e =>
     e.verb === 'واریز'
@@ -331,10 +355,21 @@ export function buildBuilding() {
 
   const first = events.find(e => e.payer === debtorOf(unit('4')))
 
+  const meta = []
+  const depositRepeat = L.sms({ sender: 'BMI', day: first.day, time: '16:46', body: bodyOf(first), idSalt: '#2' })
+
+  meta.push(L.chainMeta(depositRepeat, 'redelivery'))
+
   const smsList = [
-    ...events.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: bodyOf(e) })),
+    ...events.map(e => {
+      const item = L.sms({ sender: 'BMI', day: e.day, time: e.time, body: bodyOf(e) })
+
+      meta.push(L.chainMeta(item, e.status, { account: bank.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+      return item
+    }),
     // the same deposit SMS delivered a second time
-    L.sms({ sender: 'BMI', day: first.day, time: '16:46', body: bodyOf(first), idSalt: '#2' }),
+    depositRepeat,
     L.sms({ sender: 'BMI', day: ago(4), time: '10:00', body: F.promo('بانک ملی ایران') }),
     L.sms({ sender: '10009999', day: ago(6), time: '10:00', body: F.pasargadStyle({ toman: 2400000, balance: 8000000, acct: '205.8000.1234567.1', day: ago(6) }) })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
@@ -354,5 +389,5 @@ export function buildBuilding() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, bank, cash, units, people, profile }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, bank, cash, units, people, profile }
 }
