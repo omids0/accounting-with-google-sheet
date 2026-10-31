@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بودجهٔ هوشمند — حساب‌کتاب</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .env {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        position: relative;
+        padding: 6px 0 16px;
+        font-size: 0.88rem;
+      }
+      .env::after {
+        content: '';
+        position: absolute;
+        inset: auto 0 4px 0;
+        height: 8px;
+        border-radius: 99px;
+        background: linear-gradient(to left, var(--c, var(--primary)) var(--p), var(--border) 0);
+      }
+      .env.warn {
+        --c: var(--warn);
+      }
+      .env.bad {
+        --c: var(--danger);
+      }
+      .kind {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        border-radius: 14px 14px 0 0;
+        padding: 10px 12px;
+      }
+      .strip {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+        text-align: center;
+        font-size: 0.72rem;
+      }
+      .strip span {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px 0;
+        background: var(--surface);
+      }
+      .strip .now {
+        background: var(--primary);
+        color: #fff;
+      }
+      .strip .mark {
+        border-color: var(--new);
+        color: var(--new);
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>بودجهٔ هوشمند</h1>
+      <p class="lead">
+        بودجه فقط یک سقف خشک نباشد: پول هر کار جدا بماند، روز حقوق خودش تقسیم شود، خرج‌های فصلی از
+        ماه‌ها قبل خبر بدهند و چیز عجیب را اپ خودش ببیند. امروز ۶ آبان ۱۴۰۵ است.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <a href="budget-2.html">بخش ۲: روز حقوق و اشتراک ←</a>
+        <a href="budget-3.html">بخش ۳: هشدار قبض ←</a>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-env">الف) پاکت‌های بودجه</button>
+        <button data-idea="idea-season">ج) هزینه‌های فصلی</button>
+      </div>
+
+      <section class="idea" id="idea-env">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز: سقف دسته‌ها</div>
+            <div class="app-bar"><span>بودجه</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>سقف ماهانهٔ دسته‌ها</h3>
+                <div class="env" style="--p: 34%">
+                  <b>خوراک</b><span>خرج‌شده ۴٬۱۰۰٬۰۰۰ از ۱۲٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="env" style="--p: 30%">
+                  <b>مدرسه</b><span>خرج‌شده ۳٬۷۰۰٬۰۰۰ از ۱۲٬۴۰۰٬۰۰۰</span>
+                </div>
+                <div class="env" style="--p: 85%">
+                  <b>ماشین</b><span>خرج‌شده ۲٬۵۵۰٬۰۰۰ از ۳٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="env bad" style="--p: 100%">
+                  <b>تفریح</b><span>خرج‌شده ۲٬۰۰۰٬۰۰۰ از ۲٬۰۰۰٬۰۰۰</span>
+                </div>
+              </div>
+              <small class="muted"
+                >فقط می‌بینی چقدر رفته؛ نمی‌بینی چقدر مانده یا از کجا جبران کنی.</small
+              >
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: پاکت‌ها</div>
+            <div class="app-bar"><span>پاکت‌های من</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <h3>پول باقی‌ماندهٔ هر کار</h3>
+                <div class="env" style="--p: 66%">
+                  <b>خوراک</b><span>مانده ۷٬۹۰۰٬۰۰۰ از ۱۲٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="env" style="--p: 70%">
+                  <b>مدرسه</b><span>مانده ۸٬۷۰۰٬۰۰۰ از ۱۲٬۴۰۰٬۰۰۰</span>
+                </div>
+                <div class="env warn" style="--p: 15%">
+                  <b>ماشین</b><span>مانده ۴۵۰٬۰۰۰ از ۳٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="env bad" style="--p: 0%">
+                  <b>تفریح</b><span>مانده صفر از ۲٬۰۰۰٬۰۰۰</span>
+                </div>
+              </div>
+              <div class="card kind new" data-idea="ایدهٔ ۱" id="env-warn">
+                <h3>پاکت تفریح خالی شد</h3>
+                <small
+                  >اشکالی ندارد؛ آخر هفته خوش گذشت. می‌خواهی از پاکت دیگری کمک بگیری یا تا اول آذر
+                  صبر کنی؟</small
+                >
+              </div>
+              <button
+                class="btn new"
+                data-idea="ایدهٔ ۱"
+                data-demo="toggle"
+                data-target="env-sheet"
+              >
+                انتقال بین پاکت‌ها
+              </button>
+              <div class="sheet new" data-idea="ایدهٔ ۱" id="env-sheet">
+                <h3>انتقال بین پاکت‌ها</h3>
+                <div class="row"><span>از پاکت</span><b>خوراک (مانده ۷٬۹۰۰٬۰۰۰)</b></div>
+                <div class="row"><span>به پاکت</span><b>تفریح</b></div>
+                <div class="row"><span>مبلغ</span><b>۵۰۰٬۰۰۰ تومان</b></div>
+                <button class="btn">تایید انتقال</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۱: پاکت‌های بودجه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              خانم خانه‌دار پول ماهانه را از همسرش می‌گیرد و جدا جدا خرج می‌کند؛ سقف دسته‌ها فقط
+              می‌گوید «چقدر رفت»، نه «چقدر ماند».
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              همان سقف دسته‌ها به شکل پاکت نشان داده شود: نوار با هر خرج کوتاه‌تر شود، انتقال بین
+              پاکت‌ها ممکن باشد و خالی‌شدن با پیام مهربان خبر داده شود.
+            </dd>
+            <dt>چرا</dt>
+            <dd>
+              «پولم چقدر مانده» را انسان‌ها با پاکت راحت‌تر می‌فهمند؛ شرم از «بودجه تمام شد» هم کم
+              می‌شود.
+            </dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              صفحهٔ بودجه (موجود: سقف دسته‌ها و خلاصهٔ بودجه)؛ پاکت حالت نمایش دیگری همان‌جاست.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>
+              همان بودجهٔ دسته‌ها. فقط ثبت «انتقال» (از، به، مبلغ، ماه) سطر تازه در شیت می‌خواهد؛
+              تغییر ستون پیش از کدنویسی از مالک پرسیده می‌شود.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              دو مدل بودجه (سقف و پاکت) گیج‌کننده است؛ بهتر است یک مدل بماند و پاکت فقط نمایش آن
+              باشد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-season">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">با ایده: تقویم هزینه‌های فصلی</div>
+            <div class="app-bar"><span>خرج‌های سالانه</span><span>۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <div class="strip">
+                  <span class="mark">فروردین نوروز</span><span class="mark">اردیبهشت معاینه</span
+                  ><span>خرداد</span><span>تیر</span><span>مرداد</span><span>شهریور</span>
+                  <span class="mark">مهر مدرسه</span><span class="now">آبان</span
+                  ><span class="mark">آذر بیمه</span><span class="mark">دی سوخت</span
+                  ><span class="mark">بهمن مدرسه</span><span>اسفند</span>
+                </div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <h3>سوخت و گرمایش زمستان (دی)</h3>
+                <div class="row"><span>پارسال</span><b>۵٬۴۰۰٬۰۰۰</b></div>
+                <div class="row"><span>برآورد امسال</span><b>۶٬۳۰۰٬۰۰۰</b></div>
+                <b class="pos">ماهانه ۲٬۱۰۰٬۰۰۰ کنار بگذار</b>
+                <small>سه ماه مانده؛ ۶٬۳۰۰٬۰۰۰ تقسیم بر ۳.</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <div class="row">
+                  <span>بیمهٔ بدنه (آذر)</span><span>پارسال ۴٬۸۰۰٬۰۰۰ ← برآورد ۵٬۶۰۰٬۰۰۰</span>
+                </div>
+                <div class="row">
+                  <span>مدرسه، ترم دوم (بهمن)</span
+                  ><span>برآورد ۱۲٬۴۰۰٬۰۰۰ ← ماهانه ۳٬۱۰۰٬۰۰۰</span>
+                </div>
+                <div class="row">
+                  <span>نوروز (فروردین)</span><span>پارسال ۱۸٬۰۰۰٬۰۰۰ ← برآورد ۲۱٬۰۰۰٬۰۰۰</span>
+                </div>
+                <div class="row"><span>جمع کنار گذاشتن ماهانه</span><b>۱۲٬۴۵۰٬۰۰۰ تومان</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۳: هزینه‌های فصلی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مدرسه، نوروز، بیمه، معاینهٔ فنی و سوخت زمستان هر سال می‌آیند ولی هر بار غافلگیر
+              می‌کنند.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              اپ از تراکنش‌های پارسال خودش ماه این خرج‌ها را پیدا کند، برآورد امسال بدهد (با تورم) و
+              بگوید از همین ماه چقدر کنار بگذار.
+            </dd>
+            <dt>چرا</dt>
+            <dd>خرج بزرگ وقتی تکه‌تکه شود، سنگین نیست؛ جلوی قرض کردن آخر لحظه گرفته می‌شود.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>صفحهٔ بودجه، زیر پاکت‌ها؛ نشانه‌ای هم در پیش‌بینی ماه.</dd>
+            <dt>داده لازم</dt>
+            <dd>تراکنش‌های یک سال گذشته (موجود). اگر سابقه نیست، کاربر خودش یک بار مبلغ می‌زند.</dd>
+            <dt>خطر</dt>
+            <dd>
+              تشخیص اشتباه «فصلی» (مثلاً سفر یک‌باره)؛ هر مورد با «این فصلی نیست» حذف شود. نرخ تورم
+              را کاربر تعیین کند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بودجهٔ هوشمند — حساب‌کتاب</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        border-radius: 14px 14px 0 0;
+        padding: 10px 12px;
+      }
+      .sheet label {
+        display: grid;
+        gap: 2px;
+        font-size: 0.85rem;
+        padding: 4px 0;
+      }
+      .sheet input[type='range'] {
+        width: 100%;
+        accent-color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>بودجهٔ هوشمند</h1>
+      <p class="lead">
+        بودجه فقط یک سقف خشک نباشد: پول هر کار جدا بماند، روز حقوق خودش تقسیم شود، خرج‌های فصلی از
+        ماه‌ها قبل خبر بدهند و چیز عجیب را اپ خودش ببیند. امروز ۶ آبان ۱۴۰۵ است.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <a href="budget.html">بخش ۱: پاکت‌ها و خرج فصلی ←</a>
+        <a href="budget-3.html">بخش ۳: هشدار قبض ←</a>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-salary">ب) بودجه‌بندی روز حقوق</button>
+        <button data-idea="idea-rule">ه) تشخیص اشتراک و قاعدهٔ خودکار</button>
+      </div>
+
+      <section class="idea" id="idea-salary">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">روز حقوق: اول آبان</div>
+            <div class="app-bar"><span>داشبورد</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>درآمد ثبت شد</h3>
+                <div class="row"><span>حقوق آبان</span><b class="pos">۶۵٬۰۰۰٬۰۰۰ تومان</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <h3>حقوق رسید، تقسیمش کنیم؟</h3>
+                <small
+                  >اجاره و اقساط را از قبل می‌دانم. بقیه را با هم تقسیم کنیم تا ماه بی‌حساب
+                  نگذرد.</small
+                >
+                <button class="btn">پیشنهاد بودجه را ببین</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">برگهٔ پیشنهاد (بکشید و تغییر دهید)</div>
+            <div class="app-bar"><span>تقسیم حقوق</span><span>۶۵٬۰۰۰٬۰۰۰</span></div>
+            <div class="screen">
+              <div class="sheet new" data-idea="ایدهٔ ۲">
+                <div class="row"><span>اجاره (ثابت)</span><b>۱۸٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>اقساط (ثابت)</span><b>۷٬۴۵۰٬۰۰۰</b></div>
+                <label
+                  >پس‌انداز <input type="range" id="r-save" min="0" max="30" value="10" /><output
+                    id="o-save"
+                  ></output
+                ></label>
+                <label
+                  >خرج روزانه
+                  <input
+                    type="range"
+                    id="r-day"
+                    min="8000000"
+                    max="35000000"
+                    step="500000"
+                    value="22000000" /><output id="o-day"></output
+                ></label>
+                <label
+                  >ماشین و رفت‌وآمد
+                  <input
+                    type="range"
+                    id="r-car"
+                    min="1000000"
+                    max="10000000"
+                    step="500000"
+                    value="4000000" /><output id="o-car"></output
+                ></label>
+                <div class="row"><span>باقی برای تفریح و غیرمنتظره</span><b id="o-rest"></b></div>
+                <button class="btn">ساخت پاکت‌ها</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۲: بودجه‌بندی روز حقوق</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              کارمند حسابدار: حقوق اول ماه می‌آید، اجاره و قسط می‌رود و تا آخر ماه معلوم نیست چقدر
+              آزاد است.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              وقتی «درآمد حقوق» ثبت شد، برگه‌ای می‌پرسد چقدر برای اجاره، اقساط، پس‌انداز و خرج
+              روزانه کنار برود؛ با لغزنده تغییر می‌کند و «ساخت پاکت‌ها» می‌سازد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>تصمیم یک‌بار در روز اول گرفته می‌شود و بقیهٔ ماه بی‌دغدغه است.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>بعد از ثبت درآمد، پیشنهاد در داشبورد؛ نتیجه در صفحهٔ بودجه.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: اقساط، قبوض تکرارشونده و اجاره از اقلام تکراری. تازه: درصد پس‌انداز و ذخیرهٔ
+              سهم‌ها.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              اگر درآمد هر ماه فرق کند، پیشنهاد غلط می‌شود؛ باید درآمد را از ماه قبل بپرسد، نه حدس
+              بزند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-rule">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">پیشنهاد اشتراک</div>
+            <div class="app-bar"><span>داشبورد</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>هر ماه ۱۴۹٬۰۰۰ به «نت‌فلیکس‌نما» می‌دهی</h3>
+                <small>سه پرداخت پشت‌سرهم: نوزدهم مرداد، شهریور و مهر. تکرار ماهانه کنم؟</small>
+                <div class="row"><span>مبلغ هر ماه</span><b>۱۴۹٬۰۰۰ تومان</b></div>
+                <div class="row"><span>یادآوری</span><b>نوزدهم هر ماه</b></div>
+                <div class="row">
+                  <button class="btn">تکرار ماهانه کن</button
+                  ><button class="btn ghost">نه، لازم نیست</button>
+                </div>
+              </div>
+              <div class="card">
+                <h3>اقلام تکرارشونده</h3>
+                <div class="row"><span>اینترنت، روز هشتم</span><b>۱٬۱۵۰٬۰۰۰</b></div>
+                <div class="row"><span>قسط وام، روز پنجم</span><b>۴٬۳۵۰٬۰۰۰</b></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">قاعدهٔ خودکار</div>
+            <div class="app-bar"><span>ثبت هزینه</span><span>اسنپ</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>هزینهٔ تازه</h3>
+                <div class="row"><span>اسنپ</span><b class="neg">۱۸۵٬۰۰۰ تومان</b></div>
+                <div class="row"><span>دسته</span><b>حمل‌ونقل</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>قاعدهٔ پیشنهادی: اسنپ ← حمل‌ونقل</h3>
+                <small>سه بار اسنپ را «حمل‌ونقل» زدی. از این به بعد خودکار انتخاب شود؟</small>
+                <div class="row"><span>روی رکوردهای قبلی هم اعمال شود</span><b>چهار مورد</b></div>
+                <div class="row">
+                  <button class="btn">بله، قاعده بساز</button
+                  ><button class="btn ghost">فعلاً نه</button>
+                </div>
+              </div>
+              <div class="card">
+                <h3>قالب‌های پیامک بانکی</h3>
+                <small>دسته‌بندی از روی پیامک همین امروز هم کار می‌کند.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۵: تشخیص اشتراک و قاعدهٔ خودکار</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>اشتراک‌های ماهانه فراموش می‌شوند و یک مقصد را هر بار دستی دسته‌بندی می‌کنند.</dd>
+            <dt>ایده</dt>
+            <dd>
+              اگر همان مبلغ و همان مقصد سه ماه پشت هم آمد، اپ پیشنهاد «تکرار ماهانه» بدهد. اگر مقصدی
+              سه بار در یک دسته رفت، پیشنهاد قاعدهٔ خودکار بدهد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>ثبت دستی کم می‌شود و اشتراک‌های فراموش‌شده دیده می‌شوند.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              داشبورد، فرم ثبت هزینه و جایی که قالب‌های پیامک را تنظیم می‌کنی. از امکانات موجود:
+              اقلام تکرارشونده، قالب و دستهٔ پیامک.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>
+              تراکنش‌های موجود. قاعده‌ها باید در محل مشترک با قالب‌های پیامک ذخیره شوند (قاعدهٔ
+              پیوند در مسیر ثبت مشترک است، نه فقط پیامک).
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              تشخیص اشتباه (دو خرید مشابه که اشتراک نیست) پیشنهاد مزاحم می‌دهد. فقط پیشنهاد، هرگز
+              خودکار؛ با «دیگر پیشنهاد نده».
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      ;(() => {
+        const q = id => document.getElementById(id)
+        const f = n => n.toLocaleString('fa-IR')
+        const sliders = ['r-save', 'r-day', 'r-car']
+        const calc = () => {
+          const pct = +q('r-save').value
+          const save = Math.round((65e6 * pct) / 100)
+          const day = +q('r-day').value
+          const car = +q('r-car').value
+          const rest = 65e6 - 18e6 - 7.45e6 - save - day - car
+
+          q('o-save').textContent = `برابر ${f(pct)}٪ حقوق، یعنی ${f(save)}`
+          q('o-day').textContent = `ماهانه ${f(day)}`
+          q('o-car').textContent = `ماهانه ${f(car)}`
+          q('o-rest').textContent = `${rest < 0 ? 'کسری ' : ''}${f(Math.abs(rest))}`
+          q('o-rest').className = rest < 0 ? 'neg' : 'pos'
+        }
+
+        sliders.forEach(id => q(id).addEventListener('input', calc))
+        calc()
+      })()
+    </script>
+  </body>
+</html>
