@@ -9,12 +9,16 @@ import { alertClassName } from '../ui/Alert'
 
 const fieldLabelClass = 'mb-1 block text-[0.78rem] font-semibold text-text'
 
+/** A day that never breaks between its number and its month. */
+function Day({ iso }: { iso: string }) {
+  return <bdi className="whitespace-nowrap">{forecastDayLabel(iso)}</bdi>
+}
+
 /** The sentence under the form. It reads only the lowest balance and its day from the estimate. */
 function Verdict({ result }: { result: PurchaseAssessment }) {
   const lowest = (
     <>
-      <ForecastMoney amount={result.lowest.balance} /> در{' '}
-      <bdi>{forecastDayLabel(result.lowest.date)}</bdi>
+      <ForecastMoney amount={result.lowest.balance} /> در <Day iso={result.lowest.date} />
     </>
   )
 
@@ -52,19 +56,35 @@ function Verdict({ result }: { result: PurchaseAssessment }) {
     )
   }
 
+  const worst = (
+    <>
+      <ForecastMoney amount={result.shortfall} /> در <Day iso={result.lowest.date} />
+    </>
+  )
+
   return (
     <p className={alertClassName('error', 'mb-0')}>
-      <strong>
-        کم می‌آوری: <ForecastMoney amount={result.shortfall} /> در{' '}
-        <bdi>{forecastDayLabel(result.lowest.date)}</bdi>.
-      </strong>{' '}
-      {result.alreadyShort
-        ? 'در این برآورد حتی بدون این خرید هم مانده زیر صفر می‌رود.'
-        : result.suggestedDate
-        ? `اگر خرید را به ${forecastDayLabel(
-            result.suggestedDate
-          )} ببری، در این برآورد مانده زیر صفر نمی‌رود.`
-        : 'در بازهٔ این برآورد تاریخی پیدا نشد که با آن مانده زیر صفر نرود.'}
+      {result.alreadyShort ? (
+        <>
+          <strong>
+            بدون این خرید هم کم می‌آوری: <ForecastMoney amount={-result.baselineLowest.balance} />{' '}
+            در <Day iso={result.baselineLowest.date} />.
+          </strong>{' '}
+          این خرید (<ForecastMoney amount={result.amount} />) کسری را بیشتر می‌کند: {worst}.
+        </>
+      ) : (
+        <>
+          <strong>کم می‌آوری: {worst}.</strong>{' '}
+          {result.suggestedDate ? (
+            <>
+              اگر خرید را به <Day iso={result.suggestedDate} /> ببری، در این برآورد مانده زیر صفر
+              نمی‌رود.
+            </>
+          ) : (
+            'در بازهٔ این برآورد تاریخی پیدا نشد که با آن مانده زیر صفر نرود.'
+          )}
+        </>
+      )}
     </p>
   )
 }

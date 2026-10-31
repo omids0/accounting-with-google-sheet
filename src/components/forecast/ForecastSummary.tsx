@@ -20,20 +20,36 @@ const noteClass = 'mt-0.5 block text-[0.72rem] text-muted'
 export default function ForecastSummary({
   forecast,
   view,
-  endIso
+  endIso,
+  dailySpending,
+  historyEnough
 }: {
   forecast: ForecastResult
   view: ForecastViewId
   endIso: string
+  dailySpending: number
+  /** Enough expense history for an average (under 14 days it is too little). */
+  historyEnough: boolean
 }) {
   const { endBalance, lowest, firstNegativeDate } = forecast
   const ending = endLabel(view, endIso)
+  // With nothing spent per day the figures only hold the known due dates: say so beside them.
+  const withoutSpending = dailySpending <= 0
 
   return (
     <CalmBlock title="خلاصهٔ برآورد" badge={<span className="text-muted">· همه برآورد است</span>}>
+      {withoutSpending ? (
+        <p className="m-0 mb-2 text-[0.76rem] leading-[1.8] text-warning">
+          این عددها بدون خرج روزانه‌اند و فقط سررسیدهای ثبت‌شده را حساب کرده‌اند؛ پس خوش‌بینانه‌اند.{' '}
+          {historyEnough ? '' : 'سابقهٔ کم؛ خرج روزانه را خودتان بگذارید.'}
+        </p>
+      ) : null}
       <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2">
         <div className={cn(figureClass, 'min-[420px]:col-span-2')}>
-          <span className={labelClass}>مانده برآوردی تا {ending}</span>
+          <span className={labelClass}>
+            مانده برآوردی تا {ending}
+            {withoutSpending ? ' (بدون خرج روزانه)' : ''}
+          </span>
           <span className={cn(valueClass, endBalance < 0 ? 'text-danger' : 'text-text')}>
             حدود <ForecastMoney amount={endBalance} />
           </span>
@@ -41,7 +57,9 @@ export default function ForecastSummary({
         </div>
 
         <div className={figureClass}>
-          <span className={labelClass}>پایین‌ترین مانده برآوردی</span>
+          <span className={labelClass}>
+            پایین‌ترین مانده برآوردی{withoutSpending ? ' (بدون خرج روزانه)' : ''}
+          </span>
           <span className={cn(valueClass, lowest.balance < 0 ? 'text-danger' : 'text-text')}>
             <ForecastMoney amount={lowest.balance} />
           </span>
@@ -62,7 +80,9 @@ export default function ForecastSummary({
           ) : (
             <>
               <span className={valueClass}>ندارد</span>
-              <span className={noteClass}>در این برآورد مانده منفی نمی‌شود</span>
+              <span className={noteClass}>
+                در این برآورد مانده منفی نمی‌شود{withoutSpending ? '، ولی بدون خرج روزانه' : ''}
+              </span>
             </>
           )}
         </div>

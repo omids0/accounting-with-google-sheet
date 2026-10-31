@@ -79,7 +79,13 @@ export default function CashForecastPage() {
         ariaLabel="بازهٔ برآورد"
       />
 
-      <ForecastSummary forecast={result} view={forecast.view} endIso={forecast.endIso} />
+      <ForecastSummary
+        forecast={result}
+        view={forecast.view}
+        endIso={forecast.endIso}
+        dailySpending={forecast.dailySpending}
+        historyEnough={data.spending.enough}
+      />
 
       <CalmBlock title="مانده برآوردی روز به روز">
         <ForecastChart days={result.days} safeMargin={result.safeMargin} lowest={result.lowest} />

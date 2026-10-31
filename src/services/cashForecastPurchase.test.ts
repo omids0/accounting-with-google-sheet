@@ -42,6 +42,7 @@ describe('assessPurchase', () => {
 
     expect(result).toMatchObject({ verdict: 'ok', shortfall: 0, alreadyShort: false })
     expect(result.lowest.balance).toBe(15_000_000)
+    expect(result.baselineLowest.balance).toBe(20_000_000)
   })
 
   it('says tight when the lowest balance is above zero but under the margin', () => {
@@ -85,6 +86,9 @@ describe('assessPurchase', () => {
     })
 
     expect(result).toMatchObject({ verdict: 'short', alreadyShort: true })
+    expect(result.baselineLowest).toEqual({ date: day(2), balance: -10_000_000 })
+    expect(result.lowest.balance).toBe(-11_000_000)
+    expect(result.shortfall).toBe(11_000_000)
     expect(result.suggestedDate).toBeUndefined()
   })
 

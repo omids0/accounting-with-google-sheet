@@ -4,6 +4,7 @@ import ForecastMoney from './ForecastMoney'
 import { LATE_CHECK_DAYS } from './useCashForecast'
 import { useMaskedText } from '../../hooks/useAmountsHidden'
 import type { SpendingAverage } from '../../services/cashForecastSpending'
+import { cn } from '../../utils/cn'
 import { formatCompactNumber, formatMoney, formatPersianNumber } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
 
@@ -35,6 +36,7 @@ export default function ForecastSpendingControl({
   const sliderId = useId()
   const masked = useMaskedText()
   const top = Math.max(max, value)
+  const atAverage = !average || Math.round(value) === Math.round(average.perDay)
 
   return (
     <CalmBlock title="خرج روزانه">
@@ -64,19 +66,24 @@ export default function ForecastSpendingControl({
         </span>
       </div>
       {average?.enough ? (
-        <div className="mt-1 flex min-h-11 flex-wrap items-center justify-between gap-2 text-[0.76rem] text-muted">
-          <span>
+        <div className="mt-1 flex min-h-11 items-center justify-between gap-2 text-[0.76rem] text-muted">
+          <span className="min-w-0 flex-1">
             میانگین ۳ ماه اخیر (بدون قسط و تکرار): <ForecastMoney amount={average.perDay} />
           </span>
-          {Math.round(value) !== Math.round(average.perDay) ? (
-            <button
-              type="button"
-              className="focus-ring-inset min-h-11 cursor-pointer rounded-xl border border-border bg-bg px-3 text-[0.76rem] font-semibold text-primary-dark"
-              onClick={onUseAverage}
-            >
-              برگردان به میانگین
-            </button>
-          ) : null}
+          {/* Always laid out, only hidden: showing it must not move what is below. */}
+          <button
+            type="button"
+            disabled={atAverage}
+            tabIndex={atAverage ? -1 : 0}
+            aria-hidden={atAverage}
+            className={cn(
+              'focus-ring-inset min-h-11 shrink-0 cursor-pointer rounded-xl border border-border bg-bg px-3 text-[0.76rem] font-semibold text-primary-dark',
+              atAverage && 'invisible'
+            )}
+            onClick={onUseAverage}
+          >
+            برگردان به میانگین
+          </button>
         </div>
       ) : (
         <p className="mt-1 mb-0 text-[0.76rem] leading-[1.8] text-warning">

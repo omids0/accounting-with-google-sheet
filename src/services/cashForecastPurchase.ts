@@ -17,6 +17,8 @@ export interface PurchaseAssessment {
   safeMargin: number
   /** The forecast already goes below zero without this purchase. */
   alreadyShort: boolean
+  /** Lowest estimated balance without the purchase, and its day. */
+  baselineLowest: ForecastPoint
   /** The earliest later day on which the same purchase keeps every day at zero or more. */
   suggestedDate?: string
 }
@@ -48,7 +50,7 @@ export function assessPurchase(
   // The margin comes from the plain forecast, so moving the purchase never moves the yardstick.
   const safeMargin = base.safeMargin
   const alreadyShort = base.lowest.balance < 0
-  const common = { amount, date, safeMargin, alreadyShort }
+  const common = { amount, date, safeMargin, alreadyShort, baselineLowest: base.lowest }
 
   if (!(amount > 0)) {
     return { ...common, verdict: 'none', lowest: base.lowest, shortfall: 0 }
