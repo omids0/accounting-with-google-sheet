@@ -43,11 +43,13 @@
             <div class="screen">
               <div class="card">
                 <h3>خلاصهٔ بودجه</h3>
-                <small>سه دسته به سقف ماه نزدیک‌اند: ماشین، تفریح و خوراک.</small>
+                <small>دو دسته به سقف ماه نزدیک‌اند: تفریح (۱۰۰٪) و ماشین (۸۵٪).</small>
               </div>
-              <div class="card new" data-idea="ایدهٔ ۴">
-                <h3>قبض برق دو برابر شد</h3>
-                <small>برق آبان ۱٬۸۵۰٬۰۰۰ است؛ میانگین ۳ ماه ۸۰۰٬۰۰۰ بود. بررسی کنیم؟</small>
+              <div class="card new" data-idea="ایدهٔ ۴" id="alert">
+                <h3 id="alertTitle">قبض برق ۲٫۳ برابر شد</h3>
+                <small id="alertText"
+                  >برق آبان ۱٬۸۵۰٬۰۰۰ است؛ میانگین ۳ ماه ۸۰۰٬۰۰۰ بود (۲٫۳ برابر). بررسی کنیم؟</small
+                >
               </div>
               <div class="card new" data-idea="ایدهٔ ۴">
                 <h3>هشدار فقط برای چیزهای عجیب</h3>
@@ -73,13 +75,13 @@
               <div class="card new" data-idea="ایدهٔ ۴">
                 <h3>برق آبان ۱٬۸۵۰٬۰۰۰ است</h3>
                 <svg
-                  viewBox="0 0 300 130"
+                  viewBox="0 0 300 150"
                   width="100%"
                   role="img"
                   aria-label="نمودار قبض برق چهار ماه"
                 >
-                  <rect x="215" y="88" width="50" height="37" fill="var(--primary)" />
-                  <rect x="150" y="84" width="50" height="41" fill="var(--primary)" />
+                  <rect x="215" y="87" width="50" height="38" fill="var(--primary)" />
+                  <rect x="150" y="85" width="50" height="40" fill="var(--primary)" />
                   <rect x="85" y="86" width="50" height="39" fill="var(--primary)" />
                   <rect x="20" y="35" width="50" height="90" fill="var(--danger)" />
                   <line
@@ -90,23 +92,30 @@
                     stroke="var(--muted)"
                     stroke-dasharray="4 3"
                   />
-                  <text x="240" y="80" font-size="11" text-anchor="middle" fill="currentColor">
-                    مرداد
-                  </text>
-                  <text x="175" y="76" font-size="11" text-anchor="middle" fill="currentColor">
-                    شهریور
-                  </text>
-                  <text x="110" y="78" font-size="11" text-anchor="middle" fill="currentColor">
-                    مهر
-                  </text>
-                  <text x="45" y="28" font-size="11" text-anchor="middle" fill="currentColor">
-                    آبان
-                  </text>
+                  <g font-size="11" text-anchor="middle" fill="currentColor">
+                    <text x="240" y="80">۷۸۰٬۰۰۰</text>
+                    <text x="175" y="78">۸۲۰٬۰۰۰</text>
+                    <text x="110" y="79">۸۰۰٬۰۰۰</text>
+                    <text x="45" y="28">۱٬۸۵۰٬۰۰۰</text>
+                    <text x="240" y="142">مرداد</text>
+                    <text x="175" y="142">شهریور</text>
+                    <text x="110" y="142">مهر</text>
+                    <text x="45" y="142">آبان</text>
+                  </g>
                 </svg>
-                <small class="muted">خط‌چین: میانگین سه ماه، ۸۰۰٬۰۰۰ تومان.</small>
+                <small class="muted"
+                  >خط‌چین: میانگین سه ماه، ۸۰۰٬۰۰۰ تومان. زمان از راست به چپ می‌رود؛ آبان آخرین ماه
+                  است.</small
+                >
                 <div class="row">
-                  <button class="btn">درست است</button
-                  ><button class="btn ghost">اشتباه ثبت شده</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="قبض همین‌طور ثبت می‌ماند و هشدار این ماه بسته می‌شود"
+                  >
+                    درست است</button
+                  ><button class="btn ghost" data-demo-msg="رکورد قبض برق برای ویرایش باز می‌شود">
+                    اشتباه ثبت شده
+                  </button>
                 </div>
                 <small class="muted"
                   >«اشتباه ثبت شده» رکورد را برای ویرایش باز می‌کند. دیگر نشان نده</small
@@ -150,10 +159,23 @@
       ;(() => {
         const out = document.getElementById('o-th')
         const range = document.getElementById('r-th')
-
-        range.addEventListener('input', () => {
-          out.textContent = Number(range.value).toLocaleString('fa-IR')
-        })
+        const ratio = 1850000 / 800000
+        const fa = n => n.toLocaleString('fa-IR', { maximumFractionDigits: 1 })
+        const draw = () => {
+          const th = Number(range.value)
+          const hit = ratio >= th
+          out.textContent = fa(th)
+          document.getElementById('alertTitle').textContent = hit
+            ? `قبض برق ${fa(ratio)} برابر شد`
+            : 'با این حساسیت هشداری نیست'
+          document.getElementById('alertText').textContent = hit
+            ? `برق آبان ۱٬۸۵۰٬۰۰۰ است؛ میانگین ۳ ماه ۸۰۰٬۰۰۰ بود (${fa(ratio)} برابر). بررسی کنیم؟`
+            : `برق آبان ${fa(ratio)} برابر میانگین است و از آستانهٔ ${fa(
+                th
+              )} برابر کمتر است؛ اعلانی فرستاده نمی‌شود.`
+        }
+        range.addEventListener('input', draw)
+        draw()
       })()
     </script>
   </body>
