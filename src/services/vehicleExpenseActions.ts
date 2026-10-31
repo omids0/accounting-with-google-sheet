@@ -120,7 +120,6 @@ export async function createManualVehicleExpense(
     validateVehicleExpenseInput(input)
 
   const title = buildVehicleExpenseTitle(expenseType, vehicleTitle, isOther)
-
   const expenseRecordId = await createLinkedExpenseRecord(spreadsheetId, {
     title,
     amount,
