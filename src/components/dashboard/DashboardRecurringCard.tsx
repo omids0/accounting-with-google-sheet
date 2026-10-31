@@ -4,7 +4,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSubmitLock } from '../../hooks/useSubmitLock'
 import { pendingReminders, recurringDueDate } from '../../services/recurring'
 import { fetchRecurringItems, stripRow } from '../../services/recurringSheet'
-import { NEW_STATUS } from '../../services/recurringStatus'
+import type { RecurringStatus } from '../../services/recurringStatus'
 import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
 import type { RecurringItem } from '../../types'
@@ -29,6 +29,9 @@ import {
   recurringCardHeadClass,
   recurringRowsClass
 } from '../ui/recurringStyles'
+
+// Until the records are read every item is «ثبت می‌شود» (the service module loads on demand).
+const NEW_STATUS: RecurringStatus = { kind: 'new' }
 
 /**
  * «ثبت تکرارهای مهر» (resume-card family): reminder-mode items not handled this month,
