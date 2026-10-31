@@ -143,3 +143,21 @@ export function computeForecast(input: ForecastInput): ForecastResult {
     safeMargin
   }
 }
+
+/**
+ * Range of the «خرج روزانه» slider: from 0 up to about twice what the included accounts could
+ * spend per day if they were spent evenly over the view, rounded to 1, 2 or 5 times a power of
+ * ten, in 100 steps. The range depends only on the starting balance, so it holds still while the
+ * slider is dragged.
+ */
+export function spendingSliderRange(
+  startBalance: number,
+  dayCount: number
+): { max: number; step: number } {
+  const wanted = (Math.max(startBalance, 0) / Math.max(dayCount, 1)) * 2
+  const raw = wanted > 0 ? wanted : 1_000_000
+  const magnitude = 10 ** Math.floor(Math.log10(raw))
+  const max = [1, 2, 5, 10].map(factor => factor * magnitude).find(value => value >= raw) ?? raw
+
+  return { max, step: max / 100 }
+}

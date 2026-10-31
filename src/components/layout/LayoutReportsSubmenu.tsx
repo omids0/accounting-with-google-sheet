@@ -26,6 +26,7 @@ const REPORT_MENU_GROUPS: { label: string; items: { tab: Tab; label: string }[] 
     label: 'ترکیبی',
     items: [
       { tab: 'report-due-dates', label: 'سررسیدها' },
+      { tab: 'report-forecast', label: 'پیش‌بینی نقدینگی' },
       { tab: 'report-assets-liabilities', label: 'دارایی و بدهی' },
       { tab: 'report-opening-balances', label: 'موجودی اول دوره' }
     ]

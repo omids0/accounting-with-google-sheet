@@ -4,6 +4,7 @@ import {
   computeForecast,
   defaultSafeMargin,
   forecastEndIso,
+  spendingSliderRange,
   type ForecastInput
 } from './cashForecast'
 import type { ForecastEvent } from './cashForecastEvents'
@@ -214,5 +215,19 @@ describe('forecastEndIso', () => {
   it('adds 30 or 60 days for the fixed views', () => {
     expect(forecastEndIso(today, 30)).toBe(addDaysToIso(today, 30))
     expect(forecastEndIso(today, 60)).toBe(addDaysToIso(today, 60))
+  })
+})
+
+describe('spendingSliderRange', () => {
+  it('rounds twice the even daily share up to 1, 2 or 5 times a power of ten', () => {
+    expect(spendingSliderRange(64_000_000, 24)).toEqual({ max: 10_000_000, step: 100_000 })
+    expect(spendingSliderRange(30_000_000, 30)).toEqual({ max: 2_000_000, step: 20_000 })
+    expect(spendingSliderRange(100_000_000, 30)).toEqual({ max: 10_000_000, step: 100_000 })
+  })
+
+  it('has a usable range with nothing on hand, and for a zero-day view', () => {
+    expect(spendingSliderRange(0, 30).max).toBe(1_000_000)
+    expect(spendingSliderRange(-5, 30).max).toBe(1_000_000)
+    expect(spendingSliderRange(10_000_000, 0).max).toBe(20_000_000)
   })
 })
