@@ -69,3 +69,22 @@ describe('workspace redirect and unknown URLs', () => {
     expect(workspaceRedirect('/records/xyz', 'building')).toBeNull()
   })
 })
+
+describe('workspace redirect when the shared account cannot be opened', () => {
+  it('sends a shared page to «فضاهای من» instead of the workspace home', () => {
+    expect(workspaceRedirect('/shared', 'personal', true)).toBe('/buildings')
+    expect(workspaceRedirect('/shared/members', 'personal', true)).toBe('/buildings')
+    expect(workspaceRedirect('/shared', 'building', true)).toBe('/buildings')
+  })
+
+  it('still sends it to the home while the account is reachable', () => {
+    expect(workspaceRedirect('/shared', 'personal')).toBe('/')
+    expect(workspaceRedirect('/shared', 'personal', false)).toBe('/')
+  })
+
+  it('leaves the other pages and the shared workspace itself alone', () => {
+    expect(workspaceRedirect('/wallet', 'personal', true)).toBeNull()
+    expect(workspaceRedirect('/buildings', 'personal', true)).toBeNull()
+    expect(workspaceRedirect('/shared', 'shared', true)).toBeNull()
+  })
+})

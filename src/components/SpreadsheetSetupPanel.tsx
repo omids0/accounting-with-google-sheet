@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { getSpreadsheets } from '../services/settings'
+import { inaccessibleScreen } from '../services/sharedAccessLost'
 import { getInaccessibleSpreadsheet } from '../services/spreadsheetAccess'
 import {
   SPREADSHEET_TITLE_PREFIX,
@@ -11,10 +13,12 @@ import {
   createNamedSpreadsheet,
   getDefaultFirstSheetLabel
 } from '../services/spreadsheetSetup'
+import { personalSpreadsheet } from '../services/workspace'
 import type { SpreadsheetEntry } from '../types'
 import AppIcon from './AppIcon'
 import FormField from './form/FormField'
 import FormSelect from './form/FormSelect'
+import SharedAccessLostScreen from './SharedAccessLostScreen'
 import SheetAccessNotice from './SheetAccessNotice'
 import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
@@ -54,6 +58,9 @@ export default function SpreadsheetSetupPanel({
   // Set by resolveSpreadsheetSession when drive.file cannot reach the active sheet.
   const [inaccessible] = useState(() => getInaccessibleSpreadsheet())
 
+  // The shared account is the open sheet and this device cannot read it: its own calm screen.
+  const personal = inaccessible ? personalSpreadsheet(getSpreadsheets()) : undefined
+
   const handleActivate = async () => {
     if (!selectedId) {
       showError('یک شیت انتخاب کنید')
@@ -88,6 +95,10 @@ export default function SpreadsheetSetupPanel({
     } finally {
       setLoading(false)
     }
+  }
+
+  if (inaccessible && personal && inaccessibleScreen(inaccessible, personal) === 'shared') {
+    return <SharedAccessLostScreen sheet={inaccessible} personal={personal} onDone={onComplete} />
   }
 
   const previewTitle = newLabel.trim()

@@ -2,6 +2,7 @@ import { logRecordActivity } from '../../services/activityLog'
 import { onSharedCopyChanged } from '../../services/sharedCopyChanged'
 import { appendRecord, deleteRecord, updateRecord } from '../../services/sheets'
 import type { CustomForm } from '../../types'
+import { parseNumeric } from '../../utils/parseNumeric'
 import type { StoredRecord } from '../records/recordsUtils'
 
 /**
@@ -42,7 +43,16 @@ export async function saveSharedAmount(
     values,
     record.sheetName
   )
-  logRecordActivity(spreadsheetId, 'update', record.id, values)
+  const from = parseNumeric(record.values.amount)
+
+  // «از X به Y»: the partner reads the old and the new amount in the activity feed.
+  logRecordActivity(
+    spreadsheetId,
+    'update',
+    record.id,
+    values,
+    from !== amount ? { change: { from, to: amount } } : undefined
+  )
   void onSharedCopyChanged({
     kind: 'edit',
     recordId: record.id,

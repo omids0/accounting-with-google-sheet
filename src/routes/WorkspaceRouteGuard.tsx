@@ -9,6 +9,7 @@ import { AppLoadingSkeleton } from '../components/skeleton'
 import { useBuildingAccess } from '../hooks/useBuildingAccess'
 import { useWorkspaceResolution } from '../hooks/useWorkspaceType'
 import { TAB_PERMISSIONS, type BuildingPermission } from '../services/buildingRoles'
+import { isRegisteredSharedLost } from '../services/sharedAccessLost'
 
 /** Renders the page only for a role that has `permission`; roles are read again after a sync. */
 function PermissionGate({ permission }: { permission: BuildingPermission }) {
@@ -34,7 +35,11 @@ export default function WorkspaceRouteGuard() {
   }
 
   // While unresolved the personal pages stay as they were; only a workspace page waits above.
-  const redirect = workspaceRedirect(pathname, resolution === 'unknown' ? 'personal' : resolution)
+  const redirect = workspaceRedirect(
+    pathname,
+    resolution === 'unknown' ? 'personal' : resolution,
+    isRegisteredSharedLost()
+  )
 
   if (redirect) return <Navigate to={redirect} replace state={state} />
 

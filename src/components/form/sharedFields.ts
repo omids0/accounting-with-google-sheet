@@ -140,6 +140,19 @@ export type SharedSplit = 'equal' | `only:${string}`
 
 export const ONLY_PREFIX = 'only:'
 
+/**
+ * The split to save. Without a partner among the members (never joined, left, or removed) nobody
+ * can share the cost, so it is `only:<me>`: an `equal` row would put half on a former partner the
+ * balance still remembers from older rows. Decide at save time, from the members as they are then.
+ */
+export function effectiveSplit(
+  split: SharedSplit | '',
+  people: readonly string[],
+  me: string
+): SharedSplit {
+  return people.length < 2 ? `${ONLY_PREFIX}${me}` : split || 'equal'
+}
+
 const EMAIL_LIKE = /^[^\s@]+@[^\s@]+$/
 
 /**

@@ -12,6 +12,7 @@ import {
   SHARED_CREATOR_FIELD_ID,
   SHARED_PAYER_FIELD_ID,
   SHARED_SPLIT_FIELD_ID,
+  effectiveSplit,
   type SharedSplit
 } from '../form/sharedFields'
 import FormModal from '../FormModal'
@@ -47,7 +48,8 @@ export default function SharedAddSheet({
   initialType = 'expense',
   onClose
 }: SharedAddSheetProps) {
-  const people = shared.pair ?? [shared.me]
+  // Members only: a removed partner stays in the balance but cannot pay or bear a new expense.
+  const people = shared.activePair ?? [shared.me]
   const [type, setType] = useState<RecordType>(initialType)
   const [amount, setAmount] = useState<number | ''>('')
   const [title, setTitle] = useState('')
@@ -83,7 +85,12 @@ export default function SharedAddSheet({
       category,
       amount: value,
       [SHARED_CREATOR_FIELD_ID]: shared.me,
-      ...(expense ? { [SHARED_PAYER_FIELD_ID]: payer, [SHARED_SPLIT_FIELD_ID]: split } : {})
+      ...(expense
+        ? {
+            [SHARED_PAYER_FIELD_ID]: payer,
+            [SHARED_SPLIT_FIELD_ID]: effectiveSplit(split, people, shared.me)
+          }
+        : {})
     }
 
     const saved = await shared.add(type, values)
@@ -151,6 +158,7 @@ export default function SharedAddSheet({
           people={people}
           me={shared.me}
           nameOf={shared.nameOf}
+          former={!!shared.pair}
           amount={value}
           payer={payer}
           split={split}

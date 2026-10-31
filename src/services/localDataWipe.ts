@@ -34,7 +34,9 @@ const ACCOUNT_KEY_PREFIXES = [
   'accounting_sheet_store_',
   'accounting_sheet_synced_at_',
   // Record deletes confirmed but not finished (pendingRecordDeletes.ts).
-  'accounting_pending_record_deletes_'
+  'accounting_pending_record_deletes_',
+  // The shared account this device could not open (sharedAccessLost.ts).
+  'accounting_shared_lost_'
 ] as const
 
 /** Single keys that describe the signed-in account rather than this device. */

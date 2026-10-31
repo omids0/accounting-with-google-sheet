@@ -112,19 +112,24 @@ describe('writerLabel', () => {
     expect(writerLabel('sara@example.com', info)).toEqual({
       initial: 'س',
       name: 'سارا',
-      isMe: false
+      isMe: false,
+      known: true,
+      address: 'sara'
     })
   })
 
-  it('falls back to the part before @', () => {
+  it('says «شریک» when Drive has no name, keeping the part before @ only as the address', () => {
     expect(writerLabel('ali.r@example.com', info)).toEqual({
-      initial: 'A',
-      name: 'ali.r',
-      isMe: false
+      initial: 'ش',
+      name: 'شریک',
+      isMe: false,
+      known: false,
+      address: 'ali.r'
     })
   })
 
   it('knows the signed-in account', () => {
     expect(writerLabel('ME@example.com', null).isMe).toBe(true)
+    expect(writerLabel('ME@example.com', null).name).toBe('شما')
   })
 })

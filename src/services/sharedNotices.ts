@@ -36,11 +36,16 @@ export interface SharedNotice {
   kind: 'edit' | 'delete'
   /** The copy's title, for the banner (the shared sheet holds it anyway). */
   title?: string
+  /**
+   * A record made in the shared account itself (`record:<id>` ref) that someone else changed: it
+   * only informs its creator («باشه»), nothing is applied anywhere (see `sharedInformNotices`).
+   */
+  inform?: true
 }
 
 export type StoredNotice = SharedNotice & { id: string }
 
-const norm = (value: unknown) =>
+export const norm = (value: unknown) =>
   String(value ?? '')
     .trim()
     .toLowerCase()
@@ -67,11 +72,7 @@ export async function raiseNotice(
     time: new Date().toISOString()
   }
 
-  await setMemberSetting(
-    sharedId,
-    `${PREFIX}${creator}:${crypto.randomUUID()}`,
-    JSON.stringify(notice)
-  )
+  await setMemberSetting(sharedId, noticeKey(creator, crypto.randomUUID()), JSON.stringify(notice))
 
   return true
 }
@@ -90,6 +91,9 @@ function parseRow(row: string[], prefix: string): StoredNotice | null {
 }
 
 const prefixOf = (email: string) => `${PREFIX}${norm(email)}:`
+
+/** The «تنظیمات دوره» key of a notice for `email`. */
+export const noticeKey = (email: string, id: string) => `${prefixOf(email)}${id}`
 
 /** The last direct read of a shared sheet that is not open here. */
 let fetched: { id: string; at: number; rows: string[][] } | null = null
@@ -137,11 +141,15 @@ export async function refreshNotices(sharedId: string): Promise<void> {
   }
 }
 
-/** Deletes this user's notice rows that match (bottom row first); `rows` = a read already made. */
+/**
+ * Deletes the notice rows of `email` (default: this user) that match, bottom row first; `rows` = a
+ * read already made.
+ */
 export async function removeNotices(
   sharedId: string,
   match: (notice: StoredNotice) => boolean,
-  rows?: string[][]
+  rows?: string[][],
+  email: string = getUserEmail() ?? ''
 ): Promise<void> {
   const all =
     rows ??
@@ -150,7 +158,7 @@ export async function removeNotices(
       PERIOD_SETTINGS_SHEET
     ) ??
     []
-  const prefix = prefixOf(getUserEmail() ?? '')
+  const prefix = prefixOf(email)
   const operations: OutboxOperation[] = all
     .flatMap((row, index) => {
       const notice = parseRow(row, prefix)

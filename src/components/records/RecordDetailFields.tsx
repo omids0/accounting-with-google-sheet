@@ -6,11 +6,13 @@ import { useSharing } from '../../hooks/useSharing'
 import { highlightPath } from '../../routes/paths'
 import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
+import { isSharedWorkspace } from '../../services/workspace'
 import type { CustomForm } from '../../types'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { JALALI_WEEKDAYS, saturdayFirstColumn } from '../../utils/jalaliMonthGrid'
 import { parseNumeric } from '../../utils/parseNumeric'
+import { sharedWriterRows } from '../../utils/sharedWriterRows'
 import { BUILDING_FIELD_IDS } from '../form/buildingFields'
 import {
   COUNTERPARTY_FIELD_ID,
@@ -20,7 +22,11 @@ import {
   WALLET_APPLY_FIELD_ID,
   WALLET_APPLY_NO
 } from '../form/fieldUtils'
-import { SHARED_FIELD_IDS, SHARED_LINK_FIELD_ID } from '../form/sharedFields'
+import {
+  SHARED_CREATOR_FIELD_ID,
+  SHARED_FIELD_IDS,
+  SHARED_LINK_FIELD_ID
+} from '../form/sharedFields'
 import {
   recordDetailHintClass,
   recordDetailLabelClass,
@@ -102,6 +108,10 @@ export default function RecordDetailFields({
   const subCategory = values[SUBCATEGORY_FIELD_ID] ?? ''
   const counterparty = (values[COUNTERPARTY_FIELD_ID] ?? '').trim()
   const note = (values.note ?? '').trim()
+  // A shared account names the creator apart from the last editor (the generic row is the editor).
+  const writerRows = isSharedWorkspace()
+    ? sharedWriterRows(values[SHARED_CREATOR_FIELD_ID], record.writer)
+    : null
   const applied = (values[WALLET_APPLY_FIELD_ID] ?? '') !== WALLET_APPLY_NO
 
   const custom = form.fields.filter(
@@ -137,11 +147,23 @@ export default function RecordDetailFields({
             : values[field.id]}
         </Row>
       ))}
-      <Row label="ثبت‌کننده">
-        {shared && record.writer ? <WriterAvatar email={record.writer} withName="plain" /> : null}
-        {shared && record.writer && record.createdAt ? ' · ' : null}
-        {record.createdAt || (!record.writer ? '—' : null)}
-      </Row>
+      {writerRows ? (
+        <>
+          <Row label={writerRows.created.label}>
+            <WriterAvatar email={writerRows.created.email} withName="plain" always />
+            {record.createdAt ? ` · ${record.createdAt}` : null}
+          </Row>
+          <Row label={writerRows.edited.label}>
+            <WriterAvatar email={writerRows.edited.email} withName="plain" always />
+          </Row>
+        </>
+      ) : (
+        <Row label="ثبت‌کننده">
+          {shared && record.writer ? <WriterAvatar email={record.writer} withName="plain" /> : null}
+          {shared && record.writer && record.createdAt ? ' · ' : null}
+          {record.createdAt || (!record.writer ? '—' : null)}
+        </Row>
+      )}
     </dl>
   )
 }

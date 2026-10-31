@@ -8,6 +8,7 @@ import {
   SHARED_REF_FIELD_ID,
   SHARED_REF_FIELD_LABEL,
   SHARED_SPLIT_FIELD_ID,
+  effectiveSplit,
   parseSplit,
   type SharedSplit
 } from '../components/form/sharedFields'
@@ -168,6 +169,8 @@ export interface CopyContext {
   /** The shared account's categories of the record type. */
   categories: string[]
   me: string
+  /** No partner among the shared account's members: a new copy is `only:<me>`, never `equal`. */
+  solo?: boolean
   createdAt: string
   /** The id a new copy gets: stable per task, so a retried create finds the copy it wrote. */
   newId: string
@@ -212,7 +215,10 @@ export function copyOperation(context: CopyContext): OutboxOperation | null {
       // No typed title: the copy's own (a partner may have renamed it), else the shared category
       // names it, never a personal word.
       values: { ...task.values, title: task.values.title || currentTitle || category },
-      split: task.split || current?.split || 'equal',
+      split:
+        context.solo && !current
+          ? effectiveSplit('', [context.me], context.me)
+          : task.split || current?.split || 'equal',
       payer: task.payer || current?.payer || context.me,
       creator: context.me,
       category,
