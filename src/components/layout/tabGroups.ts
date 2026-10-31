@@ -6,6 +6,7 @@ export const WALLET_SUB_TABS: Tab[] = [
   'wallet-account-detail',
   'wallet-reconcile',
   'wallet-trace',
+  'wallet-integrity',
   'wallet-transfers'
 ]
 

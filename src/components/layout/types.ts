@@ -21,6 +21,7 @@ export type Tab =
   | 'wallet-account-detail'
   | 'wallet-reconcile'
   | 'wallet-trace'
+  | 'wallet-integrity'
   | 'wallet-transfers'
   | 'bank-sms'
   | 'search'
@@ -173,6 +174,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'wallet-account-detail': 'گردش حساب',
   'wallet-reconcile': 'تطبیق حساب',
   'wallet-trace': 'ردیاب اختلاف',
+  'wallet-integrity': 'بررسی یکپارچگی',
   'wallet-transfers': 'انتقال‌ها',
   'bank-sms': 'پیامک‌های بانکی',
   search: 'جستجو',
@@ -284,6 +286,7 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'treasury',
   'wallet',
   'wallet-trace',
+  'wallet-integrity',
   'wallet-transfers',
   'bank-sms',
   'timesheets',

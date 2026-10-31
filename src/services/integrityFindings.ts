@@ -32,7 +32,8 @@ export function recordFindings(
       detail:
         'حساب این رکورد حذف شده یا شناسه‌اش در شیت عوض شده؛ موجودی هیچ حسابی از آن اثر نمی‌گیرد.',
       amount: record.amount,
-      recordId: record.id
+      recordId: record.id,
+      recordType: record.type
     })
   })
 

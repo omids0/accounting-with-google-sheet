@@ -66,6 +66,7 @@ import {
   LazyWalletPage,
   LazyWalletReconcilePage,
   LazyWalletTracePage,
+  LazyWalletIntegrityPage,
   LazyWalletTransfersPage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
@@ -159,6 +160,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="search" element={<LazySearchPage />} />
             <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
             <Route path="wallet/trace" element={<LazyWalletTracePage />} />
+            <Route path="wallet/integrity" element={<LazyWalletIntegrityPage />} />
             <Route path="wallet/transfers" element={<LazyWalletTransfersPage />} />
             <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
             <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />

@@ -39,6 +39,7 @@ export interface IntegrityFinding {
   /** The money involved, when there is one (signed for `balance-mismatch`: stored − derived). */
   amount?: number
   recordId?: string
+  recordType?: 'income' | 'expense'
   transferId?: string
 }
 

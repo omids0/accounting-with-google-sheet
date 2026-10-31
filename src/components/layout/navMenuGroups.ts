@@ -28,6 +28,7 @@ export const MENU_MONEY_LINKS: MenuLinkEntry[] = [
       'wallet-account-detail',
       'wallet-reconcile',
       'wallet-trace',
+      'wallet-integrity',
       'wallet-transfers'
     ]
   },

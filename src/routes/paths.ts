@@ -56,6 +56,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   records: '/records',
   'opening-balances': '/wallet/opening-balances',
   'wallet-trace': '/wallet/trace',
+  'wallet-integrity': '/wallet/integrity',
   'wallet-transfers': '/wallet/transfers',
   'net-available-settings': '/net-available-settings',
   'loan-calculator': '/calculators/loan',
