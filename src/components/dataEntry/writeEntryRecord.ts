@@ -35,7 +35,9 @@ export async function writeEntryRecord(
   marked: Record<string, string | number>,
   vehicleInput: VehicleExpenseInput | null,
   /** The SMS the form was opened from: one that already has its live record never writes a second. */
-  bankSms?: ConfirmableSms
+  bankSms?: ConfirmableSms,
+  /** The entry is the «بازگردانی» of this deleted record's log row: it logs «بازگردانی شد», not «ثبت». */
+  revertOf?: string
 ): Promise<string> {
   if (bankSms) await assertSmsWithoutRecord(spreadsheetId, bankSms)
 
@@ -49,7 +51,18 @@ export async function writeEntryRecord(
     await appendRecord(spreadsheetId, form, recordId, new Date().toLocaleString('fa-IR'), values)
     if (choice) linkSharedSave(spreadsheetId, recordId, form.type, values, choice)
   }
-  logRecordActivity(spreadsheetId, 'create', recordId, values)
+  if (revertOf) {
+    logRecordActivity(
+      spreadsheetId,
+      'revert',
+      recordId,
+      values,
+      { reverted: 'delete' },
+      { form, revertOf }
+    )
+  } else {
+    logRecordActivity(spreadsheetId, 'create', recordId, values)
+  }
 
   return recordId
 }

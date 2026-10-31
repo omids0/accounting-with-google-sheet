@@ -13,6 +13,7 @@ export type ActivityAction =
   | 'reconcile'
   | 'recurring'
   | 'goal'
+  | 'revert'
 
 export type ActivityModule =
   | 'records'
@@ -38,7 +39,8 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
   category: 'دسته',
   reconcile: 'تطبیق',
   recurring: 'تکرار',
-  goal: 'هدف'
+  goal: 'هدف',
+  revert: 'بازگردانی'
 }
 
 /** Filter chips and the desktop table name the module in Persian. */
@@ -66,6 +68,8 @@ export interface ActivitySummaryExtra {
   to?: string
   /** A record edit that changed its amount: «از X به Y تومان». */
   change?: { from: number; to: number }
+  /** A «بازگردانی شد» line: what was reverted, an edit or a delete. */
+  reverted?: 'update' | 'delete'
 }
 
 const quoted = (title: string) => `«${title.trim() || '—'}»`
@@ -133,6 +137,8 @@ export function summaryFor(
       return (extra.amount ?? 0) < 0
         ? `${formatAmountWords(extra.amount ?? 0)} از هدف ${quoted(title)} برداشت`
         : `${formatAmountWords(extra.amount ?? 0)} به هدف ${quoted(title)} واریز کرد`
+    case 'revert':
+      return `${extra.reverted === 'delete' ? 'حذف' : 'ویرایش'} ${quoted(title)} را بازگرداند`
     default:
       return title
   }
@@ -145,5 +151,5 @@ export function recordActivityTitle(values: Record<string, unknown>): string {
 
 /** «من … زدم»: the signed-in person's own lines read in first person. */
 export function firstPersonSummary(summary: string): string {
-  return /(کرد|زد|داد|برداشت|گذاشت)$/.test(summary) ? `${summary}م` : summary
+  return /(کرد|زد|داد|برداشت|گذاشت|گرداند)$/.test(summary) ? `${summary}م` : summary
 }

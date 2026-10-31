@@ -1,4 +1,5 @@
 import { syncCategoriesFromSheet } from './categories'
+import { migrateActivityTrailColumns } from './migrateActivityTrailColumns'
 import { migrateCheckDirectionColumn } from './migrateCheckDirectionColumn'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
 import { migrateSubCategoryColumn } from './migrateSubCategoryColumn'
@@ -32,6 +33,8 @@ export async function refreshSpreadsheetContents(spreadsheetId: string): Promise
 /** First-time work on a spreadsheet after its tabs exist: categories, one-off migrations. */
 export async function prepareSpreadsheetContents(spreadsheetId: string): Promise<void> {
   await refreshSpreadsheetContents(spreadsheetId)
+  // The activity tab exists in every workspace kind, so its new columns are added in all of them.
+  await migrateActivityTrailColumns(spreadsheetId).catch(() => undefined)
   // A building file is born in round 11 with current headers and no vehicles: the personal
   // spreadsheet's one-off migrations have nothing to fix there and would read ten tabs for it. A
   // shared account is born the same way.
@@ -51,6 +54,7 @@ export async function prepareSpreadsheetContents(spreadsheetId: string): Promise
 export function runBackgroundMigrations(spreadsheetId: string): void {
   // A sheet first seen on this device (shared with the board, say): learn its workspace type.
   if (!hasWorkspaceType(spreadsheetId)) void syncWorkspaceTypeFromSheet(spreadsheetId)
+  void migrateActivityTrailColumns(spreadsheetId).catch(() => undefined)
   if (getWorkspaceType(spreadsheetId) !== 'personal') return
   void migrateLegacyMachineExpenseCategory(spreadsheetId).catch(() => undefined)
   void migrateSubCategoryColumn(spreadsheetId)

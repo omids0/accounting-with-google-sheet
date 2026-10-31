@@ -6,11 +6,15 @@ import {
   type ActivityAction,
   type ActivitySummaryExtra
 } from './activityLogText'
+import { deleteTrail, editTrail, revertMarkTrail } from './activityTrail'
+import { NO_TRAIL, type TrailCells } from './activityTrailModel'
 import { getUserEmail, getUserName } from './auth'
 import { ACTIVITY_LOG_HEADERS } from './sheetHeaders'
 import { ACTIVITY_LOG_SHEET } from './sheetNames'
 import { isSheetPrepared } from './sheetsMeta'
 import { getSheetAllRows } from './spreadsheetStore'
+import { isPersonalWorkspace } from './workspace'
+import type { CustomForm } from '../types'
 import { activityDeviceLabel } from '../utils/deviceLabel'
 import { cellToString } from '../utils/sheetValues'
 
@@ -28,9 +32,17 @@ export interface ActivityEntry {
   itemId: string
   summary: string
   device: string
+  /** «ردپا» (`activityTrail.ts`): '' on a row without one. */
+  before: string
+  after: string
+  version: string
 }
 
-export type ActivityInput = Omit<ActivityEntry, 'id' | 'at' | 'email' | 'name' | 'device'>
+export type ActivityInput = Omit<
+  ActivityEntry,
+  'id' | 'at' | 'email' | 'name' | 'device' | keyof TrailCells
+> &
+  Partial<TrailCells>
 
 const WRITE_OPTIONS = { skipActivity: true, skipRevision: true } as const
 
@@ -49,7 +61,10 @@ export function activityToRow(entry: ActivityEntry): string[] {
     entry.module,
     entry.itemId,
     entry.summary,
-    entry.device
+    entry.device,
+    entry.before,
+    entry.after,
+    entry.version
   ]
 }
 
@@ -67,7 +82,11 @@ export function rowToActivity(row: readonly unknown[]): ActivityEntry | null {
     module: cell(5),
     itemId: cell(6),
     summary: cell(7),
-    device: cell(8)
+    device: cell(8),
+    // A row from before the trail columns (or written by an older app) is shorter: empty cells.
+    before: cell(9),
+    after: cell(10),
+    version: cell(11)
   }
 }
 
@@ -83,6 +102,7 @@ export function buildActivityEntry(input: ActivityInput, now = new Date()): Acti
     email: email.trim().toLowerCase(),
     name: getUserName() ?? '',
     device: deviceLabel(),
+    ...NO_TRAIL,
     ...input
   }
 }
@@ -106,6 +126,14 @@ async function append(spreadsheetId: string, row: string[]): Promise<void> {
   await appendSheetRow(spreadsheetId, ACTIVITY_LOG_SHEET, row, WRITE_OPTIONS)
 }
 
+/** Log rows queued but not yet in the local mirror. */
+const pendingWrites = new Set<Promise<void>>()
+
+/** Resolves once every log row queued so far is in the mirror (a caller that refreshes the feed). */
+export async function activityLogSettled(): Promise<void> {
+  await Promise.all([...pendingWrites])
+}
+
 /**
  * Queues one «فعالیت_ها» row right after the user-initiated write it
  * describes. Never throws and never blocks the caller; signed out, it does
@@ -116,7 +144,11 @@ export function logActivity(spreadsheetId: string, input: ActivityInput): void {
     const entry = spreadsheetId ? buildActivityEntry(input) : null
 
     if (!entry) return
-    void append(spreadsheetId, activityToRow(entry)).catch(() => undefined)
+
+    const write = append(spreadsheetId, activityToRow(entry)).catch(() => undefined)
+
+    pendingWrites.add(write)
+    void write.then(() => pendingWrites.delete(write))
   } catch {
     // The feed is best effort; the change itself already went out.
   }
@@ -139,18 +171,50 @@ export function logItemActivity(
   })
 }
 
+/** What a record's log row needs beyond its values to carry a «ردپا». */
+export interface RecordTrailInput {
+  form: CustomForm
+  /** The record as it was stored before an edit (or before the revert of one). */
+  before?: Record<string, unknown>
+  /** On a «بازگردانی شد» row: the id of the log row it reverted. */
+  revertOf?: string
+}
+
+/** The trail of one record change; only a personal spreadsheet keeps one (its pages revert). */
+function recordTrailCells(
+  spreadsheetId: string,
+  action: ActivityAction,
+  values: Record<string, unknown>,
+  { form, before, revertOf }: RecordTrailInput
+): TrailCells {
+  if (!isPersonalWorkspace(spreadsheetId)) return NO_TRAIL
+  if (action === 'delete') return deleteTrail(form, values)
+  if (action === 'update' && before) return editTrail(form, before, values)
+  if (action !== 'revert' || !revertOf) return NO_TRAIL
+
+  return before ? editTrail(form, before, values, revertOf) : revertMarkTrail(form, revertOf)
+}
+
 /**
- * A record created, edited or deleted by hand; named by its title or category. `extra.change`
- * puts an edited amount's «از X به Y» into the line.
+ * A record created, edited, deleted or reverted by hand; named by its title or category.
+ * `extra.change` puts an edited amount's «از X به Y» into the line. With `trail`, an edit or a
+ * delete also stores what it changed, so the activity page can show «قبل → بعد» and revert it.
  */
 export function logRecordActivity(
   spreadsheetId: string,
-  action: 'create' | 'update' | 'delete',
+  action: 'create' | 'update' | 'delete' | 'revert',
   recordId: string,
   values: Record<string, unknown>,
-  extra?: ActivitySummaryExtra
+  extra?: ActivitySummaryExtra,
+  trail?: RecordTrailInput
 ): void {
-  logItemActivity(spreadsheetId, action, 'records', recordId, recordActivityTitle(values), extra)
+  logActivity(spreadsheetId, {
+    action,
+    module: 'records',
+    itemId: recordId,
+    summary: summaryFor(action, 'records', recordActivityTitle(values), extra),
+    ...(trail ? recordTrailCells(spreadsheetId, action, values, trail) : NO_TRAIL)
+  })
 }
 
 /** Newest first, from the local mirror (the log tab plus loaded yearly archives). */
