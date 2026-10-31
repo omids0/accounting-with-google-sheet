@@ -134,6 +134,20 @@ describe('an item whose payment is already a record', () => {
     expect((await fetchRecurringItems(ID)).map(item => item.lastPosted)).toEqual([MONTH, MONTH])
   })
 
+  it('is recorded again when the user ticked it again (recordAnyway)', async () => {
+    io.ledger = [sms]
+
+    const marked: string[] = []
+    const written = await postReminderItems(settings, [salary], new Set(['r1']), TODAY, {
+      onDuplicate: item => marked.push(item.id),
+      recordAnyway: new Set(['r1'])
+    })
+
+    expect(written).toBe(1)
+    expect(marked).toEqual([])
+    expect(io.records).toHaveLength(1)
+  })
+
   it('the same amount four days from its day is not taken for it', async () => {
     io.ledger = [{ ...sms, date: '2026-10-27' }]
 

@@ -55,3 +55,9 @@ export const recurringRowAmountClass = 'flex-none text-[0.85rem] font-bold tabul
 
 export const recurringCheckboxClass =
   'size-5 flex-none cursor-pointer accent-[var(--color-primary)]'
+
+/** «دیدن آن رکورد» under a row whose payment looks already recorded. */
+export const recurringRowLinkClass = cx(
+  'inline-flex min-h-touch-min w-fit cursor-pointer items-center border-none bg-transparent',
+  'text-[0.75rem] font-semibold text-primary underline-offset-2 hover:underline'
+)
