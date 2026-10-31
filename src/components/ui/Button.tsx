@@ -10,14 +10,25 @@ export type ButtonSize = 'md' | 'sm'
 const baseClass =
   'relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-sm font-bold transition-all duration-[var(--duration-normal)] ease-[var(--ease-out)] active:enabled:scale-[0.97] disabled:cursor-not-allowed'
 
+/**
+ * The small button keeps its dense look but answers taps in a 44 × 44 px box centred on it
+ * (an invisible ::after, so layouts do not grow). `overflow-visible` lets that box reach past
+ * the border; the shine of the primary variant clips itself with `before:rounded-[inherit]`.
+ */
+const smallSizeClass = [
+  'w-auto overflow-visible px-3 py-1.5 text-[0.8rem]',
+  'after:absolute after:left-1/2 after:top-1/2 after:h-full after:w-full after:min-h-touch-min after:min-w-touch-min',
+  'after:-translate-x-1/2 after:-translate-y-1/2 after:content-[""]'
+].join(' ')
+
 const sizeClass: Record<ButtonSize, string> = {
   md: 'w-full px-5 py-3 text-[0.95rem]',
-  sm: 'w-auto px-3 py-1.5 text-[0.8rem]'
+  sm: smallSizeClass
 }
 
 const variantClass: Record<ButtonVariant, string> = {
   primary:
-    'text-on-primary shadow-[var(--btn-primary-shadow)] [background:var(--btn-primary-bg)] before:pointer-events-none before:absolute before:inset-0 before:content-[""] before:[background:linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.22)_50%,transparent_70%)] before:opacity-0 before:transition-opacity before:duration-[var(--duration-normal)] hover:enabled:before:opacity-100 hover:enabled:-translate-y-px hover:enabled:shadow-[var(--btn-primary-shadow-hover)] hover:enabled:[background:var(--btn-primary-bg-hover)] disabled:opacity-60',
+    'text-on-primary shadow-[var(--btn-primary-shadow)] [background:var(--btn-primary-bg)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:content-[""] before:[background:linear-gradient(120deg,transparent_30%,rgba(255,255,255,0.22)_50%,transparent_70%)] before:opacity-0 before:transition-opacity before:duration-[var(--duration-normal)] hover:enabled:before:opacity-100 hover:enabled:-translate-y-px hover:enabled:shadow-[var(--btn-primary-shadow-hover)] hover:enabled:[background:var(--btn-primary-bg-hover)] disabled:opacity-60',
   secondary:
     'border-[1.5px] border-border bg-bg text-primary hover:enabled:border-primary hover:enabled:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,var(--color-bg))]',
   danger:

@@ -31,7 +31,10 @@ export const recordsRefreshBtnClass = 'min-w-[2.25rem] shrink-0'
 export const recordsTypeSegmentClass = cx(
   'mb-[0.85rem] flex gap-[3px] rounded-[var(--radius)] bg-bg p-[3px]',
   '[&_button]:flex-1 [&_button]:rounded-[calc(var(--radius)-2px)] [&_button]:px-2 [&_button]:py-[0.55rem] [&_button]:text-[0.82rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:bg-transparent [&_button]:transition-[background,color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger'
+  '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger',
+  // button min height + the 3 px of padding above and below = the 44 px touch floor; the ::after hands the padding to the tap.
+  '[&_button]:relative [&_button]:min-h-[calc(var(--touch-min)-6px)] [&_button]:min-w-touch-min',
+  '[&_button]:after:absolute [&_button]:after:inset-x-0 [&_button]:after:-inset-y-[3px] [&_button]:after:content-[""]'
 )
 
 /**
