@@ -5,6 +5,9 @@ export const AUTO_BACKUP_INTERVAL_DAYS = 7
 
 export const AUTO_BACKUP_KEEP = 3
 
+/** Pre-update safety copies (`updateBackup.ts`): the newest five of each environment stay. */
+export const UPDATE_BACKUP_KEEP = 5
+
 /** «اگر دو هفته پشتیبان نشد، خبر بده»: after 14 days without a backup, once per fortnight. */
 export const OVERDUE_NOTICE_DAYS = 14
 
@@ -13,7 +16,13 @@ export const AUTO_LOCK_MS = 10 * 60_000
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export type DriveBackupKind = 'auto' | 'manual'
+/**
+ * One copy per press of «به‌روزرسانی». The develop and the production app share a Google account
+ * and so one Drive folder: each writes (and prunes) only its own kind.
+ */
+export type UpdateBackupKind = 'update-dev' | 'update-prod'
+
+export type DriveBackupKind = 'auto' | 'manual' | UpdateBackupKind
 
 export interface DriveBackupFile {
   id: string
@@ -22,6 +31,8 @@ export interface DriveBackupFile {
   size?: number
   createdAt: number
   kind: DriveBackupKind
+  /** The app version that made an update backup ("2.17.0", "2.17.0-dev"). */
+  appVersion?: string
 }
 
 /** The newest backup of any kind: a downloaded zip, «پشتیبان الان» or an automatic one. */
@@ -87,6 +98,18 @@ export function backupsToPrune(
 ): DriveBackupFile[] {
   return files
     .filter(file => file.kind === 'auto')
+    .sort((first, second) => second.createdAt - first.createdAt)
+    .slice(keep)
+}
+
+/** The pre-update copies of one environment past its newest `keep`; every other kind is left alone. */
+export function updateBackupsToPrune(
+  files: readonly DriveBackupFile[],
+  kind: UpdateBackupKind,
+  keep = UPDATE_BACKUP_KEEP
+): DriveBackupFile[] {
+  return files
+    .filter(file => file.kind === kind)
     .sort((first, second) => second.createdAt - first.createdAt)
     .slice(keep)
 }

@@ -7,6 +7,7 @@ import {
   formatBackupSize,
   overdueNoticeDue,
   recentAutoBackup,
+  updateBackupsToPrune,
   type DriveBackupFile
 } from './autoBackupPlan'
 
@@ -71,6 +72,30 @@ describe('backupsToPrune (retention)', () => {
 
   it('prunes nothing with three or fewer automatic backups', () => {
     expect(backupsToPrune([file('a1', 'auto', 1), file('m', 'manual', 50)])).toEqual([])
+  })
+
+  it('prunes only the chosen environment pre-update copies, past its newest five', () => {
+    const dev = Array.from({ length: 7 }, (_, index) => file(`d${index}`, 'update-dev', index + 1))
+    const prod = Array.from({ length: 7 }, (_, index) =>
+      file(`p${index}`, 'update-prod', index + 1)
+    )
+    const others = [file('m', 'manual', 99), file('a', 'auto', 99)]
+    const all = [...others, ...dev, ...prod]
+
+    expect(updateBackupsToPrune(all, 'update-dev').map(item => item.id)).toEqual(['d5', 'd6'])
+    expect(updateBackupsToPrune(all, 'update-prod').map(item => item.id)).toEqual(['p5', 'p6'])
+    expect(updateBackupsToPrune(all.slice(0, 7), 'update-dev')).toEqual([])
+  })
+
+  it('the weekly prune never touches pre-update copies', () => {
+    const files = [
+      ...Array.from({ length: 9 }, (_, index) => file(`d${index}`, 'update-dev', index + 1)),
+      ...Array.from({ length: 9 }, (_, index) => file(`p${index}`, 'update-prod', index + 1)),
+      file('m', 'manual', 90)
+    ]
+
+    expect(backupsToPrune(files)).toEqual([])
+    expect(recentAutoBackup(files, NOW)).toBeNull()
   })
 
   it('finds an automatic backup another device made this week', () => {

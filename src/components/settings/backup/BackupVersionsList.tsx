@@ -16,7 +16,12 @@ import {
 import Button from '../../ui/Button'
 import { displaySettingsRowTextClass } from '../../ui/displaySettingsStyles'
 
-const KIND_LABEL: Record<DriveBackupFile['kind'], string> = { auto: 'خودکار', manual: 'دستی' }
+const KIND_LABEL: Record<DriveBackupFile['kind'], string> = {
+  auto: 'خودکار',
+  manual: 'دستی',
+  'update-dev': 'به‌روزرسانی • dev',
+  'update-prod': 'به‌روزرسانی • production'
+}
 
 interface BackupVersionsListProps {
   files: DriveBackupFile[] | null
@@ -28,8 +33,16 @@ interface BackupVersionsListProps {
   onDelete: (file: DriveBackupFile) => void
 }
 
+/** The version is isolated left-to-right so «2.17.0-dev» keeps its order inside the Persian line. */
+const isolated = (text: string) => `⁦${text}⁩`
+
 function versionMeta(file: DriveBackupFile): string {
-  return [formatBackupSize(file.size), KIND_LABEL[file.kind], formatBackupDate(file.createdAt)]
+  return [
+    formatBackupSize(file.size),
+    KIND_LABEL[file.kind],
+    file.appVersion ? `نسخهٔ ${isolated(file.appVersion)}` : '',
+    formatBackupDate(file.createdAt)
+  ]
     .filter(Boolean)
     .join('، ')
 }
