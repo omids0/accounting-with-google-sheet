@@ -17,12 +17,20 @@ import RetroactiveEntryModal from './dataEntry/RetroactiveEntryModal'
 import StandardEntryFormFields from './dataEntry/StandardEntryFormFields'
 import { focusEntryAmount, type DataEntryFormProps } from './dataEntry/types'
 import { useEntryDraft } from './dataEntry/useEntryDraft'
-import { useEntryValidation } from './dataEntry/useEntryValidation'
+import { useEntryDuplicateGuard } from './dataEntry/useEntryDuplicateGuard'
+import { useClearAmountError, useEntryValidation } from './dataEntry/useEntryValidation'
 import { useTemplateFill } from './dataEntry/useTemplateFill'
 import { settleSavedEntry, writeEntryRecord } from './dataEntry/writeEntryRecord'
 import { buildFormInitialValues, isStandardEntryForm, withAutoTitle } from './form'
+import { getDateFieldId } from '../services/dashboardAggregation'
+import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
+import { getSettings, isConfigured } from '../services/settings'
+import { requireAuth } from '../utils/authGuard'
+import { handleSheetError } from '../utils/sheetError'
+import { showError } from '../utils/toast'
+import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { SUBCATEGORY_FIELD_ID } from './form/fieldUtils'
-import { isVehicleExpenseCategory, parseNumericField } from '../utils/vehicleExpenseUtils'
+import { isVehicleExpenseCategory } from '../utils/vehicleExpenseUtils'
 import { readSubcategories } from './form/categorySelect/useSubcategoryManager'
 import { showSavedForEntry } from './nudges/saveNudges'
 import { useLinkTarget } from '../hooks/useLinkTarget'
@@ -32,12 +40,6 @@ import { useSubmitLock } from '../hooks/useSubmitLock'
 import { useUnsavedWork } from '../hooks/useUserBusy'
 import { useVehicleExpenseEntry } from '../hooks/useVehicleExpenseEntry'
 import { prepareEntryValues, smsBalanceHint } from '../services/entryWallet'
-import { refreshOpeningBalancesInBackground } from '../services/openingBalanceRefresh'
-import { getSettings, isConfigured } from '../services/settings'
-import { requireAuth } from '../utils/authGuard'
-import { handleSheetError } from '../utils/sheetError'
-import { showError } from '../utils/toast'
-import { resolveCategoryType } from './form/categorySelect/useCategorySelectActions'
 import { useSharedTick } from './shared/sharedTickEntry'
 import { appFormClassName } from './ui/formStyles'
 import { entryFormGridClass } from './ui/recordsStyles'
@@ -84,6 +86,7 @@ export default function DataEntryForm({
 
   const nextEntryPrefill = useBuildingEntryAccount(activeForm, getValues, setValue)
   const retroactiveWarning = useRetroactiveEntryWarning()
+  const duplicateGuard = useEntryDuplicateGuard(activeForm)
   const values = watch()
   const duplicateWarning = <EntryDuplicateWarning form={activeForm} values={values} />
   const tick = useSharedTick(activeForm, values)
@@ -182,6 +185,8 @@ export default function DataEntryForm({
     if (keepOpen) focusEntryAmount(formRef.current)
   }
 
+  useClearAmountError(values.amount, showVehicleFields, vehicleExpense, clearErrors)
+
   const submitLock = useSubmitLock()
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -200,26 +205,21 @@ export default function DataEntryForm({
     if (linkTarget.blocker) return showError(linkTarget.blocker)
     if (!isConfigured() || !requireAuth()) return
 
-    const dateFieldId = activeForm.fields.find(field => field.type === 'date')?.id
-    const dateValue = dateFieldId ? String(formValues[dateFieldId] ?? '') : ''
+    const dateValue = String(formValues[getDateFieldId(activeForm)] ?? '')
 
-    if (retroactiveWarning.guard(dateValue, () => saveRecord(formValues, keepOpen))) return
-
-    await saveRecord(formValues, keepOpen)
-  }
-
-  useEffect(() => {
-    if (!showVehicleFields) return
-
-    if (parseNumericField(values.amount) > 0) {
-      vehicleExpense.clearFieldError('amount')
-      clearErrors('amount')
+    const save = async () => {
+      if (!retroactiveWarning.guard(dateValue, () => saveRecord(formValues, keepOpen))) {
+        await saveRecord(formValues, keepOpen)
+      }
     }
-  }, [values.amount, showVehicleFields, vehicleExpense.clearFieldError, clearErrors])
+
+    if (!(await duplicateGuard.ask(formValues, save))) await save()
+  }
 
   return (
     <div className={appFormClassName()}>
       <RetroactiveEntryModal warning={retroactiveWarning} />
+      {duplicateGuard.modal}
       {draft.restored && <EntryDraftNote onDiscard={draft.discard} />}
       <form
         ref={formRef}
