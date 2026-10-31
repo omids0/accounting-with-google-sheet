@@ -3,6 +3,7 @@ import { useId } from 'react'
 import ForecastMoney from './ForecastMoney'
 import { LATE_CHECK_DAYS } from './useCashForecast'
 import { useMaskedText } from '../../hooks/useAmountsHidden'
+import type { SpendingAverage } from '../../services/cashForecastSpending'
 import { formatCompactNumber, formatMoney, formatPersianNumber } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
 
@@ -17,6 +18,8 @@ export default function ForecastSpendingControl({
   max,
   step,
   onChange,
+  average,
+  onUseAverage,
   lateChecks,
   onLateChecksChange
 }: {
@@ -24,6 +27,8 @@ export default function ForecastSpendingControl({
   max: number
   step: number
   onChange: (value: number) => void
+  average: SpendingAverage | null
+  onUseAverage: () => void
   lateChecks: boolean
   onLateChecksChange: (on: boolean) => void
 }) {
@@ -58,6 +63,26 @@ export default function ForecastSpendingControl({
           <bdi>{formatCompactNumber(top)}</bdi>
         </span>
       </div>
+      {average?.enough ? (
+        <div className="mt-1 flex min-h-11 flex-wrap items-center justify-between gap-2 text-[0.76rem] text-muted">
+          <span>
+            میانگین ۳ ماه اخیر (بدون قسط و تکرار): <ForecastMoney amount={average.perDay} />
+          </span>
+          {Math.round(value) !== Math.round(average.perDay) ? (
+            <button
+              type="button"
+              className="focus-ring-inset min-h-11 cursor-pointer rounded-xl border border-border bg-bg px-3 text-[0.76rem] font-semibold text-primary-dark"
+              onClick={onUseAverage}
+            >
+              برگردان به میانگین
+            </button>
+          ) : null}
+        </div>
+      ) : (
+        <p className="mt-1 mb-0 text-[0.76rem] leading-[1.8] text-warning">
+          سابقهٔ کم؛ خرج روزانه را خودتان بگذارید.
+        </p>
+      )}
       <p className="mt-2 mb-0 text-[0.76rem] leading-[1.8] text-muted">
         این خرج جدا از قسط، چک و تکرارهای ثبت‌شده است و از فردا هر روز کم می‌شود. روی ۰ باشد، فقط
         سررسیدهای شناخته‌شده حساب می‌شوند.

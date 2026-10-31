@@ -95,6 +95,8 @@ export default function CashForecastPage() {
         max={slider.max}
         step={slider.step}
         onChange={forecast.setDailySpending}
+        average={forecast.spendingAverage}
+        onUseAverage={forecast.useAverageSpending}
         lateChecks={forecast.lateChecks}
         onLateChecksChange={forecast.setLateChecks}
       />
@@ -114,6 +116,7 @@ export default function CashForecastPage() {
         events={events}
         leftOut={leftOut}
         dailySpending={forecast.dailySpending}
+        spending={data.spending}
         failed={data.failed}
       />
     </div>

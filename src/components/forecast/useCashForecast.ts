@@ -34,12 +34,15 @@ export function useCashForecast() {
   const [data, setData] = useState<CashForecastData | null>(null)
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<ForecastViewId>('month')
-  const [dailySpending, setDailySpending] = useState(0)
+  // null: still the average of the last 90 days (0 with too little history); a number: the user's.
+  const [spendingChoice, setSpendingChoice] = useState<number | null>(null)
   const [lateChecks, setLateChecks] = useState(false)
   const [excluded, setExcluded] = useState(() => readExcludedAccountIds(spreadsheetId))
   const [purchaseAmount, setPurchaseAmount] = useState<number | ''>('')
   const [purchaseDate, setPurchaseDate] = useState('')
   const todayIso = getTodayIso()
+  const average = data?.spending.perDay ?? 0
+  const dailySpending = spendingChoice ?? average
 
   const load = useCallback(async () => {
     if (!isConfigured() || !requireAuth() || !spreadsheetId) return
@@ -109,7 +112,9 @@ export function useCashForecast() {
     view,
     setView,
     dailySpending,
-    setDailySpending,
+    setDailySpending: setSpendingChoice,
+    useAverageSpending: () => setSpendingChoice(null),
+    spendingAverage: data?.spending ?? null,
     lateChecks,
     setLateChecks,
     excluded,

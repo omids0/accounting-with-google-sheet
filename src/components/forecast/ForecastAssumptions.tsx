@@ -2,6 +2,7 @@ import { EVENT_KIND_LABELS, forecastDayLabel } from './forecastLabels'
 import ForecastMoney from './ForecastMoney'
 import type { ForecastResult } from '../../services/cashForecast'
 import type { ForecastEvent, ForecastLeftOut } from '../../services/cashForecastEvents'
+import type { SpendingAverage } from '../../services/cashForecastSpending'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import CalmBlock from '../CalmBlock'
 
@@ -32,12 +33,14 @@ export default function ForecastAssumptions({
   events,
   leftOut,
   dailySpending,
+  spending,
   failed
 }: {
   forecast: ForecastResult
   events: ForecastEvent[]
   leftOut: ForecastLeftOut[]
   dailySpending: number
+  spending: SpendingAverage
   failed: string[]
 }) {
   const late = events.filter(event => event.late)
@@ -59,7 +62,22 @@ export default function ForecastAssumptions({
               حدس است، نه چیزی که ثبت شده باشد.
             </>
           ) : (
-            'خرج روزانه صفر گذاشته شده؛ پس خرج‌های معمول زندگی در این برآورد نیست.'
+            'خرج روزانه صفر است؛ پس خرج‌های معمول زندگی در این برآورد نیست.'
+          )}
+        </li>
+        <li className={itemClass}>
+          {spending.enough ? (
+            <>
+              میانگین ۳ ماه اخیر از {formatPersianNumber(spending.counted)} هزینهٔ ثبت‌شده در{' '}
+              {formatPersianNumber(spending.historyDays)} روز حساب شده. هزینه‌هایی که به قسط، چک یا
+              بدهی وصل‌اند ({formatPersianNumber(spending.excludedLinked)} مورد) و هزینه‌هایی که
+              تکرار ماهانه ثبت کرده یا با عنوان و دستهٔ یک تکرار فعال یکی‌اند (
+              {formatPersianNumber(spending.excludedRecurring)} مورد) کنار گذاشته شده‌اند، چون
+              خودشان جدا در برآورد هستند. تشخیص تکراری از روی عنوان و دسته است و ممکن است دقیق
+              نباشد.
+            </>
+          ) : (
+            'سابقهٔ هزینه کمتر از ۱۴ روز است؛ میانگینی حساب نشده و خرج روزانه را خودتان تعیین می‌کنید.'
           )}
         </li>
         {late.length ? (
