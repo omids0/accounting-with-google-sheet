@@ -7,10 +7,10 @@
   --color-text: #134e4a;
   --color-text-muted: #38736c;
   --color-border: #99f6e4;
-  --color-danger: #dc2626;
+  --color-danger: #c81e1e; /* 4.62:1 on the danger tint and its hover mix (was #dc2626: 4.41:1) */
   --color-success: #15803d;
   --color-income: #15803d;
-  --color-expense: #dc2626;
+  --color-expense: #c81e1e;
   --color-income-bg: #f0fdf4;
   --color-income-border: #bbf7d0;
   --color-expense-bg: #fef2f2;

@@ -192,7 +192,8 @@ export default function AmountInput({
 
   return (
     <div className={amountFieldClass}>
-      <div className={cn(amountFieldInputWrapClass, invalid && amountFieldInputWrapInvalidClass)}>
+      {/* A label: a tap on the border or the unit chip focuses the input, so the whole 44 px box is the target. */}
+      <label className={cn(amountFieldInputWrapClass, invalid && amountFieldInputWrapInvalidClass)}>
         <input
           id={id}
           type="text"
@@ -208,7 +209,7 @@ export default function AmountInput({
           aria-describedby={describedBy}
         />
         <span className={amountFieldCurrencyClass}>{suffix}</span>
-      </div>
+      </label>
       {noticeLine}
       {words && (
         <p className={amountWordsClass}>

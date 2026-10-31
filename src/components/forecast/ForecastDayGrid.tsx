@@ -17,8 +17,11 @@ import CalmBlock from '../CalmBlock'
 import { calmEmptyClass, calmListClass, calmRowClass } from '../ui/calmListStyles'
 
 const dayClass = cx(
-  'focus-ring-inset relative flex h-11 w-full cursor-pointer flex-col items-center justify-center rounded-[10px]',
-  'border-0 font-numeric text-[0.8rem] font-semibold tabular-nums leading-tight text-text'
+  // No grid gap: the 2 px transparent border draws the 4 px gap, so neighbouring days share the tap area
+  // (the grid bleeds 6 px per side into the page padding so a day is still 44 px wide at 320 px).
+  'focus-ring-inset relative flex h-12 w-full cursor-pointer flex-col items-center justify-center rounded-[12px]',
+  'border-2 border-transparent bg-clip-padding',
+  'font-numeric text-[0.8rem] font-semibold tabular-nums leading-tight text-text'
 )
 
 const stateClass: Record<ForecastDayState, string> = {
@@ -86,14 +89,14 @@ export default function ForecastDayGrid({
             <div key={group.key}>
               <h3 className="m-0 mb-1 text-[0.78rem] font-bold text-text">{monthName}</h3>
               <div
-                className="grid grid-cols-7 gap-1 text-center"
+                className="-mx-1.5 grid grid-cols-7 text-center"
                 role="group"
                 aria-label={monthName}
               >
                 {JALALI_WEEKDAYS.map(weekday => (
                   <span
                     key={weekday.name}
-                    className="text-[0.72rem] text-muted"
+                    className="pb-1 text-[0.72rem] text-muted"
                     title={weekday.name}
                   >
                     {weekday.short}
