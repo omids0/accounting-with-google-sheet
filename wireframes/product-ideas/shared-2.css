@@ -1,0 +1,18 @@
+.field {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+.card .new,
+.screen > .new {
+  margin-top: 14px;
+  padding: 4px 6px;
+}
+.tabs a {
+  padding: 6px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+}

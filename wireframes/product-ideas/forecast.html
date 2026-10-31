@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>پیش‌بینی و تقویم نقدینگی</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
     <!-- prettier-ignore -->
     <style>
@@ -16,16 +17,16 @@
 input[type=range]{width:100%;accent-color:var(--primary)}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
 .cal b{font-size:.7rem;color:var(--muted)}
-.d{position:relative;font:inherit;font-size:.78rem;border:0;border-radius:6px;padding:12px 0 6px;cursor:pointer}
+.d{position:relative;font:inherit;font-size:.78rem;border:0;border-radius:6px;padding:16px 0 6px;cursor:pointer}
 .d.g{background:var(--success-soft);color:var(--success)}
 .d.o{background:var(--warn-soft);color:var(--warn)}
 .d.r{background:var(--danger-soft);color:var(--danger)}
 .d.sel{outline:2px solid var(--text)}
-.d[data-m]::before{content:attr(data-m);position:absolute;top:1px;inset-inline:0;font-size:.5rem}
+.d[data-m]::before{content:attr(data-m);position:absolute;top:1px;inset-inline:0;font-size:.7rem}
 .d.e::after{content:'';position:absolute;bottom:3px;inset-inline-start:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}
 .seg{white-space:nowrap;flex:none}
 .seg button{font:inherit;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 8px;border-radius:999px;cursor:pointer}
-.seg button.on{background:var(--primary);color:#fff}
+.seg button.on{background:var(--primary);color:var(--on-primary)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px}
 </style>
   </head>
@@ -33,16 +34,17 @@ input[type=range]{width:100%;accent-color:var(--primary)}
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
     <main class="page">
       <h1>پیش‌بینی و تقویم نقدینگی</h1>
       <p class="lead">
         اپ می‌گوید «الان چقدر داری»، ولی نمی‌گوید «تا حقوق بعدی کفاف می‌دهد یا نه». هر چهار کاربر
-        آزمایشی همین را خواستند (اولویت ۱). امروز: ۶ آبان ۱۴۰۵؛ حساب‌های حساب‌شده: «ملی» و «نقدی»،
-        یعنی ۶۴٬۵۸۱٬۲۵۰ تومان.
+        آزمایشی همین را خواستند (اولویت ۱). امروز: ۶ آبان ۱۴۰۵. پیش‌بینی از «ملی» و «نقدی» شروع
+        می‌شود (۶۴٬۵۸۱٬۲۵۰ تومان)، نه از مجموع داشبورد (۱۳۵٬۷۳۱٬۲۵۰)؛ دلیلش در کارت ایدهٔ الف نوشته
+        شده.
       </p>
       <p class="legend">
         <span class="chip">بخش موجود در اپ</span>
@@ -51,7 +53,7 @@ input[type=range]{width:100%;accent-color:var(--primary)}
         >
         <span class="chip warn">همهٔ اعداد این صفحه نمونه و تخمین‌اند</span>
         <a href="forecast-2.html"
-          >ایده‌های «می‌توانم بخرم؟» و «پول لازم ۳۰ روز آینده» در صفحهٔ دوم ←</a
+          >ایده‌های «می‌توانم بخرم؟» و «پول لازم ۵ هفتهٔ آینده» در صفحهٔ دوم ←</a
         >
       </p>
       <div class="tabs">
@@ -91,16 +93,32 @@ input[type=range]{width:100%;accent-color:var(--primary)}
                 <small>ملی، ملت و نقدی</small>
               </div>
               <div class="card new" data-idea="ایدهٔ الف">
-                <h3>تا آخر آبان چقدر می‌ماند؟ <span class="chip warn">تخمین</span></h3>
+                <h3>تا آخر آبان چقدر می‌ماند؟ <span class="chip warn">برآورد</span></h3>
+                <div class="card" style="padding: 6px 8px">
+                  <small
+                    >حساب‌های حساب‌شده: ملی ۶۴٬۱۷۱٬۲۵۰ + نقدی ۴۱۰٬۰۰۰ = <b>۶۴٬۵۸۱٬۲۵۰</b>. «ملت»
+                    ۷۱٬۱۵۰٬۰۰۰ پس‌انداز است و داخل پیش‌بینی نیست؛ مجموع هر سه ۱۳۵٬۷۳۱٬۲۵۰
+                    است.</small
+                  >
+                </div>
                 <div class="num pos" id="endTxt">حدود ۵٬۸۰۰٬۰۰۰ تومان</div>
+                <span class="est">برآورد، نه موجودی واقعی</span>
                 <small id="minTxt">پایین‌ترین روز: ۲۴ آبان؛ ۳٬۸۰۰٬۰۰۰ تومان</small>
-                <svg class="chart" viewBox="0 0 300 100" aria-hidden="true">
+                <svg
+                  class="chart"
+                  viewBox="0 0 300 100"
+                  role="img"
+                  aria-label="نمودار برآورد مانده از امروز (راست) تا آخر آبان (چپ)"
+                >
                   <rect class="dz" x="0" y="80.3" width="300" height="6.6" />
                   <rect class="nz" x="0" y="86.8" width="300" height="13.2" />
+                  <text x="2" y="78" fill="currentColor">۵ میلیون</text>
+                  <text x="2" y="98" fill="currentColor">۰</text>
+                  <text x="2" y="11" fill="currentColor">۶۶ میلیون</text>
                   <polyline id="line" points="" />
                   <circle id="minDot" r="4" cx="75" cy="84" />
                 </svg>
-                <div class="axis muted"><small>امروز</small><small>آخر آبان</small></div>
+                <div class="axis muted"><small>امروز (۶ آبان)</small><small>آخر آبان</small></div>
                 <small
                   ><span class="sw" style="background: var(--warn-soft)"></span>کمتر از ۵٬۰۰۰٬۰۰۰
                   (حاشیهٔ امن)</small
@@ -111,22 +129,23 @@ input[type=range]{width:100%;accent-color:var(--primary)}
                 >
                 <label class="muted"
                   >اگر خرج روزانه این‌قدر باشد: <b id="dOut">۱٬۰۰۰٬۰۰۰</b> تومان
-                  <input
-                    type="range"
-                    id="spend"
-                    min="600000"
-                    max="1500000"
-                    step="50000"
-                    value="1000000"
+                  <small class="muted">(میانگین ۳ ماه قبل: ۱٬۰۰۰٬۰۰۰)</small>
+                  <input type="range" id="spend" min="0" max="1500000" step="50000" value="1000000"
                 /></label>
                 <button class="btn ghost" data-demo="toggle" data-target="assume">
                   فرض‌های این تخمین
                 </button>
                 <ul id="assume" hidden class="muted">
                   <li>حقوق ۶۵٬۰۰۰٬۰۰۰ در ۱ آذر می‌رسد.</li>
-                  <li>خرج روزانه برابر میانگین ۳ ماه قبل است.</li>
+                  <li>
+                    خرج روزانه برابر میانگین ۳ ماه قبل است: ۱٬۰۰۰٬۰۰۰ در روز، حدود ۳۰ میلیون در ماه
+                    (خرج روزانهٔ بودجه ۲۲٬۰۰۰٬۰۰۰ + ماشین ۴٬۰۰۰٬۰۰۰ + مدرسه و متفرقه).
+                  </li>
                   <li>اقساط، چک‌ها، قبض‌ها و تکرارها سر تاریخشان پرداخت می‌شوند.</li>
-                  <li>حساب «ملت» پس‌انداز حساب شده و داخل نیست.</li>
+                  <li>
+                    حساب «ملت» (۷۱٬۱۵۰٬۰۰۰) پس‌انداز حساب شده و داخل نیست؛ اجارهٔ خانه از ملی پرداخت
+                    می‌شود.
+                  </li>
                 </ul>
               </div>
             </div>
@@ -137,8 +156,8 @@ input[type=range]{width:100%;accent-color:var(--primary)}
           <dl>
             <dt>مشکل</dt>
             <dd>
-              موجودی امروز گول‌زنک است: ۶۴٬۵۸۱٬۲۵۰ داری، اما دو چک و دو قسط در راه است و تا حقوق آذر
-              کفاف نمی‌دهد.
+              موجودی امروز گول‌زنک است: ۶۴٬۵۸۱٬۲۵۰ داری، اما دو چک پرداختی و دو قسط در راه است و
+              پایین‌ترین مانده‌ات (برآورد) ۳٬۸۰۰٬۰۰۰ می‌شود، یعنی کمتر از حاشیهٔ امن ۵٬۰۰۰٬۰۰۰.
             </dd>
             <dt>ایده</dt>
             <dd>
@@ -189,7 +208,7 @@ input[type=range]{width:100%;accent-color:var(--primary)}
             <div class="screen">
               <div class="card new" data-idea="ایدهٔ ب">
                 <div class="row">
-                  <h3>پول کافی هست؟ <span class="chip warn">تخمین</span></h3>
+                  <h3>پول کافی هست؟ <span class="chip warn">برآورد</span></h3>
                   <span class="seg"
                     ><button data-n="30" class="on">سی روز</button>
                     <button data-n="60">شصت روز</button></span
@@ -199,7 +218,7 @@ input[type=range]{width:100%;accent-color:var(--primary)}
                 <small
                   ><span class="sw" style="background: var(--success)"></span>کافی
                   <span class="sw" style="background: var(--warn)"></span>کمتر از ۵٬۰۰۰٬۰۰۰
-                  <span class="sw" style="background: var(--danger)"></span>منفی</small
+                  <span class="sw" style="background: var(--danger)"></span>کسری</small
                 >
               </div>
               <div class="card new" data-idea="ایدهٔ ب" id="dayList"></div>
@@ -243,45 +262,6 @@ input[type=range]{width:100%;accent-color:var(--primary)}
       </section>
     </main>
     <script src="app.js"></script>
-    <!-- prettier-ignore -->
-    <script>
-;(() => {
-  const S = 64581250, SAFE = 5e6, q = id => document.getElementById(id)
-  const fa = n => Math.abs(Math.round(n)).toLocaleString('fa-IR')
-  const money = n => (n < 0 ? 'منفی ' : '') + fa(n)
-  const date = i => (i < 25 ? [6 + i, 'آبان'] : i < 55 ? [i - 24, 'آذر'] : [i - 54, 'دی'])
-  const ev = [[4,-3100000,'قسط لپ‌تاپ','قسط'],[6,-4350000,'قسط وام','قسط'],[8,-22000000,'چک آقای احمدی','چک'],[12,-800000,'قبض برق','قبض'],
-    [16,-11531250,'چک فروشگاه نور','چک'],[19,8e6,'چک دریافتی آقای رضایی','چک'],[25,65e6,'حقوق','تکرار'],[29,-18e6,'اجارهٔ خانه','تکرار'],
-    [34,-3100000,'قسط لپ‌تاپ','قسط'],[36,-4350000,'قسط وام','قسط'],[55,65e6,'حقوق','تکرار'],[59,-18e6,'اجارهٔ خانه','تکرار']]
-  let D = 1e6, N = 30, sel = 18, bal = []
-  const model = () => { let b = S; return Array.from({ length: 60 }, (_, i) => (b += ev.filter(e => e[0] === i).reduce((s, e) => s + e[1], 0) - D)) }
-  const y = v => 100 - ((v + 10e6) / 76e6) * 100
-  const day = i => `${fa(date(i)[0])} ${date(i)[1]}`
-  const list = () => {
-    const items = ev.filter(e => e[0] === sel)
-    q('dayList').innerHTML = `<h3>روز ${day(sel)} · مانده تخمینی ${money(bal[sel])}</h3>` +
-      (items.map(e => `<div class="row"><span><span class="chip ${e[1] < 0 ? 'bad' : 'ok'}">${e[3]}</span> ${e[2]}</span><b>${money(e[1])}</b></div>`).join('') ||
-        '<small class="muted">سررسیدی نیست؛ فقط خرج روزانهٔ تخمینی کم می‌شود.</small>')
-  }
-  const draw = () => {
-    bal = model()
-    const w = bal.slice(0, 25), m = Math.min(...w), mi = w.indexOf(m)
-    q('line').setAttribute('points', w.map((v, i) => `${300 - i * 12.5},${y(v).toFixed(1)}`).join(' '))
-    q('minDot').setAttribute('cx', 300 - mi * 12.5); q('minDot').setAttribute('cy', y(m))
-    q('minTxt').textContent = `پایین‌ترین روز: ${day(mi)}؛ ${money(m)} تومان`
-    q('endTxt').textContent = `حدود ${money(w[24])} تومان`; q('endTxt').className = 'num ' + (w[24] < 0 ? 'neg' : 'pos')
-    q('dOut').textContent = fa(D)
-    q('cal').innerHTML = Array.from('شیدسچپج').map(c => `<b>${c}</b>`).join('') + '<i></i>'.repeat(4) +
-      bal.slice(0, N).map((v, i) => `<button data-i="${i}" ${date(i)[0] === 1 || !i ? `data-m="${date(i)[1]}"` : ''} class="d ${v < 0 ? 'r' : v < SAFE ? 'o' : 'g'}${ev.some(e => e[0] === i) ? ' e' : ''}${i === sel ? ' sel' : ''}">${fa(date(i)[0])}</button>`).join('')
-    list()
-  }
-  q('spend').oninput = e => { D = +e.target.value; draw() }
-  q('cal').onclick = e => { if (e.target.dataset.i) { sel = +e.target.dataset.i; draw() } }
-  document.querySelectorAll('[data-n]').forEach(b => (b.onclick = () => {
-    N = +b.dataset.n; document.querySelectorAll('[data-n]').forEach(x => x.classList.toggle('on', x === b)); draw()
-  }))
-  draw()
-})()
-</script>
+    <script src="forecast.js"></script>
   </body>
 </html>

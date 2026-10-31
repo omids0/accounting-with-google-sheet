@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>راحتی و خانواده — حساب‌کتاب</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
     <style>
       .photo {
@@ -45,8 +46,8 @@
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
 
@@ -80,7 +81,9 @@
                 <div class="row"><span>عنوان</span><b>یخچال ساید‌بای‌ساید</b></div>
                 <div class="row"><span>مبلغ</span><b>۴۲٬۰۰۰٬۰۰۰ تومان</b></div>
                 <div class="row"><span>قسط ماهانه</span><b>۴٬۲۰۰٬۰۰۰ تومان</b></div>
-                <button class="btn ghost">افزودن پیوست</button>
+                <button class="btn ghost" data-demo-msg="عکس یا پی‌دی‌اف رسید به خرید پیوست می‌شود">
+                  افزودن پیوست
+                </button>
               </div>
               <div class="card new" data-idea="ایدهٔ ۱">
                 <div class="photo">عکس رسید و کارت گارانتی</div>
@@ -94,16 +97,14 @@
             <div class="app-bar"><span>جستجو</span><span>گارانتی</span></div>
             <div class="screen">
               <div class="card new" data-idea="ایدهٔ ۱">
-                <h3>گارانتی‌هایی که رو به پایان‌اند</h3>
+                <h3>گارانتی‌هایی که تا شش ماه دیگر تمام می‌شوند</h3>
                 <div class="row">
                   <span>ماشین لباسشویی</span><span class="chip bad">گارانتی تا ۱۴۰۵/۰۹</span>
                 </div>
                 <div class="row">
                   <span>گوشی همراه</span><span class="chip warn">گارانتی تا ۱۴۰۶/۰۱</span>
                 </div>
-                <div class="row">
-                  <span>یخچال ساید‌بای‌ساید</span><span class="chip ok">گارانتی تا ۱۴۰۷/۰۳</span>
-                </div>
+                <small>یخچال تازه‌خریده‌شده (گارانتی تا ۱۴۰۷/۰۳) هنوز در این فهرست نیست.</small>
                 <small>یادآوری سه ماه و یک ماه قبل از پایان گارانتی.</small>
               </div>
               <div class="card">
@@ -164,7 +165,12 @@
                   <small>متن زنده</small>
                   <div>ناهار ۴۵۰ هزار تومان از ملی</div>
                 </div>
-                <button class="btn">تمام شد</button>
+                <button
+                  class="btn"
+                  data-demo-msg="ضبط تمام و جمله به مبلغ، دسته و حساب تبدیل می‌شود"
+                >
+                  تمام شد
+                </button>
               </div>
             </div>
           </div>
@@ -180,7 +186,17 @@
                 <div class="row"><span>تاریخ</span><b>۶ آبان ۱۴۰۵</b></div>
                 <small>اگر چیزی اشتباه است، رویش بزن و عوضش کن.</small>
                 <div class="row">
-                  <button class="btn">ثبت کن</button><button class="btn ghost">ویرایش</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="هزینهٔ ۴۵۰٬۰۰۰ با دسته و حساب فهمیده‌شده ثبت می‌شود"
+                  >
+                    ثبت کن</button
+                  ><button
+                    class="btn ghost"
+                    data-demo-msg="فرم هزینه با همین مقدارها برای اصلاح باز می‌شود"
+                  >
+                    ویرایش
+                  </button>
                 </div>
               </div>
             </div>

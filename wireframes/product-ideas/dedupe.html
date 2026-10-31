@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>قبلاً ثبت شده؟</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
     <!-- prettier-ignore -->
     <style>
@@ -24,8 +25,8 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
     <main class="page">
@@ -69,7 +70,7 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
                 >هشدار تکراری امروز فقط رکوردهای دستی را می‌بیند. رکورد ۵ آبان از پیامک آمده، پس
                 هشداری نیست و دو بار ثبت می‌شود.</small
               >
-              <button class="btn">ثبت درآمد</button>
+              <button class="btn" data-demo-msg="درآمد ثبت می‌شود">ثبت درآمد</button>
             </div>
           </div>
           <div class="phone">
@@ -91,9 +92,15 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
                 <button class="btn" data-demo="toggle" data-target="merged">
                   همان است، یکی کن
                 </button>
-                <button class="btn ghost">فرق دارد، ثبت کن</button>
-                <button class="btn ghost">دیدن آن رکورد</button>
-                <div class="v ok" id="merged" hidden>یکی شد: یک رکورد با منبع «پیامک + دستی»</div>
+                <button class="btn ghost" data-demo-msg="درآمد به‌صورت رکورد جدا و دوم ثبت می‌شود">
+                  فرق دارد، ثبت کن
+                </button>
+                <button class="btn ghost" data-demo-msg="رکورد پیامکی ۵ آبان باز می‌شود">
+                  دیدن آن رکورد
+                </button>
+                <div class="v ok" id="merged" hidden>
+                  یکی شد: یک رکورد با منبع «پیامک + دستی» به تاریخ ۵ آبان (تاریخ پیامک)
+                </div>
               </div>
             </div>
           </div>
@@ -142,12 +149,14 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
                 <h3>تکرارهای ماهانه</h3>
                 <div class="row"><span>حقوق</span><b>۶۵٬۰۰۰٬۰۰۰</b></div>
                 <div class="row"><span>اجارهٔ خانه</span><b>۱۸٬۰۰۰٬۰۰۰</b></div>
-                <div class="row"><span>اینترنت</span><b>۴۵۰٬۰۰۰</b></div>
+                <div class="row"><span>اینترنت</span><b>۱٬۱۵۰٬۰۰۰</b></div>
                 <small class="muted"
                   >فقط نشان «ثبت‌شده این ماه» برای مواردی که خود تکرار ثبت کرده.</small
                 >
               </div>
-              <button class="btn">ثبت همه</button>
+              <button class="btn" data-demo-msg="همهٔ تکرارهای این ماه، بدون بازبینی، ثبت می‌شوند">
+                ثبت همه
+              </button>
             </div>
           </div>
           <div class="phone">
@@ -165,15 +174,22 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
                   ><span class="chip bad">پرداخت‌نشده</span></label
                 >
                 <label class="opt new" data-idea="ایدهٔ ب"
-                  ><input type="checkbox" /><span>اینترنت ۴ آبان <b>۴۵۰٬۰۰۰</b></span
+                  ><input type="checkbox" /><span>اینترنت ۴ آبان <b>۱٬۱۵۰٬۰۰۰</b></span
                   ><span class="chip warn">احتمالاً تکراری</span></label
                 >
                 <small class="muted"
                   >«احتمالاً تکراری»: هزینهٔ دستی مشابه ۴ آبان هست.
-                  <a href="#idea-b">دیدن رکورد</a></small
+                  <a href="#idea-b" data-demo-msg="رکورد دستی مشابه ۴ آبان باز می‌شود"
+                    >دیدن رکورد</a
+                  ></small
                 >
               </div>
-              <button class="btn new" data-idea="ایدهٔ ب" id="postBtn">
+              <button
+                class="btn new"
+                data-idea="ایدهٔ ب"
+                id="postBtn"
+                data-demo-msg="فقط مورد تیک‌خورده (اجارهٔ خانه) ثبت می‌شود"
+              >
                 ثبت موارد انتخاب‌شده (۱)
               </button>
             </div>

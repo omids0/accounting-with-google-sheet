@@ -4,49 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>اعتماد و حسابرسی (۲)</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      [hidden] {
-        display: none !important;
-      }
-      .sheet {
-        border-radius: 16px 16px 0 0;
-        margin: 0 -12px -12px;
-      }
-      .acts {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        flex-wrap: wrap;
-      }
-      button.chip {
-        font: inherit;
-        border: 0;
-        cursor: pointer;
-      }
-      button.chip.on {
-        background: var(--primary);
-        color: #fff;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.66rem;
-      }
-      th,
-      td {
-        border-bottom: 1px dashed var(--border);
-        padding: 2px;
-        text-align: start;
-      }
-    </style>
+    <link rel="stylesheet" href="trust-2.css" />
   </head>
   <body>
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
     <main class="page">
@@ -85,7 +52,12 @@
               </div>
               <div class="card new" data-idea="ایدهٔ ۳">
                 <h3>سلامت داده‌ها</h3>
-                <button class="btn">بررسی یکپارچگی</button>
+                <button
+                  class="btn"
+                  data-demo-msg="موجودی هر سه حساب با گردش سنجیده و نتیجه نمایش داده می‌شود"
+                >
+                  بررسی یکپارچگی
+                </button>
                 <small>آخرین بررسی: هرگز</small>
               </div>
               <div class="card">
@@ -102,16 +74,26 @@
             <div class="screen">
               <div class="card sheet new" data-idea="ایدهٔ ۳" style="margin-top: 40px">
                 <h3>موجودی ثبت‌شده با مانده از روی گردش حساب</h3>
+                <small
+                  >«ثبت‌شده» جمع ردیف‌های همین اپ است؛ «گردش حساب» مانده‌ای است که پیامک و گردش بانک
+                  نشان می‌دهند. مجموع ثبت‌شده: ۱۳۵٬۷۳۱٬۲۵۰.</small
+                >
                 <div class="row">
-                  <span>ملی<br /><small>ثبت‌شده ۶۴٬۱۷۱٬۲۵۰ · از گردش ۶۴٬۱۷۱٬۲۵۰</small></span
+                  <span
+                    >ملی<br /><small
+                      >ثبت‌شده در اپ ۶۴٬۱۷۱٬۲۵۰ · از گردش حساب ۶۴٬۱۷۱٬۲۵۰</small
+                    ></span
                   ><span class="chip ok">یکی است</span>
                 </div>
                 <div class="row">
-                  <span>ملت<br /><small>ثبت‌شده ۷۱٬۱۵۰٬۰۰۰ · از گردش ۷۱٬۶۵۰٬۰۰۰</small></span
+                  <span
+                    >ملت<br /><small
+                      >ثبت‌شده در اپ ۷۱٬۱۵۰٬۰۰۰ · از گردش حساب ۷۱٬۶۵۰٬۰۰۰</small
+                    ></span
                   ><span class="chip warn">۵۰۰٬۰۰۰ تفاوت</span>
                 </div>
                 <div class="row">
-                  <span>نقدی<br /><small>ثبت‌شده ۴۱۰٬۰۰۰ · از گردش ۴۱۰٬۰۰۰</small></span
+                  <span>نقدی<br /><small>ثبت‌شده در اپ ۴۱۰٬۰۰۰ · از گردش حساب ۴۱۰٬۰۰۰</small></span
                   ><span class="chip ok">یکی است</span>
                 </div>
                 <small
@@ -174,7 +156,9 @@
               <div class="card">
                 <h3>خروجی CSV</h3>
                 <small>یک فایل از هر فهرست، بدون انتخاب بازه یا ستون.</small>
-                <button class="btn ghost">دریافت فایل</button>
+                <button class="btn ghost" data-demo-msg="خروجی CSV ساخته و دریافت می‌شود">
+                  دریافت فایل
+                </button>
               </div>
             </div>
           </div>
@@ -185,49 +169,68 @@
               <div class="card sheet new seg" data-idea="ایدهٔ ۴" style="margin-top: 20px">
                 <h3>بازه</h3>
                 <div class="acts">
-                  <button class="chip on">مهر ۱۴۰۵</button><button class="chip">سه ماه</button
-                  ><button class="chip">سال ۱۴۰۵</button>
+                  <button class="chip on" data-demo-msg="بازهٔ مهر ۱۴۰۵ برای خروجی انتخاب می‌شود">
+                    مهر ۱۴۰۵</button
+                  ><button class="chip" data-demo-msg="بازهٔ سه ماه برای خروجی انتخاب می‌شود">
+                    سه ماه</button
+                  ><button class="chip" data-demo-msg="بازهٔ سال ۱۴۰۵ برای خروجی انتخاب می‌شود">
+                    سال ۱۴۰۵
+                  </button>
                 </div>
                 <h3 style="margin-top: 8px">قالب</h3>
                 <div class="acts">
-                  <button class="chip on">اکسل</button><button class="chip">فایل CSV</button>
+                  <button class="chip on" data-demo-msg="قالب CSV برای خروجی انتخاب می‌شود">
+                    فایل CSV</button
+                  ><button
+                    class="chip"
+                    data-demo-msg="قالب اکسل انتخاب می‌شود؛ ساخت اکسل واقعی کتابخانهٔ جدا می‌خواهد"
+                  >
+                    اکسل (بعداً)
+                  </button>
                 </div>
                 <h3 style="margin-top: 8px">پیش‌نمایش ستون‌ها</h3>
                 <table>
                   <tr>
                     <th>تاریخ</th>
                     <th>شرح</th>
-                    <th>بدهکار</th>
-                    <th>بستانکار</th>
+                    <th>ورودی</th>
+                    <th>خروجی</th>
                     <th>حساب</th>
                     <th>دسته</th>
                   </tr>
                   <tr>
                     <td>۱ مهر</td>
                     <td>حقوق</td>
-                    <td>۰</td>
                     <td>۶۵٬۰۰۰٬۰۰۰</td>
+                    <td>۰</td>
                     <td>ملی</td>
                     <td>درآمد</td>
                   </tr>
                   <tr>
                     <td>۵ مهر</td>
                     <td>اجاره</td>
-                    <td>۱۸٬۰۰۰٬۰۰۰</td>
                     <td>۰</td>
-                    <td>ملت</td>
+                    <td>۱۸٬۰۰۰٬۰۰۰</td>
+                    <td>ملی</td>
                     <td>مسکن</td>
                   </tr>
                   <tr>
                     <td>۱۰ مهر</td>
                     <td>قسط لپ‌تاپ</td>
-                    <td>۳٬۱۰۰٬۰۰۰</td>
                     <td>۰</td>
+                    <td>۳٬۱۰۰٬۰۰۰</td>
                     <td>ملی</td>
                     <td>اقساط</td>
                   </tr>
                 </table>
-                <div class="acts"><button class="btn">اشتراک‌گذاری فایل</button></div>
+                <div class="acts">
+                  <button
+                    class="btn"
+                    data-demo-msg="فایل بازه و قالب انتخاب‌شده ساخته و برای اشتراک‌گذاری آماده می‌شود"
+                  >
+                    اشتراک‌گذاری فایل
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -238,12 +241,17 @@
               <div class="card new" data-idea="ایدهٔ ۴">
                 <h3>فایل آماده شد</h3>
                 <div class="row">
-                  <span>حسابداری مهر ۱۴۰۵ · قالب اکسل</span><span class="chip">۱۸ کیلوبایت</span>
+                  <span>حسابداری مهر ۱۴۰۵ · قالب CSV</span><span class="chip">۱۸ کیلوبایت</span>
                 </div>
                 <small>۱۴۲ ردیف، از ۱ تا ۳۰ مهر. اصلاحیه‌ها با ستون «ارجاع» دیده می‌شوند.</small>
                 <div class="acts">
-                  <button class="chip">ایمیل</button><button class="chip">تلگرام</button
-                  ><button class="chip">ذخیره</button>
+                  <button class="chip" data-demo-msg="پنجرهٔ ایمیل با فایل پیوست باز می‌شود">
+                    ایمیل</button
+                  ><button class="chip" data-demo-msg="فایل برای تلگرام فرستاده می‌شود">
+                    تلگرام</button
+                  ><button class="chip" data-demo-msg="فایل در پوشهٔ دانلودها ذخیره می‌شود">
+                    ذخیره
+                  </button>
                 </div>
               </div>
             </div>
@@ -270,24 +278,21 @@
               امروز: خروجی CSV در تنظیمات. تازه: برگهٔ بازه و قالب، ستون‌های حسابداری، اشتراک‌گذاری.
             </dd>
             <dt>داده لازم</dt>
-            <dd>همان ردیف‌های موجود، با نگاشت به بدهکار و بستانکار و نام حساب و دسته.</dd>
+            <dd>
+              همان ردیف‌های موجود، با نگاشت به ستون‌های ورودی و خروجی (بدون بدهکار و بستانکار) و نام
+              حساب و دسته.
+            </dd>
             <dt>خطر</dt>
             <dd>
-              کدگذاری فارسی در Excel و ستون تاریخ جلالی (متن، نه عدد). تعریف بدهکار و بستانکار برای
-              حساب شخصی باید روشن باشد. حجم کتابخانه در سقف حجم اپ.
+              کدگذاری فارسی در Excel و ستون تاریخ جلالی (متن، نه عدد). بدهکار و بستانکار به حساب
+              مقابل نیاز دارد که در حساب شخصی نیست؛ برای همین ورودی و خروجی نوشته شده است. حجم
+              کتابخانه در سقف حجم اپ.
             </dd>
           </dl>
         </div>
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      document.querySelectorAll('.seg .acts').forEach(group => {
-        group.addEventListener('click', e => {
-          if (e.target.tagName !== 'BUTTON') return
-          group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === e.target))
-        })
-      })
-    </script>
+    <script src="trust-2.js"></script>
   </body>
 </html>

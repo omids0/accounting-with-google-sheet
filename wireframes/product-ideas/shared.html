@@ -4,56 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>حساب مشترک، بعد از اولین نسخه</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .sheet {
-        border-top: 3px solid var(--primary);
-        background: var(--surface);
-        padding: 10px 12px;
-        display: grid;
-        gap: 6px;
-      }
-      .field {
-        display: flex;
-        justify-content: space-between;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px 8px;
-      }
-      .card .new,
-      .screen > .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .dim {
-        opacity: 0.45;
-        display: grid;
-        gap: 8px;
-      }
-      .msg {
-        background: var(--primary-soft);
-        border-radius: 10px;
-        padding: 8px;
-        font-size: 0.82rem;
-      }
-      input[type='range'] {
-        width: 100%;
-        accent-color: var(--primary);
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="shared.css" />
   </head>
   <body>
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
 
@@ -86,33 +46,52 @@
               <div class="card">
                 <small>مانده بین شما و بازاری</small>
                 <div class="num neg" style="font-size: 1.1rem">
-                  شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید
+                  شما ۲۷۲٬۵۰۰ تومان به بازاری بدهکارید
                 </div>
-                <button class="btn new" data-idea="ایدهٔ ۱">تسویه با بازاری</button>
+                <button
+                  class="btn new"
+                  data-idea="ایدهٔ ۱"
+                  data-demo-msg="برگهٔ تسویه با مبلغ پیشنهادی ۲۷۲٬۵۰۰ باز می‌شود"
+                >
+                  تسویه با بازاری
+                </button>
               </div>
               <div class="card">
                 <div class="row"><span>برق و گاز، مادر پرداخت کرد</span><b>۴۵۰٬۰۰۰</b></div>
-                <div class="row"><span>شهریهٔ مدرسه، بازاری پرداخت کرد</span><b>۸۰۰٬۰۰۰</b></div>
+                <div class="row">
+                  <span>شهریهٔ مدرسه، بازاری پرداخت کرد (سهم مادر ۷۰٪)</span><b>۸۰۰٬۰۰۰</b>
+                </div>
                 <div class="row"><span>نان و ماست، مادر پرداخت کرد</span><b>۱۲۰٬۰۰۰</b></div>
                 <div class="row"><small>تسویهٔ قبلی</small><small>۲٬۵۰۰ به نفع شما</small></div>
               </div>
+              <small class="muted"
+                >۵۶۰٬۰۰۰ (سهم شما از شهریه) − ۲۲۵٬۰۰۰ (برق و گاز) − ۶۰٬۰۰۰ (نان و ماست) − ۲٬۵۰۰ =
+                ۲۷۲٬۵۰۰. برق و گاز و نان و ماست نصف‌نصف‌اند.</small
+              >
             </div>
           </div>
           <div class="phone">
             <div class="cap">برگهٔ تسویه، مبلغ پیشنهادی</div>
             <div class="app-bar"><span>تسویه</span><span>✕</span></div>
             <div class="screen">
-              <div class="dim"><div class="card">شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید</div></div>
+              <div class="dim"><div class="card">شما ۲۷۲٬۵۰۰ تومان به بازاری بدهکارید</div></div>
               <div class="sheet new" data-idea="ایدهٔ ۱">
                 <h3>تسویه با بازاری</h3>
-                <div class="field"><span>مبلغ پیشنهادی از مانده</span><b>۱۱۲٬۵۰۰</b></div>
+                <div class="field"><span>مبلغ پیشنهادی از مانده</span><b>۲۷۲٬۵۰۰</b></div>
                 <div class="field"><span>روش پرداخت</span><b>کارت‌به‌کارت</b></div>
                 <small>پیامی که برای بازاری می‌رود:</small>
                 <div class="msg">
-                  مادر ۱۱۲٬۵۰۰ تومان کارت‌به‌کارت کرد؛ لطفاً رسیدن پول را تأیید کن.
+                  مادر ۲۷۲٬۵۰۰ تومان کارت‌به‌کارت کرد؛ لطفاً رسیدن پول را تأیید کن.
                 </div>
-                <button class="btn">کارت‌به‌کارت کردم</button>
-                <button class="btn ghost">فعلاً نه</button>
+                <button
+                  class="btn"
+                  data-demo-msg="تسویهٔ ۲۷۲٬۵۰۰ با وضعیت «منتظر تأیید» ثبت و برای بازاری فرستاده می‌شود"
+                >
+                  کارت‌به‌کارت کردم
+                </button>
+                <button class="btn ghost" data-demo-msg="برگه بسته می‌شود و مانده همان می‌ماند">
+                  فعلاً نه
+                </button>
               </div>
             </div>
           </div>
@@ -121,13 +100,18 @@
             <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
             <div class="screen">
               <div class="card new" data-idea="ایدهٔ ۱">
-                <h3>مادر می‌گوید ۱۱۲٬۵۰۰ تومان کارت‌به‌کارت کرده</h3>
+                <h3>مادر می‌گوید ۲۷۲٬۵۰۰ تومان کارت‌به‌کارت کرده</h3>
                 <small>۶ آبان ۱۴۰۵، ساعت ۱۸:۲۰</small>
                 <div class="row">
                   <button class="btn" data-demo="toggle" data-target="settled">
                     رسید، تأیید می‌کنم
                   </button>
-                  <button class="btn ghost">هنوز نرسیده</button>
+                  <button
+                    class="btn ghost"
+                    data-demo-msg="یادآوری به بازاری می‌رود و تسویه در حالت «منتظر تأیید» می‌ماند"
+                  >
+                    هنوز نرسیده
+                  </button>
                 </div>
                 <small>دکمهٔ تأیید حالت «بعد از تأیید» را نشان یا پنهان می‌کند.</small>
               </div>
@@ -135,7 +119,7 @@
                 <div class="row">
                   <b>تسویه، مادر به بازاری</b><span class="chip ok">تأیید شد</span>
                 </div>
-                <div class="row"><span>مبلغ</span><b>۱۱۲٬۵۰۰</b></div>
+                <div class="row"><span>مبلغ</span><b>۲۷۲٬۵۰۰</b></div>
                 <div class="num pos" style="font-size: 1.1rem">حساب صاف است</div>
               </div>
             </div>
@@ -185,10 +169,13 @@
               <div class="card">
                 <div class="field"><span>عنوان</span><b>شهریهٔ مدرسه</b></div>
                 <div class="field"><span>مبلغ</span><b>۸۰۰٬۰۰۰</b></div>
-                <div class="field"><span>پرداخت‌کننده</span><b>مادر</b></div>
+                <div class="field"><span>پرداخت‌کننده</span><b>بازاری</b></div>
               </div>
               <div class="card new" data-idea="ایدهٔ ۲">
                 <h3 id="who">سهم مادر ۷۰٪ و بازاری ۳۰٪</h3>
+                <small class="muted"
+                  >بازاری پرداخت کرده؛ سهم مادر از ۸۰۰٬۰۰۰ به او بدهکاری است.</small
+                >
                 <input
                   id="sl"
                   type="range"
@@ -205,8 +192,10 @@
                 <div class="row">
                   <button class="btn ghost" data-p="50">نصف‌نصف</button>
                   <button class="btn ghost" data-p="70">۷۰/۳۰</button>
-                  <button class="btn ghost" data-p="100">فقط خودم</button>
+                  <button class="btn ghost" data-p="100">همه با مادر</button>
                 </div>
+                <small id="eff" class="muted"></small>
+                <small id="warn" class="neg" hidden></small>
               </div>
             </div>
           </div>
@@ -229,7 +218,7 @@
             <div class="screen">
               <div class="card">
                 <div class="row"><b>شهریهٔ مدرسه</b><b>۸۰۰٬۰۰۰</b></div>
-                <small>مادر پرداخت کرد</small>
+                <small>بازاری پرداخت کرد</small>
                 <div class="new" data-idea="ایدهٔ ۲">
                   <small>سهم مادر ۵۶۰٬۰۰۰ و سهم بازاری ۲۴۰٬۰۰۰</small>
                   <div class="bar"><i style="width: 70%"></i></div>
@@ -272,23 +261,6 @@
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      const sl = document.getElementById('sl'),
-        fa = n => n.toLocaleString('fa-IR')
-      const set = (id, text) => (document.getElementById(id).textContent = text)
-      const upd = () => {
-        const p = +sl.value
-        set('who', `سهم مادر ${fa(p)}٪ و بازاری ${fa(100 - p)}٪`)
-        set('m', fa((800000 * p) / 100))
-        set('b', fa((800000 * (100 - p)) / 100))
-      }
-      sl.addEventListener('input', upd)
-      document.querySelectorAll('[data-p]').forEach(b =>
-        b.addEventListener('click', () => {
-          sl.value = b.dataset.p
-          upd()
-        })
-      )
-    </script>
+    <script src="shared.js"></script>
   </body>
 </html>

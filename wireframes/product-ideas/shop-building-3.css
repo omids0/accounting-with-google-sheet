@@ -1,0 +1,27 @@
+.card .new {
+  margin-top: 14px;
+  padding: 4px 6px;
+}
+.tabs a {
+  padding: 6px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  text-decoration: none;
+}
+.ln {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+}
+.z {
+  stroke: var(--muted);
+  stroke-dasharray: 3;
+}
+svg text {
+  fill: var(--muted);
+  font-size: 11px;
+}
+input[type='range'] {
+  width: 100%;
+  accent-color: var(--primary);
+}

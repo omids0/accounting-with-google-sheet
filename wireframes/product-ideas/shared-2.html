@@ -4,34 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>حساب مشترک، بخش دوم</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .field {
-        display: flex;
-        justify-content: space-between;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px 8px;
-      }
-      .card .new,
-      .screen > .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="shared-2.css" />
   </head>
   <body>
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
 
@@ -65,8 +47,13 @@
                 <div class="field"><span>دسته</span><b>هدیه</b></div>
               </div>
               <div class="card new" data-idea="ایدهٔ ۳">
-                <label class="row"><b>خرج خصوصی</b><input type="checkbox" checked /></label>
-                <small>بازاری فقط مبلغ را می‌بیند و عبارت «خرج شخصی»؛ عنوان و دسته را نه.</small>
+                <label class="row"
+                  ><b>خرج خصوصی</b><input type="checkbox" checked id="priv"
+                /></label>
+                <small
+                  >بازاری فقط مبلغ را می‌بیند و عبارت «خرج شخصی»؛ عنوان و دسته را نه. این خرج در
+                  مانده تقسیم نمی‌شود.</small
+                >
               </div>
             </div>
           </div>
@@ -79,9 +66,9 @@
                 <small>مادر پرداخت کرد</small>
               </div>
               <div class="card new" data-idea="ایدهٔ ۳">
-                <div class="row"><b>خرج شخصی</b><b>۳۰۰٬۰۰۰</b></div>
-                <small>مادر پرداخت کرد، بدون عنوان و دسته</small>
-                <span class="chip">خصوصی</span>
+                <div class="row"><b id="pTitle">خرج شخصی</b><b>۳۰۰٬۰۰۰</b></div>
+                <small id="pNote">مادر پرداخت کرد، بدون عنوان و دسته</small>
+                <span class="chip" id="pChip">خصوصی</span>
               </div>
               <div class="card">
                 <small
@@ -102,7 +89,7 @@
                 <div class="row"><b>بازاری</b><span class="chip">شریک</span></div>
                 <div class="new" data-idea="ایدهٔ ۳">
                   <div class="bar"><i style="width: 64%"></i></div>
-                  <small>سقف بازاری ۵٬۰۰۰٬۰۰۰ — ۳٬۲۰۰٬۰۰۰ مصرف شده</small>
+                  <small>مصرف بازاری: <bdi>۳٬۲۰۰٬۰۰۰</bdi> از سقف <bdi>۵٬۰۰۰٬۰۰۰</bdi> (۶۴٪)</small>
                 </div>
               </div>
               <div class="card new" data-idea="ایدهٔ ۳">
@@ -159,7 +146,12 @@
               <div class="card new" data-idea="ایدهٔ ۴">
                 <h3>از آستانهٔ ۵٬۰۰۰٬۰۰۰ بیشتر است</h3>
                 <small>بعد از تأیید بازاری در مانده حساب می‌شود.</small>
-                <button class="btn">ثبت و ارسال برای تأیید</button>
+                <button
+                  class="btn"
+                  data-demo-msg="خرج ۱۲٬۰۰۰٬۰۰۰ با وضعیت «در انتظار تأیید» ثبت و برای بازاری فرستاده می‌شود"
+                >
+                  ثبت و ارسال برای تأیید
+                </button>
               </div>
             </div>
           </div>
@@ -174,7 +166,9 @@
                   <button class="btn" data-a="ok">تأیید</button>
                   <button class="btn ghost" data-a="no">رد</button>
                 </div>
-                <small>روی تأیید یا رد بزن تا وضعیت عوض شود.</small>
+                <small id="decided"
+                  >روی تأیید یا رد بزن؛ وضعیت هر دو جا (کارت و فهرست) عوض می‌شود.</small
+                >
               </div>
             </div>
           </div>
@@ -184,8 +178,8 @@
             <div class="screen">
               <div class="card">
                 <div class="row"><b>یخچال</b><b>۱۲٬۰۰۰٬۰۰۰</b></div>
-                <span class="chip warn new" data-idea="ایدهٔ ۴">در انتظار تأیید</span>
-                <small>در مانده حساب نشده</small>
+                <span class="chip warn new" data-idea="ایدهٔ ۴" id="lChip">در انتظار تأیید</span>
+                <small id="lNote">در مانده حساب نشده</small>
               </div>
               <div class="card">
                 <div class="row"><b>میز ناهارخوری</b><b>۶٬۵۰۰٬۰۰۰</b></div>
@@ -233,15 +227,6 @@
       </section>
     </main>
     <script src="app.js"></script>
-    <script>
-      const st = document.getElementById('st')
-      document.querySelectorAll('[data-a]').forEach(b =>
-        b.addEventListener('click', () => {
-          const ok = b.dataset.a === 'ok'
-          st.textContent = ok ? 'تأیید شد' : 'رد شد'
-          st.className = 'chip ' + (ok ? 'ok' : 'bad')
-        })
-      )
-    </script>
+    <script src="shared-2.js"></script>
   </body>
 </html>

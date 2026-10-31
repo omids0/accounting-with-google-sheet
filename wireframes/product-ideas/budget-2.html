@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>بودجهٔ هوشمند — حساب‌کتاب</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
     <style>
       .sheet {
@@ -28,8 +29,8 @@
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
 
@@ -69,7 +70,9 @@
                   >اجاره و اقساط را از قبل می‌دانم. بقیه را با هم تقسیم کنیم تا ماه بی‌حساب
                   نگذرد.</small
                 >
-                <button class="btn">پیشنهاد بودجه را ببین</button>
+                <button class="btn" data-demo-msg="برگهٔ پیشنهاد تقسیم حقوق باز می‌شود">
+                  پیشنهاد بودجه را ببین
+                </button>
               </div>
             </div>
           </div>
@@ -106,7 +109,14 @@
                     value="4000000" /><output id="o-car"></output
                 ></label>
                 <div class="row"><span>باقی برای تفریح و غیرمنتظره</span><b id="o-rest"></b></div>
-                <button class="btn">ساخت پاکت‌ها</button>
+                <button
+                  class="btn"
+                  id="mk"
+                  data-demo-msg="پاکت‌های آبان با همین سهم‌ها ساخته می‌شود"
+                >
+                  ساخت پاکت‌ها
+                </button>
+                <small class="neg" id="mkHint" hidden>تا کسری صفر نشود پاکتی ساخته نمی‌شود.</small>
               </div>
             </div>
           </div>
@@ -156,14 +166,23 @@
                 <div class="row"><span>مبلغ هر ماه</span><b>۱۴۹٬۰۰۰ تومان</b></div>
                 <div class="row"><span>یادآوری</span><b>نوزدهم هر ماه</b></div>
                 <div class="row">
-                  <button class="btn">تکرار ماهانه کن</button
-                  ><button class="btn ghost">نه، لازم نیست</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="رکورد تکرار ماهانهٔ ۱۴۹٬۰۰۰ برای نوزدهم هر ماه ساخته می‌شود"
+                  >
+                    تکرار ماهانه کن</button
+                  ><button
+                    class="btn ghost"
+                    data-demo-msg="این پیشنهاد دیگر برای این مقصد نشان داده نمی‌شود"
+                  >
+                    نه، لازم نیست
+                  </button>
                 </div>
               </div>
               <div class="card">
                 <h3>اقلام تکرارشونده</h3>
-                <div class="row"><span>اینترنت، روز هشتم</span><b>۱٬۱۵۰٬۰۰۰</b></div>
-                <div class="row"><span>قسط وام، روز پنجم</span><b>۴٬۳۵۰٬۰۰۰</b></div>
+                <div class="row"><span>اینترنت، روز چهارم</span><b>۱٬۱۵۰٬۰۰۰</b></div>
+                <div class="row"><span>قسط وام، روز دوازدهم</span><b>۴٬۳۵۰٬۰۰۰</b></div>
               </div>
             </div>
           </div>
@@ -181,8 +200,17 @@
                 <small>سه بار اسنپ را «حمل‌ونقل» زدی. از این به بعد خودکار انتخاب شود؟</small>
                 <div class="row"><span>روی رکوردهای قبلی هم اعمال شود</span><b>چهار مورد</b></div>
                 <div class="row">
-                  <button class="btn">بله، قاعده بساز</button
-                  ><button class="btn ghost">فعلاً نه</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="قاعدهٔ اسنپ ← حمل‌ونقل ساخته و روی چهار رکورد قبلی اعمال می‌شود"
+                  >
+                    بله، قاعده بساز</button
+                  ><button
+                    class="btn ghost"
+                    data-demo-msg="قاعده ساخته نمی‌شود و بعداً دوباره پرسیده می‌شود"
+                  >
+                    فعلاً نه
+                  </button>
                 </div>
               </div>
               <div class="card">
@@ -243,6 +271,8 @@
           q('o-car').textContent = `ماهانه ${f(car)}`
           q('o-rest').textContent = `${rest < 0 ? 'کسری ' : ''}${f(Math.abs(rest))}`
           q('o-rest').className = rest < 0 ? 'neg' : 'pos'
+          q('mk').disabled = rest < 0
+          q('mkHint').hidden = rest >= 0
         }
 
         sliders.forEach(id => q(id).addEventListener('input', calc))

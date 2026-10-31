@@ -47,7 +47,7 @@
   font: inherit;
   border: 0;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
@@ -97,7 +97,7 @@
   top: -10px;
   inset-inline-start: 8px;
   background: var(--new);
-  color: #fff;
+  color: var(--on-new);
   font-size: 0.7rem;
   padding: 0 8px;
   border-radius: 999px;

@@ -1,0 +1,29 @@
+[hidden] {
+  display: none !important;
+}
+.sheet {
+  border-radius: 16px 16px 0 0;
+  margin: 0 -12px -12px;
+}
+.acts {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+button.chip {
+  font: inherit;
+  border: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chip.new::after {
+  top: -17px;
+  font-size: 0.7rem;
+}
+.card:has(.chip.new) .row {
+  padding-top: 14px;
+}
+button.chip.on {
+  background: var(--primary);
+  color: var(--on-primary);
+}

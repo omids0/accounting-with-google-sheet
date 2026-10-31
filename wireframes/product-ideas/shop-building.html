@@ -4,56 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>فروشنده و مدیر ساختمان</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .sheet {
-        border-top: 3px solid var(--primary);
-        background: var(--surface);
-        padding: 10px 12px;
-        display: grid;
-        gap: 6px;
-      }
-      .stack {
-        display: flex;
-        height: 14px;
-        border-radius: 999px;
-        overflow: hidden;
-      }
-      .field {
-        display: flex;
-        justify-content: space-between;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 4px 8px;
-      }
-      .card .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .dim {
-        opacity: 0.45;
-        display: grid;
-        gap: 8px;
-      }
-      .flow {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="shop-building.css" />
   </head>
   <body>
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
 
@@ -119,8 +79,18 @@
                 <div>سقف آقای حسینی ۱۵٬۰۰۰٬۰۰۰ است؛ با این فروش ۲۲٬۰۰۰٬۰۰۰ می‌شود</div>
                 <div class="bar bad"><i style="width: 100%"></i></div>
                 <div class="row">
-                  <button class="btn ghost">کم کردن مبلغ</button>
-                  <button class="btn">ثبت با همین مبلغ</button>
+                  <button
+                    class="btn ghost"
+                    data-demo-msg="مبلغ فروش به سقف باقی‌مانده (۱٬۰۰۰٬۰۰۰) کم می‌شود"
+                  >
+                    کم کردن مبلغ
+                  </button>
+                  <button
+                    class="btn"
+                    data-demo-msg="فروش نسیهٔ ۸٬۰۰۰٬۰۰۰ با هشدار ثبت می‌شود و مانعی ندارد"
+                  >
+                    ثبت با همین مبلغ
+                  </button>
                 </div>
               </div>
             </div>
@@ -137,10 +107,10 @@
                   <i style="width: 20%; background: var(--danger)"></i>
                 </div>
                 <div class="row">
-                  <small>تا ۳۰ روز ۱۲٬۵۰۰٬۰۰۰</small>
-                  <small>از ۳۰ تا ۶۰ روز ۸٬۰۰۰٬۰۰۰</small>
+                  <small>تا ۳۰ روز: ۱۲٬۵۰۰٬۰۰۰</small>
+                  <small>۳۰ تا ۶۰ روز: ۸٬۰۰۰٬۰۰۰</small>
                 </div>
-                <small>بیش از ۶۰ روز ۵٬۰۰۰٬۰۰۰ (قدیمی‌ترین ردیف‌ها اول)</small>
+                <small>بیش از ۶۰ روز: ۵٬۰۰۰٬۰۰۰ (قدیمی‌ترین ردیف‌ها اول)</small>
               </div>
               <div class="card new" data-idea="ایدهٔ ۱">
                 <div class="row">
@@ -150,8 +120,15 @@
                   <b>آقای حسینی</b><span class="chip warn">۴۱ روز</span><b>۸٬۰۰۰٬۰۰۰</b>
                 </div>
                 <div class="row">
+                  <b>آقای حسینی</b><span class="chip ok">۱۴ روز</span><b>۶٬۰۰۰٬۰۰۰</b>
+                </div>
+                <div class="row">
                   <b>خانم رضایی</b><span class="chip ok">۱۲ روز</span><b>۶٬۵۰۰٬۰۰۰</b>
                 </div>
+                <small
+                  >جمع ۲۵٬۵۰۰٬۰۰۰ = کریمی ۵٬۰۰۰٬۰۰۰ + حسینی ۱۴٬۰۰۰٬۰۰۰ + رضایی ۶٬۵۰۰٬۰۰۰. «تا ۳۰
+                  روز» یعنی ۶٬۰۰۰٬۰۰۰ حسینی + ۶٬۵۰۰٬۰۰۰ رضایی.</small
+                >
               </div>
             </div>
           </div>
@@ -224,12 +201,21 @@
                 <h3>برگشت خورد</h3>
                 <div class="field"><span>دلیل</span><b>موجودی کافی نیست</b></div>
                 <div class="field"><span>کارمزد بانک</span><b>۸۵٬۰۰۰ تومان</b></div>
-                <label><input type="checkbox" checked /> طلب ۱۲٬۰۰۰٬۰۰۰ را دوباره بساز</label>
-                <label><input type="checkbox" checked /> هشدار «چک برگشتی» روی کارت مشتری</label>
-                <small class="neg"
-                  >طلب او می‌شود ۲۶٬۰۰۰٬۰۰۰ و از سقف ۱۵٬۰۰۰٬۰۰۰ بالاتر می‌رود</small
+                <label
+                  ><input type="checkbox" checked id="rebuild" /> طلب ۱۲٬۰۰۰٬۰۰۰ را دوباره
+                  بساز</label
                 >
-                <button class="btn">ثبت برگشت</button>
+                <label><input type="checkbox" checked /> هشدار «چک برگشتی» روی کارت مشتری</label>
+                <small class="neg" id="owe"
+                  >طلب او می‌شود ۲۶٬۰۰۰٬۰۰۰ (۱۴٬۰۰۰٬۰۰۰ + ۱۲٬۰۰۰٬۰۰۰) و از سقف ۱۵٬۰۰۰٬۰۰۰ بالاتر
+                  می‌رود</small
+                >
+                <button
+                  class="btn"
+                  data-demo-msg="چک برگشت‌خورده با دلیل و کارمزد ثبت و طبق تیک‌ها طلب دوباره ساخته می‌شود"
+                >
+                  ثبت برگشت
+                </button>
               </div>
             </div>
           </div>
@@ -240,20 +226,24 @@
               <div class="card new" data-idea="ایدهٔ ۲">
                 <h3>چک‌های برگشتی</h3>
                 <div class="num neg">جمع ۲۰٬۵۰۰٬۰۰۰</div>
-                <small>سه چک، دو مورد هنوز باز (۱۷٬۰۰۰٬۰۰۰)، کارمزد ۲۴۰٬۰۰۰</small>
+                <small>سه چک؛ دو مورد هنوز باز است (۱۷٬۰۰۰٬۰۰۰).</small>
+                <small
+                  >جمع کارمزد بانک ۲۴۰٬۰۰۰ = ۸۵٬۰۰۰ + ۹۵٬۰۰۰ + ۶۰٬۰۰۰ (به طلب اضافه نمی‌شود)</small
+                >
               </div>
               <div class="card new" data-idea="ایدهٔ ۲">
                 <div class="row">
                   <b>آقای حسینی</b><span class="chip bad">باز</span><b>۱۲٬۰۰۰٬۰۰۰</b>
                 </div>
-                <small>برگشت ۶ آبان، موجودی کافی نیست</small>
+                <small>برگشت ۶ آبان، موجودی کافی نیست · کارمزد ۸۵٬۰۰۰</small>
                 <div class="row">
                   <b>آقای کریمی</b><span class="chip bad">باز</span><b>۵٬۰۰۰٬۰۰۰</b>
                 </div>
-                <small>برگشت ۱۹ مهر، امضا مغایر</small>
+                <small>برگشت ۱۹ مهر، امضا مغایر · کارمزد ۹۵٬۰۰۰</small>
                 <div class="row">
                   <b>فروشگاه نیک</b><span class="chip ok">تسویه شد</span><b>۳٬۵۰۰٬۰۰۰</b>
                 </div>
+                <small>کارمزد ۶۰٬۰۰۰</small>
               </div>
             </div>
           </div>
@@ -291,5 +281,6 @@
       </section>
     </main>
     <script src="app.js"></script>
+    <script src="shop-building.js"></script>
   </body>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>بدهی و هدف (۲)</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
     <style>
       [hidden] {
@@ -26,7 +27,7 @@
       }
       button.chip.on {
         background: var(--primary);
-        color: #fff;
+        color: var(--on-primary);
       }
       .gentle {
         background: var(--warn-soft);
@@ -45,8 +46,8 @@
     <div class="top">
       <a href="index.html">← فهرست ایده‌ها</a>
       <span>
-        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
-        <button data-toggle="theme">تیره / روشن</button>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
       </span>
     </div>
     <main class="page">
@@ -82,7 +83,13 @@
                 <div class="gentle new" data-idea="ایدهٔ ۳">
                   با این سرعت ۲۱ ماه دیر می‌رسی؛ ماهانه ۶ میلیون لازم است.
                 </div>
-                <button class="btn new" data-idea="ایدهٔ ۳">تنظیم قسط خودکار از حقوق</button>
+                <button
+                  class="btn new"
+                  data-idea="ایدهٔ ۳"
+                  data-demo-msg="برگهٔ قسط خودکار از حقوق باز می‌شود"
+                >
+                  تنظیم قسط خودکار از حقوق
+                </button>
               </div>
             </div>
           </div>
@@ -103,9 +110,22 @@
                   value="6000000"
                 />
                 <div class="gentle" id="gm">با این مبلغ به‌موقع (۱۵ دی ۱۴۰۵) می‌رسی.</div>
-                <small>بعد از اجاره و اقساط می‌ماند: <b id="gl">۳۳٬۵۵۰٬۰۰۰</b> تومان</small>
+                <small
+                  >بعد از اجاره (۱۸٬۰۰۰٬۰۰۰)، اقساط (۷٬۴۵۰٬۰۰۰)، خرج روزانه (۲۲٬۰۰۰٬۰۰۰) و ماشین
+                  (۴٬۰۰۰٬۰۰۰) و همین قسط هدف می‌ماند: <b id="gl">۷٬۵۵۰٬۰۰۰</b> تومان</small
+                >
                 <div class="acts">
-                  <button class="btn">فعال‌سازی</button><button class="btn ghost">فعلاً نه</button>
+                  <button
+                    class="btn"
+                    data-demo-msg="تکرار ماهانهٔ هدف سفر شمال از حقوق ساخته می‌شود"
+                  >
+                    فعال‌سازی</button
+                  ><button
+                    class="btn ghost"
+                    data-demo-msg="قسط خودکار ساخته نمی‌شود و جمله روی کارت می‌ماند"
+                  >
+                    فعلاً نه
+                  </button>
                 </div>
               </div>
             </div>
@@ -153,9 +173,12 @@
                 <h3>دارایی قابل اتکا</h3>
                 <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
                 <div class="row">
-                  <span>منهای قسط‌های این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
+                  <span>منهای بدهی‌های سررسید این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
                 </div>
-                <small>وام ۴٬۳۵۰٬۰۰۰ · لپ‌تاپ ۳٬۱۰۰٬۰۰۰ · کارت و سایر ۱۲٬۰۰۰٬۰۰۰</small>
+                <small
+                  >وام ۴٬۳۵۰٬۰۰۰ + لپ‌تاپ ۳٬۱۰۰٬۰۰۰ + کارت اعتباری ۵٬۲۰۰٬۰۰۰ + قرض خانوادگی
+                  ۶٬۸۰۰٬۰۰۰ = ۱۹٬۴۵۰٬۰۰۰</small
+                >
                 <div class="num pos">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
               </div>
             </div>
@@ -172,7 +195,7 @@
                 <div id="nb-period">
                   <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
                   <div class="row">
-                    <span>منهای قسط‌های این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
+                    <span>منهای بدهی‌های سررسید این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
                   </div>
                   <div class="num pos">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
                   <small>پاسخ به «این ماه چقدر آزاد خرج کنم؟»</small>
@@ -180,17 +203,19 @@
                 <div id="nb-total" class="new" data-idea="ایدهٔ ۴" hidden>
                   <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
                   <div class="row">
-                    <span>اصل باقی‌ماندهٔ وام <span class="chip warn">تخمین</span></span
+                    <span>اصل باقی‌ماندهٔ وام <span class="chip warn">برآورد</span></span
                     ><b class="neg">۷۳٬۹۵۰٬۰۰۰</b>
                   </div>
                   <div class="row">
                     <span>۶ قسط باقی‌ماندهٔ لپ‌تاپ</span><b class="neg">۱۸٬۶۰۰٬۰۰۰</b>
                   </div>
-                  <div class="row">
-                    <span>کارت اعتباری و سایر</span><b class="neg">۱۲٬۰۰۰٬۰۰۰</b>
-                  </div>
+                  <div class="row"><span>کارت اعتباری</span><b class="neg">۵٬۲۰۰٬۰۰۰</b></div>
+                  <div class="row"><span>قرض خانوادگی</span><b class="neg">۶٬۸۰۰٬۰۰۰</b></div>
                   <div class="num">۳۱٬۱۸۱٬۲۵۰ تومان</div>
-                  <small>پاسخ به «اگر امروز همهٔ بدهی را ببندم چقدر می‌ماند؟»</small>
+                  <small
+                    >۷۳٬۹۵۰٬۰۰۰ + ۱۸٬۶۰۰٬۰۰۰ + ۵٬۲۰۰٬۰۰۰ + ۶٬۸۰۰٬۰۰۰ = ۱۰۴٬۵۵۰٬۰۰۰ بدهی؛ پاسخ به
+                    «اگر امروز همهٔ بدهی را ببندم چقدر می‌ماند؟»</small
+                  >
                 </div>
               </div>
             </div>
@@ -232,8 +257,9 @@
             <dd>باقی‌ماندهٔ هر وام و قسط؛ اصل جدا از سود در صورت امکان.</dd>
             <dt>خطر</dt>
             <dd>
-              ۷۳٬۹۵۰٬۰۰۰ برابر ۱۷ قسط ۴٬۳۵۰٬۰۰۰ است و شاید سود را هم دارد؛ باید پرسید و تا آن موقع
-              «تخمین» نوشت. پیش‌فرض همان عدد امروز بماند تا گیج‌کننده نشود.
+              ۷۳٬۹۵۰٬۰۰۰ اصل باقی‌مانده است؛ با سود ۲۲٪ (فرض صفحهٔ اول) حدود ۲۱ قسط ۴٬۳۵۰٬۰۰۰ لازم
+              می‌شود، نه ۱۷ قسط. نرخ را باید پرسید و تا آن موقع «برآورد» نوشت. پیش‌فرض همان عدد
+              امروز بماند تا گیج‌کننده نشود.
             </dd>
           </dl>
         </div>
@@ -246,7 +272,7 @@
         const x = +gr.value,
           late = Math.round(14e6 / x - 70 / 30)
         gv.textContent = fa(x)
-        gl.textContent = fa(39.55e6 - x)
+        gl.textContent = (x > 13.55e6 ? 'کسری ' : '') + fa(Math.abs(13.55e6 - x))
         gm.textContent =
           late > 0
             ? `با این مبلغ ${fa(late)} ماه دیر می‌رسی.`
