@@ -102,7 +102,7 @@ export interface RemovedLinkedRecord {
 
 /**
  * Deletes the record's row and leaves its balance alone: the caller settles the wallet itself, in
- * one change with whatever replaces the record (see replaceVehicleExpense). Null when no
+ * one change with whatever replaces the record. Null when no
  * record has that id.
  */
 export async function removeLinkedRecordRow(

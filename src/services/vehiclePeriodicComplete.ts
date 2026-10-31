@@ -1,14 +1,16 @@
 import { syncVehicleMileage } from './vehicleActions'
-import { replaceVehicleExpense } from './vehicleExpenses'
-import {
-  createVehicleHistoryEntry,
-  fetchVehicleHistory,
-  updateVehicleHistoryEntry
-} from './vehicleHistory'
+import { createNextCycleVehicleExpense } from './vehicleExpenses'
+import { createVehicleHistoryEntry } from './vehicleHistory'
 import { updateVehiclePeriodicService } from './vehiclePeriodicServices'
 import { calculateNextKm } from '../components/vehicles/utils'
 import type { VehicleProfile } from '../types/vehicles'
 
+/**
+ * «ثبت انجام سرویس»: closes one service cycle. Every cycle is its own expense and its own history
+ * line; the service row keeps pointing at the LATEST cycle's expense (one id is all the sheet
+ * holds), and the earlier cycles stay reachable through their history lines. `previousExpenseId`
+ * is only read, to pay the new cycle from the same account as the last one.
+ */
 export async function completePeriodicService(params: {
   spreadsheetId: string
   vehicle: VehicleProfile & { rowNumber: number }
@@ -42,13 +44,6 @@ export async function completePeriodicService(params: {
     isHistorical = false
   } = params
 
-  // This service's latest line for the expense being redone (history is newest first).
-  const earlier = previousExpenseId
-    ? (await fetchVehicleHistory(spreadsheetId, vehicle.id)).find(
-        item => item.referenceId === serviceId && item.expenseRecordId === previousExpenseId
-      )
-    : undefined
-
   if (!isHistorical && mileage > vehicle.mileage) {
     await syncVehicleMileage(
       spreadsheetId,
@@ -60,16 +55,18 @@ export async function completePeriodicService(params: {
   }
 
   const nextKm = calculateNextKm(mileage, intervalKm)
-  // The earlier expense of this service is edited into the new one (one balance change, not a
-  // refund plus a new debit) and takes the chosen date. Each cycle still REPLACES the previous
-  // cycle's expense by existing design; an owner decision on that is pending.
-  const expenseRecordId = await replaceVehicleExpense(spreadsheetId, previousExpenseId ?? '', {
-    title: `${serviceType} — ${vehicle.title}`,
-    amount,
-    subCategory: serviceType,
-    date,
-    note: [brand, location, notes].filter(Boolean).join(' · ')
-  })
+  // A new expense on the chosen date; the previous cycle's expense is left as it is.
+  const expenseRecordId = await createNextCycleVehicleExpense(
+    spreadsheetId,
+    previousExpenseId ?? '',
+    {
+      title: `${serviceType} — ${vehicle.title}`,
+      amount,
+      subCategory: serviceType,
+      date,
+      note: [brand, location, notes].filter(Boolean).join(' · ')
+    }
+  )
 
   await updateVehiclePeriodicService(spreadsheetId, rowNumber, {
     currentMileage: mileage,
@@ -82,9 +79,9 @@ export async function completePeriodicService(params: {
     expenseRecordId
   })
 
-  const line = {
+  await createVehicleHistoryEntry(spreadsheetId, {
     vehicleId: vehicle.id,
-    recordKind: 'periodic' as const,
+    recordKind: 'periodic',
     referenceId: serviceId,
     date,
     mileage,
@@ -92,17 +89,5 @@ export async function completePeriodicService(params: {
     details: [serviceType, brand, location, notes].filter(Boolean).join(' · '),
     amount,
     expenseRecordId
-  }
-
-  // The same service redone with the same day, km and amount is the same event: its line is
-  // refreshed (brand, notes, next km), not repeated. A change of day, km or amount adds a line.
-  const same =
-    earlier &&
-    earlier.expenseRecordId === expenseRecordId &&
-    earlier.date === date &&
-    earlier.mileage === mileage &&
-    earlier.amount === amount
-
-  if (same) await updateVehicleHistoryEntry(spreadsheetId, earlier.rowNumber, line)
-  else await createVehicleHistoryEntry(spreadsheetId, line)
+  })
 }

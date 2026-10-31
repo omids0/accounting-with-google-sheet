@@ -44,8 +44,8 @@ export async function fetchVehicleTransactions(
 
     return true
   }
-  // A row whose expense is no longer in the records (a re-done service replaced it, or the record
-  // was deleted) moves no money any more. Not checked while the expense form is not loaded.
+  // A row whose expense is no longer in the records (it was deleted) moves no money any more.
+  // Not checked while the expense form is not loaded.
   const isGone = (expenseRecordId: string): boolean =>
     expenseForm !== undefined && !expenseById.has(expenseRecordId)
   // The record is what the books say; the copy kept on the service row can be older.

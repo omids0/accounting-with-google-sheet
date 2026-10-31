@@ -1,12 +1,6 @@
 import { VEHICLE_HISTORY_HEADERS } from './sheetHeaders'
 import { VEHICLE_HISTORY_SHEET } from './sheetNames'
-import {
-  appendSheetRow,
-  deleteSheetRow,
-  ensureSheetWithHeaders,
-  fetchSheetRows,
-  updateSheetRow
-} from './sheets'
+import { appendSheetRow, deleteSheetRow, ensureSheetWithHeaders, fetchSheetRows } from './sheets'
 import type { VehicleHistoryEntry, VehicleRecordKind } from '../types/vehicles'
 import { parseNumeric } from '../utils/parseNumeric'
 
@@ -107,25 +101,6 @@ export async function createVehicleHistoryEntry(
   if (!created) throw new Error('ثبت تاریخچه ناموفق بود')
 
   return created
-}
-
-/** Rewrites a history line in place (its id and creation time stay). */
-export async function updateVehicleHistoryEntry(
-  spreadsheetId: string,
-  rowNumber: number,
-  patch: Partial<Omit<VehicleHistoryEntry, 'id' | 'createdAt'>>
-): Promise<void> {
-  const rows = await fetchSheetRows(spreadsheetId, VEHICLE_HISTORY_SHEET)
-  const current = rowToHistory(rows[rowNumber - 2] ?? [], rowNumber)
-
-  if (!current) throw new Error('ثبت تاریخچه یافت نشد')
-
-  await updateSheetRow(
-    spreadsheetId,
-    VEHICLE_HISTORY_SHEET,
-    rowNumber,
-    historyToRow({ ...current, ...patch, id: current.id, createdAt: current.createdAt })
-  )
 }
 
 export async function deleteVehicleHistoryEntry(
