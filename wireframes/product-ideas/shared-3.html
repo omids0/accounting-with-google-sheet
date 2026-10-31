@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>حساب مشترک، بخش سوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .new h3 {
+        margin-top: 10px;
+      }
+      .card .new,
+      .screen > .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--danger);
+        flex: none;
+      }
+      .item {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        padding: 6px 0;
+        border-bottom: 1px dashed var(--border);
+      }
+      .item.read {
+        opacity: 0.6;
+      }
+      .item > div {
+        flex: 1;
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>حساب مشترک، بخش سوم</h1>
+      <p class="lead">فهرست اعلان‌ها و خروج شریک از حساب؛ امروز ۶ آبان ۱۴۰۵ است.</p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <a href="shared.html#idea-a">الف) تسویه با یک ضربه ←</a>
+        <a href="shared.html#idea-b">ب) سهم دلخواه ←</a>
+        <a href="shared-2.html#idea-c">ج) علامت خصوصی و سقف ←</a>
+        <a href="shared-2.html#idea-d">د) تأیید خرج بزرگ ←</a>
+        <button data-idea="idea-e">ه) اعلان و خروج شریک</button>
+      </div>
+
+      <section class="idea" id="idea-e">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">اعلان‌های حساب مشترک</div>
+            <div class="app-bar">
+              <span>خانهٔ مشترک</span><span class="new" data-idea="ایدهٔ ۵">زنگ ۲</span>
+            </div>
+            <div class="screen">
+              <div class="card"><small>بنر امروز: بازاری ثبت جدید دارد. برای دیدن بزن.</small></div>
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>اعلان‌ها</h3>
+                <div class="item">
+                  <span class="dot"></span>
+                  <div>
+                    <b>بازاری ثبت جدید دارد</b><br /><small
+                      >شهریهٔ مدرسه ۸۰۰٬۰۰۰، ده دقیقه پیش</small
+                    >
+                  </div>
+                </div>
+                <div class="item">
+                  <span class="dot"></span>
+                  <div>
+                    <b>بازاری ثبتت را عوض کرد</b><br /><small
+                      >برق و گاز از ۴۵۰٬۰۰۰ به ۴۸۰٬۰۰۰، دو ساعت پیش</small
+                    >
+                  </div>
+                </div>
+                <div class="item read">
+                  <span class="dot" style="visibility: hidden"></span>
+                  <div><b>بازاری تسویه را تأیید کرد</b><br /><small>مبلغ ۲٬۵۰۰، دیروز</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">خروج بازاری، گام اول و دوم</div>
+            <div class="app-bar"><span>خروج شریک</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <small>الان فقط «قطع دسترسی عضو» هست، بدون مانده و پشتیبان.</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>گام اول، مانده نهایی</h3>
+                <div class="num neg" style="font-size: 1.1rem">
+                  شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید
+                </div>
+                <h3>گام دوم، تسویهٔ نهایی</h3>
+                <small>تا مانده صفر نشود، خروج بسته است.</small>
+                <button class="btn">کارت‌به‌کارت کردم</button>
+                <span class="chip warn">در انتظار تأیید بازاری</span>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">خروج بازاری، گام سوم و چهارم</div>
+            <div class="app-bar"><span>خروج شریک</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>گام سوم، فایل پشتیبان برای بازاری</h3>
+                <div class="row">
+                  <span>همهٔ خرج‌های مشترک</span><span class="chip ok">آماده</span>
+                </div>
+                <small>خرج‌های خصوصی مادر در فایل نیست.</small>
+                <button class="btn ghost">ذخیره و فرستادن فایل</button>
+                <h3>گام چهارم، بایگانی دفتر مشترک</h3>
+                <small>دفتر فقط‌خواندنی می‌شود و دسترسی بازاری در گوگل‌درایو برداشته می‌شود.</small>
+                <div class="row">
+                  <span>بایگانی خانهٔ مشترک</span><span class="chip">بعد از گام دوم</span>
+                </div>
+                <button class="btn" disabled>خروج و بایگانی</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ه) اعلان‌ها و خروج شریک</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              بنر فقط یک بار دیده می‌شود و می‌پرد؛ و وقتی شریک می‌رود، فقط دسترسی‌اش قطع می‌شود،
+              بدون مانده و پشتیبان.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              فهرست اعلان با نقطهٔ نخوانده؛ و راه چهارگامی برای خروج: مانده نهایی، تسویه، فایل
+              پشتیبان، بایگانی.
+            </dd>
+            <dt>چرا</dt>
+            <dd>جدایی دو نفر حساب‌وکتاب‌نشده و بی‌دعوا تمام می‌شود و سابقه از بین نمی‌رود.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>بنر اعلان، صفحهٔ اعضا با قطع دسترسی و بایگانی ساختمان‌ها (الگوی بایگانی).</dd>
+            <dt>کجای اپ</dt>
+            <dd>زنگ بالای خانهٔ مشترک و صفحهٔ اعضا، گزینهٔ «خروج شریک».</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              گزارش تغییرات (چه کسی، چه کاری، کِی)؛ آخرین دیدن هر عضو؛ وضعیت دفتر (فعال یا بایگانی).
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              بدون سرور اعلان فقط هنگام باز شدن اپ می‌رسد، نه فوری. متن اعلان نباید عنوان خرج خصوصی
+              را لو بدهد. فایل پشتیبان باید خصوصی‌ها را حذف کند. بایگانی باید برگشت‌پذیر باشد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

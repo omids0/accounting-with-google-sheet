@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>حساب مشترک، بعد از اولین نسخه</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        padding: 10px 12px;
+        display: grid;
+        gap: 6px;
+      }
+      .field {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      .card .new,
+      .screen > .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .dim {
+        opacity: 0.45;
+        display: grid;
+        gap: 8px;
+      }
+      .msg {
+        background: var(--primary-soft);
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 0.82rem;
+      }
+      input[type='range'] {
+        width: 100%;
+        accent-color: var(--primary);
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>حساب مشترک: بعد از اولین نسخه</h1>
+      <p class="lead">
+        پنج ایده برای خانهٔ مشترک «مادر» و «بازاری»؛ امروز ۶ آبان ۱۴۰۵ است و عددها نمونه‌اند.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-a">الف) تسویه با یک ضربه</button>
+        <button data-idea="idea-b">ب) سهم دلخواه</button>
+        <a href="shared-2.html#idea-c">ج) علامت خصوصی و سقف ←</a>
+        <a href="shared-2.html#idea-d">د) تأیید خرج بزرگ ←</a>
+        <a href="shared-3.html#idea-e">ه) اعلان و خروج شریک ←</a>
+      </div>
+
+      <section class="idea" id="idea-a">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">حساب مشترک، تازه‌ترین خرج‌ها</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <small>مانده بین شما و بازاری</small>
+                <div class="num neg" style="font-size: 1.1rem">
+                  شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید
+                </div>
+                <button class="btn new" data-idea="ایدهٔ ۱">تسویه با بازاری</button>
+              </div>
+              <div class="card">
+                <div class="row"><span>برق و گاز، مادر پرداخت کرد</span><b>۴۵۰٬۰۰۰</b></div>
+                <div class="row"><span>شهریهٔ مدرسه، بازاری پرداخت کرد</span><b>۸۰۰٬۰۰۰</b></div>
+                <div class="row"><span>نان و ماست، مادر پرداخت کرد</span><b>۱۲۰٬۰۰۰</b></div>
+                <div class="row"><small>تسویهٔ قبلی</small><small>۲٬۵۰۰ به نفع شما</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">برگهٔ تسویه، مبلغ پیشنهادی</div>
+            <div class="app-bar"><span>تسویه</span><span>✕</span></div>
+            <div class="screen">
+              <div class="dim"><div class="card">شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید</div></div>
+              <div class="sheet new" data-idea="ایدهٔ ۱">
+                <h3>تسویه با بازاری</h3>
+                <div class="field"><span>مبلغ پیشنهادی از مانده</span><b>۱۱۲٬۵۰۰</b></div>
+                <div class="field"><span>روش پرداخت</span><b>کارت‌به‌کارت</b></div>
+                <small>پیامی که برای بازاری می‌رود:</small>
+                <div class="msg">
+                  مادر ۱۱۲٬۵۰۰ تومان کارت‌به‌کارت کرد؛ لطفاً رسیدن پول را تأیید کن.
+                </div>
+                <button class="btn">کارت‌به‌کارت کردم</button>
+                <button class="btn ghost">فعلاً نه</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">گوشی بازاری، تأیید تسویه</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <h3>مادر می‌گوید ۱۱۲٬۵۰۰ تومان کارت‌به‌کارت کرده</h3>
+                <small>۶ آبان ۱۴۰۵، ساعت ۱۸:۲۰</small>
+                <div class="row">
+                  <button class="btn" data-demo="toggle" data-target="settled">
+                    رسید، تأیید می‌کنم
+                  </button>
+                  <button class="btn ghost">هنوز نرسیده</button>
+                </div>
+                <small>دکمهٔ تأیید حالت «بعد از تأیید» را نشان یا پنهان می‌کند.</small>
+              </div>
+              <div id="settled" class="card new" data-idea="ایدهٔ ۱">
+                <div class="row">
+                  <b>تسویه، مادر به بازاری</b><span class="chip ok">تأیید شد</span>
+                </div>
+                <div class="row"><span>مبلغ</span><b>۱۱۲٬۵۰۰</b></div>
+                <div class="num pos" style="font-size: 1.1rem">حساب صاف است</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>الف) تسویه با یک ضربه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مانده دیده می‌شود، ولی پول بیرون از اپ جابه‌جا می‌شود و بعد دستی صفر می‌کنند؛ معلوم
+              نیست طرف مقابل رسیدنش را تأیید کرده یا نه.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              مبلغ پیشنهادی از خود مانده، دکمهٔ «کارت‌به‌کارت کردم» که به شریک پیام می‌دهد، تأیید
+              او، و ثبت رکورد تسویه.
+            </dd>
+            <dt>چرا</dt>
+            <dd>بحث «پرداخت کردی؟» تمام می‌شود و مانده همیشه درست است.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>دفتر مشترک، مانده بین دو نفر، اعلان‌ها (بنر)، اعضا و نقش‌ها (مالک، شریک، ناظر).</dd>
+            <dt>کجای اپ</dt>
+            <dd>کارت مانده در خانهٔ حساب مشترک.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              رکورد تسویه: از، به، مبلغ، وضعیت (منتظر تأیید یا تأیید شد)، تاریخ. مانده باید
+              تسویه‌های تأییدشده را حساب کند.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              اپ پرداخت واقعی را نمی‌بیند، فقط اعلام و تأیید دو نفره است. اگر شریک جواب ندهد باید
+              تعیین تکلیف شود (یادآوری و بعد اختلاف).
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-b">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">ثبت خرج، انتخاب سهم</div>
+            <div class="app-bar"><span>خرج مشترک</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="field"><span>عنوان</span><b>شهریهٔ مدرسه</b></div>
+                <div class="field"><span>مبلغ</span><b>۸۰۰٬۰۰۰</b></div>
+                <div class="field"><span>پرداخت‌کننده</span><b>مادر</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <h3 id="who">سهم مادر ۷۰٪ و بازاری ۳۰٪</h3>
+                <input
+                  id="sl"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value="70"
+                  aria-label="سهم مادر"
+                />
+                <div class="row">
+                  <span>مادر <b id="m">۵۶۰٬۰۰۰</b></span
+                  ><span>بازاری <b id="b">۲۴۰٬۰۰۰</b></span>
+                </div>
+                <div class="row">
+                  <button class="btn ghost" data-p="50">نصف‌نصف</button>
+                  <button class="btn ghost" data-p="70">۷۰/۳۰</button>
+                  <button class="btn ghost" data-p="100">فقط خودم</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">سهم پیش‌فرض هر دسته</div>
+            <div class="app-bar"><span>تنظیمات حساب مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <div class="row"><span>برق و گاز</span><span class="chip">نصف‌نصف</span></div>
+                <div class="row"><span>مدرسه</span><span class="chip warn">۷۰/۳۰</span></div>
+                <div class="row"><span>خوراک</span><span class="chip">نصف‌نصف</span></div>
+                <div class="row"><span>تفریح</span><span class="chip warn">۶۰/۴۰</span></div>
+                <small>با انتخاب دسته سهم خودکار پر می‌شود و هر بار قابل تغییر است.</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">فهرست، خط سهم هر نفر</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>شهریهٔ مدرسه</b><b>۸۰۰٬۰۰۰</b></div>
+                <small>مادر پرداخت کرد</small>
+                <div class="new" data-idea="ایدهٔ ۲">
+                  <small>سهم مادر ۵۶۰٬۰۰۰ و سهم بازاری ۲۴۰٬۰۰۰</small>
+                  <div class="bar"><i style="width: 70%"></i></div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="row"><b>برق و گاز</b><b>۴۵۰٬۰۰۰</b></div>
+                <small>نصف‌نصف، هر نفر ۲۲۵٬۰۰۰</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ب) سهم دلخواه به‌جای فقط نصف‌نصف</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>هر خرج نصف می‌شود، ولی شهریه یا اجاره سهم متفاوت دارد و باید دستی حساب شود.</dd>
+            <dt>ایده</dt>
+            <dd>کشوی ۷۰/۳۰ هنگام ثبت، سهم پیش‌فرض برای هر دسته، و خط سهم هر نفر در فهرست.</dd>
+            <dt>چرا</dt>
+            <dd>مانده بدون ماشین‌حساب درست می‌شود و هر دو نفر می‌دانند سهمشان چقدر است.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>
+              هر خرج مشترک نصف می‌شود و پرداخت‌کننده دارد. تقسیم دلخواه در «دانگ» هست و می‌شود از آن
+              الگو گرفت.
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم خرج مشترک، تنظیمات حساب مشترک و کارت هر خرج.</dd>
+            <dt>داده لازم</dt>
+            <dd>دو ستون سهم (درصد یا مبلغ) برای هر رکورد؛ جدول سهم پیش‌فرض هر دسته.</dd>
+            <dt>خطر</dt>
+            <dd>
+              رکوردهای قدیمی باید نصف‌نصف بمانند. عوض کردن سهم بعد از ثبت مانده را تغییر می‌دهد و
+              باید اعلان برود. گرد کردن به تومان.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const sl = document.getElementById('sl'),
+        fa = n => n.toLocaleString('fa-IR')
+      const set = (id, text) => (document.getElementById(id).textContent = text)
+      const upd = () => {
+        const p = +sl.value
+        set('who', `سهم مادر ${fa(p)}٪ و بازاری ${fa(100 - p)}٪`)
+        set('m', fa((800000 * p) / 100))
+        set('b', fa((800000 * (100 - p)) / 100))
+      }
+      sl.addEventListener('input', upd)
+      document.querySelectorAll('[data-p]').forEach(b =>
+        b.addEventListener('click', () => {
+          sl.value = b.dataset.p
+          upd()
+        })
+      )
+    </script>
+  </body>
+</html>
