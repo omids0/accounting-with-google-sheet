@@ -42,7 +42,7 @@ export default function DashboardRecurringCard() {
   const revision = useDataRefresh()
   const [items, setItems] = useState<RecurringItem[]>([])
   const [accounts, setAccounts] = useState<Map<string, string>>(new Map())
-  // The user's own tick per item; without one, an item whose payment is already a record is off.
+  // The user's own tick per item; without one, an item that is already recorded or probably repeats a record is off.
   const [choices, setChoices] = useState<ReadonlyMap<string, boolean>>(new Map())
   const [busy, setBusy] = useState(false)
   const submitLock = useSubmitLock()
@@ -74,7 +74,7 @@ export default function DashboardRecurringCard() {
     () =>
       new Set(
         items
-          .filter(item => choices.get(item.id) ?? statuses.get(item.id)?.kind !== 'registered')
+          .filter(item => choices.get(item.id) ?? (statuses.get(item.id)?.kind ?? 'new') === 'new')
           .map(item => item.id)
       ),
     [items, choices, statuses]

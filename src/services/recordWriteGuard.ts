@@ -1,6 +1,6 @@
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import { SMS_TRANSFER_NOTE } from './bankSmsTransferRows'
-import type { LedgerEntry } from './recordDuplicates'
+import { findRecentEntryDuplicate, type LedgerEntry } from './recordDuplicates'
 import { loadRecordLedger } from './recordLedger'
 import { isRecordLinked } from './recordLinks'
 import { RECURRING_AUTO_NOTE, RECURRING_NOTE } from './recurring'
@@ -153,11 +153,31 @@ export function findWriteDuplicate(
  */
 export async function findDuplicateBeforeWrite(
   settings: AppSettings,
-  candidate: WriteCandidate
+  candidate: WriteCandidate,
+  nowMs: number = Date.now()
 ): Promise<LedgerEntry | null> {
   const ledger = await loadRecordLedger(settings, candidate.type).catch(() => [] as LedgerEntry[])
 
+  return findUnwarnedDuplicate(candidate, ledger, nowMs, entry =>
+    entry.id ? isRecordLinked(settings.spreadsheetId, entry.id, entry.type) : false
+  )
+}
+
+/**
+ * `findWriteDuplicate` minus the record the entry form's inline bar («احتمالاً تکراری» under the
+ * amount, `findRecentEntryDuplicate`) already shows for this entry: the user is warned once per
+ * record, by the bar, and the save-time question does not repeat it.
+ */
+export function findUnwarnedDuplicate(
+  candidate: WriteCandidate,
+  ledger: readonly LedgerEntry[],
+  nowMs: number,
+  ignore?: (entry: LedgerEntry) => boolean
+): LedgerEntry | null {
+  const inline = findRecentEntryDuplicate(candidate, [...ledger], nowMs)
+
   return findWriteDuplicate(candidate, ledger, {
-    ignore: entry => !!entry.id && isRecordLinked(settings.spreadsheetId, entry.id, entry.type)
+    excludeIds: inline?.id ? new Set([inline.id]) : undefined,
+    ignore
   })
 }

@@ -63,7 +63,7 @@ export default function RecurringReminderRow({
         </span>
         {record?.id && (
           <>
-            {status.kind === 'registered' && ticked && (
+            {ticked && status.kind !== 'new' && (
               <span className={recurringRowMetaClass}>با این تیک، یک رکورد دوم ثبت می‌شود</span>
             )}
             <button

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { LedgerEntry } from './recordDuplicates'
 import {
+  findUnwarnedDuplicate,
   findWriteDuplicate,
   recordSourceLabel,
   recordSourceOf,
@@ -138,5 +139,31 @@ describe('recordSourceOf', () => {
     expect(recordSourceOf({ note: 'تکراری' })).toBe('recurring')
     expect(recordSourceOf({ note: 'چیز دیگر' })).toBe('manual')
     expect(recordSourceLabel({})).toBe('دستی')
+  })
+})
+
+describe('findUnwarnedDuplicate (one warning per record)', () => {
+  const NOW = new Date(2026, 9, 22, 14, 0).getTime()
+
+  it('stays silent about the record the inline bar already shows', () => {
+    const recent = entry({ createdAtMs: NOW - 10 * 60_000 })
+
+    expect(findWriteDuplicate(candidate(), [recent])?.id).toBe('r1')
+    expect(findUnwarnedDuplicate(candidate(), [recent], NOW)).toBeNull()
+  })
+
+  it('still asks about an older record, or one the bar does not cover', () => {
+    const older = entry({ createdAtMs: NOW - 3 * 60 * 60_000 })
+    const nextDay = entry({ date: '2026-10-23', createdAtMs: NOW - 10 * 60_000 })
+
+    expect(findUnwarnedDuplicate(candidate(), [older], NOW)?.id).toBe('r1')
+    expect(findUnwarnedDuplicate(candidate(), [nextDay], NOW)?.id).toBe('r1')
+  })
+
+  it('asks about a second record when the bar shows only the first', () => {
+    const shown = entry({ id: 'a', createdAtMs: NOW - 5 * 60_000 })
+    const other = entry({ id: 'b', date: '2026-10-21', createdAtMs: NOW - 4 * 60 * 60_000 })
+
+    expect(findUnwarnedDuplicate(candidate(), [shown, other], NOW)?.id).toBe('b')
   })
 })
