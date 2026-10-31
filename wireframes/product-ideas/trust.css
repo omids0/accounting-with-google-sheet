@@ -18,7 +18,7 @@ button.chip {
 }
 .chip.new::after {
   top: -17px;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
 }
 .card:has(.chip.new) .row {
   padding-top: 14px;
