@@ -6,42 +6,7 @@
     <title>حساب مشترک، بخش سوم</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      .new h3 {
-        margin-top: 10px;
-      }
-      .card .new,
-      .screen > .new {
-        margin-top: 14px;
-        padding: 4px 6px;
-      }
-      .dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--danger);
-        flex: none;
-      }
-      .item {
-        display: flex;
-        gap: 8px;
-        align-items: flex-start;
-        padding: 6px 0;
-        border-bottom: 1px dashed var(--border);
-      }
-      .item.read {
-        opacity: 0.6;
-      }
-      .item > div {
-        flex: 1;
-      }
-      .tabs a {
-        padding: 6px 12px;
-        border: 1px dashed var(--border);
-        border-radius: 999px;
-        text-decoration: none;
-      }
-    </style>
+    <link rel="stylesheet" href="shared-3.css" />
   </head>
   <body>
     <div class="top">
@@ -75,7 +40,7 @@
           <div class="phone">
             <div class="cap">اعلان‌های حساب مشترک</div>
             <div class="app-bar">
-              <span>خانهٔ مشترک</span><span class="new" data-idea="ایدهٔ ۵">زنگ ۲</span>
+              <span>خانهٔ مشترک</span><span class="new" data-idea="ایدهٔ ۵">زنگ ۲ خوانده‌نشده</span>
             </div>
             <div class="screen">
               <div class="card"><small>بنر امروز: بازاری ثبت جدید دارد. برای دیدن بزن.</small></div>
@@ -114,11 +79,19 @@
               <div class="card new" data-idea="ایدهٔ ۵">
                 <h3>گام اول، مانده نهایی</h3>
                 <div class="num neg" style="font-size: 1.1rem">
-                  شما ۱۱۲٬۵۰۰ تومان به بازاری بدهکارید
+                  شما ۲۵۷٬۵۰۰ تومان به بازاری بدهکارید
                 </div>
+                <small class="muted"
+                  >۲۷۲٬۵۰۰ منهای ۱۵٬۰۰۰ برای اصلاح برق و گاز به ۴۸۰٬۰۰۰ (نصف تفاوت ۳۰٬۰۰۰).</small
+                >
                 <h3>گام دوم، تسویهٔ نهایی</h3>
                 <small>تا مانده صفر نشود، خروج بسته است.</small>
-                <button class="btn">کارت‌به‌کارت کردم</button>
+                <button
+                  class="btn"
+                  data-demo-msg="تسویهٔ نهایی ۲۵۷٬۵۰۰ ثبت و برای تأیید بازاری فرستاده می‌شود"
+                >
+                  کارت‌به‌کارت کردم
+                </button>
                 <span class="chip warn">در انتظار تأیید بازاری</span>
               </div>
             </div>
@@ -132,14 +105,24 @@
                 <div class="row">
                   <span>همهٔ خرج‌های مشترک</span><span class="chip ok">آماده</span>
                 </div>
-                <small>خرج‌های خصوصی مادر در فایل نیست.</small>
-                <button class="btn ghost">ذخیره و فرستادن فایل</button>
+                <small
+                  >خرج‌های خصوصی مادر فقط با مبلغ و عبارت «خرج شخصی» در فایل هستند؛ عنوان و دسته نه،
+                  و در مانده بالا هم تقسیم نشده‌اند.</small
+                >
+                <button
+                  class="btn ghost"
+                  data-demo-msg="فایل پشتیبان بدون عنوان خرج‌های خصوصی ساخته و برای بازاری فرستاده می‌شود"
+                >
+                  ذخیره و فرستادن فایل
+                </button>
                 <h3>گام چهارم، بایگانی دفتر مشترک</h3>
                 <small>دفتر فقط‌خواندنی می‌شود و دسترسی بازاری در گوگل‌درایو برداشته می‌شود.</small>
                 <div class="row">
                   <span>بایگانی خانهٔ مشترک</span><span class="chip">بعد از گام دوم</span>
                 </div>
-                <button class="btn" disabled>خروج و بایگانی</button>
+                <button class="btn" disabled title="بعد از تأیید تسویه فعال می‌شود">
+                  خروج و بایگانی (بعد از تأیید تسویه)
+                </button>
               </div>
             </div>
           </div>
