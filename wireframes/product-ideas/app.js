@@ -28,9 +28,21 @@
   const tabs = [...document.querySelectorAll('.tabs button')]
   const ideas = [...document.querySelectorAll('.idea')]
 
+  document.querySelector('.tabs')?.setAttribute('role', 'tablist')
+  tabs.forEach(tab => tab.setAttribute('role', 'tab'))
+
   const show = id => {
-    tabs.forEach(tab => tab.classList.toggle('on', tab.dataset.idea === id))
-    ideas.forEach(idea => idea.classList.toggle('on', idea.id === id))
+    tabs.forEach(tab => {
+      const on = tab.dataset.idea === id
+
+      tab.classList.toggle('on', on)
+      tab.setAttribute('aria-selected', String(on))
+      tab.tabIndex = on ? 0 : -1
+    })
+    ideas.forEach(idea => {
+      idea.classList.toggle('on', idea.id === id)
+      idea.setAttribute('role', 'tabpanel')
+    })
     history.replaceState(null, '', `#${id}`)
   }
 
@@ -45,4 +57,34 @@
       if (target) target.hidden = !target.hidden
     })
   })
+
+  // Demo buttons: [data-demo-msg="what the app records"] shows a toast and a done mark.
+  const toast = document.createElement('div')
+  let timer
+
+  toast.className = 'toast'
+  toast.hidden = true
+  toast.setAttribute('role', 'status')
+  document.body.append(toast)
+
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('[data-demo-msg]')
+
+    if (!button || button.disabled) return
+    button.classList.add('done')
+    toast.textContent = `نمونه: در اپ اینجا ${button.dataset.demoMsg} ثبت می‌شود`
+    toast.hidden = false
+    clearTimeout(timer)
+    timer = setTimeout(() => (toast.hidden = true), 3200)
+  })
+
+  // Digit helpers for pages: faNum(12) gives ۱۲, enNum("۱۲") gives "12" (count inputs show Persian digits).
+  const faDigits = '۰۱۲۳۴۵۶۷۸۹'
+  const toEn = v =>
+    v
+      .replace(/[۰-۹]/g, d => String(faDigits.indexOf(d)))
+      .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 1632))
+
+  window.faNum = n => String(n).replace(/d/g, d => faDigits[d])
+  window.enNum = toEn
 })()
