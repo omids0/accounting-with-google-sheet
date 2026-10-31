@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>حساب مشترک، بخش دوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .field {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      .card .new,
+      .screen > .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>حساب مشترک، بخش دوم</h1>
+      <p class="lead">خرج خصوصی با سقف و تأیید خرج بزرگ؛ امروز ۶ آبان ۱۴۰۵ است.</p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <a href="shared.html#idea-a">الف) تسویه با یک ضربه ←</a>
+        <a href="shared.html#idea-b">ب) سهم دلخواه ←</a>
+        <button data-idea="idea-c">ج) علامت خصوصی و سقف</button>
+        <button data-idea="idea-d">د) تأیید خرج بزرگ</button>
+        <a href="shared-3.html#idea-e">ه) اعلان و خروج شریک ←</a>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">گوشی مادر، ثبت خرج</div>
+            <div class="app-bar"><span>خرج مشترک</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="field"><span>عنوان</span><b>هدیهٔ تولد خواهر</b></div>
+                <div class="field"><span>مبلغ</span><b>۳۰۰٬۰۰۰</b></div>
+                <div class="field"><span>دسته</span><b>هدیه</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <label class="row"><b>خرج خصوصی</b><input type="checkbox" checked /></label>
+                <small>بازاری فقط مبلغ را می‌بیند و عبارت «خرج شخصی»؛ عنوان و دسته را نه.</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">گوشی بازاری، همان خرج در فهرست</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>برق و گاز</b><b>۴۵۰٬۰۰۰</b></div>
+                <small>مادر پرداخت کرد</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <div class="row"><b>خرج شخصی</b><b>۳۰۰٬۰۰۰</b></div>
+                <small>مادر پرداخت کرد، بدون عنوان و دسته</small>
+                <span class="chip">خصوصی</span>
+              </div>
+              <div class="card">
+                <small
+                  >در گوشی خود مادر همین ردیف «هدیهٔ تولد خواهر» با نشان قفل دیده می‌شود.</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">اعضا، سقف ماهانهٔ هر نفر</div>
+            <div class="app-bar"><span>اعضا</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>مادر</b><span class="chip">مالک</span></div>
+                <small>سقف ماهانه ندارد</small>
+              </div>
+              <div class="card">
+                <div class="row"><b>بازاری</b><span class="chip">شریک</span></div>
+                <div class="new" data-idea="ایدهٔ ۳">
+                  <div class="bar"><i style="width: 64%"></i></div>
+                  <small>سقف بازاری ۵٬۰۰۰٬۰۰۰ — ۳٬۲۰۰٬۰۰۰ مصرف شده</small>
+                </div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <small>با ۸۰٪ سقف به خود او هشدار می‌رسد؛ مانع ثبت نمی‌شود.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ج) علامت «خصوصی» و سقف ماهانه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              گاهی خرجی هست (هدیه، سورپرایز) که شریک نباید عنوانش را ببیند، ولی مبلغش باید در حساب
+              بیاید.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              تیک «خصوصی»؛ شریک فقط مبلغ و «خرج شخصی» می‌بیند. به‌علاوه سقف ماهانهٔ هر عضو با نوار
+              مصرف.
+            </dd>
+            <dt>چرا</dt>
+            <dd>حریم خصوصی کنار شفافیت مالی می‌ماند و سقف، بحث خرج زیاد را آرام می‌کند.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip bad">بزرگ</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>همهٔ اعضا همهٔ ستون‌های رکورد را می‌بینند؛ نقش‌ها فقط دسترسی را تعیین می‌کنند.</dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم خرج مشترک، فهرست حساب مشترک و صفحهٔ اعضا.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              ستون «خصوصی»؛ عنوان و دسته‌ی خرج خصوصی در برگهٔ شخصی خودش؛ ستون سقف برای هر عضو.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              مهم‌ترین خطر: شریک به کل فایل گوگل‌شیت دسترسی دارد، پس پنهان کردن در صفحه کافی نیست.
+              عنوان خصوصی نباید اصلاً در برگهٔ مشترک نوشته شود (مثل «کپی» با فیلد محدود در طرح
+              اولیه). سقف نباید حدس بزند خرج خصوصی چیست.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">گوشی مادر، ثبت خرج بزرگ</div>
+            <div class="app-bar"><span>خرج مشترک</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="field"><span>عنوان</span><b>یخچال</b></div>
+                <div class="field"><span>مبلغ</span><b>۱۲٬۰۰۰٬۰۰۰</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <h3>از آستانهٔ ۵٬۰۰۰٬۰۰۰ بیشتر است</h3>
+                <small>بعد از تأیید بازاری در مانده حساب می‌شود.</small>
+                <button class="btn">ثبت و ارسال برای تأیید</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">گوشی بازاری، کارت در انتظار تأیید</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <h3>مادر ۱۲٬۰۰۰٬۰۰۰ برای یخچال ثبت کرد</h3>
+                <span id="st" class="chip warn">در انتظار تأیید</span>
+                <div class="row">
+                  <button class="btn" data-a="ok">تأیید</button>
+                  <button class="btn ghost" data-a="no">رد</button>
+                </div>
+                <small>روی تأیید یا رد بزن تا وضعیت عوض شود.</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">فهرست با وضعیت هر خرج</div>
+            <div class="app-bar"><span>خانهٔ مشترک</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>یخچال</b><b>۱۲٬۰۰۰٬۰۰۰</b></div>
+                <span class="chip warn new" data-idea="ایدهٔ ۴">در انتظار تأیید</span>
+                <small>در مانده حساب نشده</small>
+              </div>
+              <div class="card">
+                <div class="row"><b>میز ناهارخوری</b><b>۶٬۵۰۰٬۰۰۰</b></div>
+                <span class="chip ok new" data-idea="ایدهٔ ۴">تأیید شد</span>
+              </div>
+              <div class="card">
+                <div class="row"><b>تلویزیون</b><b>۲۰٬۰۰۰٬۰۰۰</b></div>
+                <span class="chip bad new" data-idea="ایدهٔ ۴">رد شد</span>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <div class="row"><span>آستانهٔ تأیید</span><b>۵٬۰۰۰٬۰۰۰</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>د) تأیید خرج بزرگ</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>یک نفر خرج سنگین ثبت می‌کند و دیگری وقتی مانده را می‌بیند غافلگیر می‌شود.</dd>
+            <dt>ایده</dt>
+            <dd>
+              آستانه‌ای تعیین می‌شود؛ بالای آن خرج «در انتظار تأیید» می‌ماند تا شریک تأیید یا رد
+              کند.
+            </dd>
+            <dt>چرا</dt>
+            <dd>تصمیم‌های بزرگ دو نفره می‌شود، بدون این‌که خرج‌های روزمره کند شود.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip bad">بزرگ</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>ثبت مستقیم خرج و اعلان بنری به شریک؛ هیچ مرحلهٔ تأییدی نیست.</dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم خرج مشترک، کارت در خانهٔ مشترک و تنظیمات (آستانه).</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              ستون وضعیت (در انتظار، تأیید شد، رد شد)، آستانه در تنظیمات، شناسهٔ تأییدکننده و زمان.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              باید حالت «در انتظار» در مدل داده باشد؛ مانده خرج منتظر را حساب نکند. اگر شریک جواب
+              ندهد چه؟ رد شده حذف شود یا پیش‌نویس بماند؟ ناظر حق تأیید ندارد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const st = document.getElementById('st')
+      document.querySelectorAll('[data-a]').forEach(b =>
+        b.addEventListener('click', () => {
+          const ok = b.dataset.a === 'ok'
+          st.textContent = ok ? 'تأیید شد' : 'رد شد'
+          st.className = 'chip ' + (ok ? 'ok' : 'bad')
+        })
+      )
+    </script>
+  </body>
+</html>

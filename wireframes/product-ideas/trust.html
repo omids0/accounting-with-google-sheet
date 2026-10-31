@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>اعتماد و حسابرسی</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      .sheet {
+        border-radius: 16px 16px 0 0;
+        margin: 0 -12px -12px;
+      }
+      .acts {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      button.chip {
+        font: inherit;
+        border: 0;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .chip.new::after {
+        top: -17px;
+        font-size: 0.6rem;
+      }
+      .card:has(.chip.new) .row {
+        padding-top: 14px;
+      }
+      button.chip.on {
+        background: var(--primary);
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>اعتماد و حسابرسی: بستن ماه، ردپا، بررسی یکپارچگی</h1>
+      <p class="lead">
+        عددهای ماه‌های گذشته نباید بی‌صدا عوض شوند؛ هر تغییر ردپا دارد و هر موجودی با گردش حساب
+        سنجیده می‌شود. این صفحه: بستن ماه و ردپا؛ بررسی یکپارچگی و خروجی حسابدار در صفحهٔ دوم.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+      </p>
+      <div class="tabs">
+        <button data-idea="idea-a">الف) بستن ماه</button>
+        <button data-idea="idea-b">ب) ردپای حسابرسی</button>
+        <a class="chip" href="trust-2.html#idea-c">ج) بررسی یکپارچگی ←</a>
+        <a class="chip" href="trust-2.html#idea-d">د) خروجی برای حسابدار ←</a>
+      </div>
+
+      <section class="idea" id="idea-a">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">۶ آبان ۱۴۰۵ · کارت پایان ماه و تأیید</div>
+            <div class="app-bar"><span>داشبورد</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>دارایی قابل اتکا</h3>
+                <div class="num">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <h3>مهر ۱۴۰۵ آماده بسته شدن است</h3>
+                <div class="row">
+                  <span>پیامک‌های معوق</span><span class="chip ok">۰ مورد</span>
+                </div>
+                <div class="row">
+                  <span>اختلاف کیف پول</span><span class="chip ok">۰ تومان</span>
+                </div>
+                <div class="row">
+                  <span>چک‌های بدون وضعیت</span><span class="chip warn">۱ مورد</span>
+                </div>
+                <small>مورد باز فقط هشدار است و جلوی بستن را نمی‌گیرد.</small>
+              </div>
+              <div class="card sheet new" data-idea="ایدهٔ ۱">
+                <h3>بستن مهر ۱۴۰۵؟</h3>
+                <small
+                  >۱۴۲ ردیف قفل می‌شود. بعد از این، هر تغییر فقط با ثبت «اصلاحیه» انجام می‌شود و هر
+                  وقت بخواهی ماه را دوباره باز می‌کنی.</small
+                >
+                <div class="acts">
+                  <button class="btn">بستن ماه</button><button class="btn ghost">فعلاً نه</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">ویرایش ردیف ماه بسته</div>
+            <div class="app-bar"><span>هزینه‌ها · مهر ۱۴۰۵</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row">
+                  <span
+                    >اجارهٔ خانه · ۵ مهر
+                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                  >
+                  <b>۱۸٬۰۰۰٬۰۰۰</b>
+                </div>
+                <div class="row">
+                  <span
+                    >قسط لپ‌تاپ · ۱۰ مهر
+                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                  >
+                  <b>۳٬۱۰۰٬۰۰۰</b>
+                </div>
+              </div>
+              <button class="btn ghost" data-demo="toggle" data-target="sheet-a">
+                نمایش یا پنهان‌کردن برگه
+              </button>
+              <div class="card sheet new" id="sheet-a" data-idea="ایدهٔ ۱">
+                <h3>این ماه بسته است؛ ثبت اصلاحیه؟</h3>
+                <small
+                  >اجارهٔ مهر از ۱۸٬۰۰۰٬۰۰۰ به ۱۹٬۰۰۰٬۰۰۰ تغییر می‌کند. ردیف اصلی دست‌نخورده می‌ماند
+                  و یک ردیف اصلاحیه به تاریخ امروز (۶ آبان) ثبت می‌شود.</small
+                >
+                <div class="acts">
+                  <button class="btn">ثبت اصلاحیه</button><button class="btn ghost">انصراف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">پس از ثبت اصلاحیه</div>
+            <div class="app-bar"><span>هزینه‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row">
+                  <span
+                    >اجارهٔ خانه · ۵ مهر
+                    <span class="chip new" data-idea="ایدهٔ ۱">مهر · بسته</span></span
+                  >
+                  <b>۱۸٬۰۰۰٬۰۰۰</b>
+                </div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <div class="row">
+                  <span>اجارهٔ خانه <span class="chip warn">اصلاحیه</span></span>
+                  <b class="neg">افزایش ۱٬۰۰۰٬۰۰۰</b>
+                </div>
+                <small>ثبت‌شده در ۶ آبان ۱۴۰۵ · ارجاع به «اجارهٔ خانه، ۵ مهر»</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>الف) بستن ماه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>ویرایش یا حذف تصادفی، عددهای ماه گذشته را بی‌صدا عوض می‌کند.</dd>
+            <dt>ایده</dt>
+            <dd>
+              کارت پایان ماه را می‌سنجد و با یک تأیید قفل می‌کند؛ تغییر بعدی فقط با «اصلاحیه» به
+              تاریخ امروز و ارجاع به ردیف اصلی.
+            </dd>
+            <dt>چرا</dt>
+            <dd>گزارش ماه‌های قبل ثابت می‌ماند و اصلاحات پیدا و قابل‌پیگیری‌اند.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip bad">بزرگ</span> همهٔ مسیرهای ویرایش، حذف و واردکردن را لمس می‌کند.
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: آمار ماهانه، پیامک‌های معوق و کارت تطبیق کیف پول هست. تازه: کارت پایان ماه، قفل
+              ماه، برگهٔ اصلاحیه.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>فهرست ماه‌های بسته (ماه، زمان، کاربر) و ستون «ارجاع به ردیف» برای اصلاحیه.</dd>
+            <dt>خطر</dt>
+            <dd>
+              قفل نباید کاربر را گیر بیندازد: همیشه مسیر اصلاحیه و «بازکردن دوباره» هست. قفل باید
+              روی دو دستگاه یکی باشد و محاسبهٔ دوبارهٔ مجموع‌ها از روی گردش روی موبایل سریع بماند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-b">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز: گزارش فعالیت</div>
+            <div class="app-bar"><span>گزارش فعالیت</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>ثبت هزینه · اجارهٔ خانه</span><small>۵ مهر</small></div>
+                <div class="row"><span>ویرایش چک · چک شماره ۲</span><small>۴ آبان</small></div>
+                <div class="row"><span>حذف دریافتنی · کارت هدیه</span><small>۳ آبان</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: ردپای ردیف</div>
+            <div class="app-bar"><span>گزارش فعالیت</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <div class="acts" style="margin: 0 0 6px">
+                  <button class="chip on" data-f="all">همه</button
+                  ><button class="chip" data-f="me">من</button>
+                  <button class="chip" data-f="partner">شریک</button
+                  ><button class="chip" data-f="del">حذف‌ها</button>
+                </div>
+                <div class="row" data-by="me">
+                  <span>۵ آبان ۱۹:۱۰ · مادر · مبلغ از ۸۰۰٬۰۰۰ به ۸۵۰٬۰۰۰</span
+                  ><button class="chip warn">بازگردانی</button>
+                </div>
+                <div class="row" data-by="partner">
+                  <span>۴ آبان ۲۱:۴۵ · قسط لپ‌تاپ · شریک آن را پرداخت‌شده کرد</span
+                  ><button class="chip warn">بازگردانی</button>
+                </div>
+                <div class="row" data-by="me del">
+                  <span>۳ آبان ۰۹:۲۰ · کارت هدیه · حذف شد</span
+                  ><button class="chip bad">بازگردانی حذف</button>
+                </div>
+                <div class="row" data-by="partner del">
+                  <span>۲۸ مهر ۱۱:۰۰ · کارمزد کارت · شریک آن را حذف کرد</span
+                  ><button class="chip bad">بازگردانی حذف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: برگهٔ بازگردانی</div>
+            <div class="app-bar"><span>گزارش فعالیت</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card sheet new" data-idea="ایدهٔ ۲" style="margin-top: 120px">
+                <h3>بازگردانی «مادر» به ۸۰۰٬۰۰۰؟</h3>
+                <div class="row"><span>اکنون</span><b>۸۵۰٬۰۰۰ تومان</b></div>
+                <div class="row"><span>برمی‌گردد به</span><b class="pos">۸۰۰٬۰۰۰ تومان</b></div>
+                <small
+                  >یک ورودی تازه در ردپا ثبت می‌شود و چیزی پاک نمی‌شود. اگر ماه بسته باشد، اصلاحیه
+                  ثبت می‌شود.</small
+                >
+                <div class="acts">
+                  <button class="btn">بازگردانی</button><button class="btn ghost">انصراف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ب) ردپای حسابرسی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>معلوم نیست مبلغی کی و چه کسی عوض کرد؛ حذف اشتباهی برگشت ندارد.</dd>
+            <dt>ایده</dt>
+            <dd>
+              خط زمانی برای هر ردیف با مقدار قبل و بعد، فیلتر همه / من / شریک / حذف‌ها و دکمهٔ
+              «بازگردانی» که خودش ورودی تازه می‌سازد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>اختلاف‌های خانوادگی با یک نگاه روشن می‌شود و ترس از ویرایش کم می‌شود.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span> هر مسیر نوشتن باید تغییر را ثبت کند.</dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: صفحهٔ گزارش فعالیت (فهرست کلی) و ردیاب کیف پول. تازه: ردپا در جزئیات ردیف،
+              فیلتر کاربر، بازگردانی.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>زمان، کاربر، ردیف، فیلد، مقدار قبل و بعد؛ حذف نرم (علامت حذف به‌جای پاک‌کردن).</dd>
+            <dt>خطر</dt>
+            <dd>
+              حجم برگه زیاد می‌شود (سقف ۱۲ ماه). بازگردانی روی ردیفِ دوباره‌تغییرکرده تضاد دارد.
+              نمایش کار شریک به رضایت او نیاز دارد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const fs = [...document.querySelectorAll('[data-f]')]
+      const rows = [...document.querySelectorAll('[data-by]')]
+      fs.forEach(b =>
+        b.addEventListener('click', () => {
+          fs.forEach(x => x.classList.toggle('on', x === b))
+          rows.forEach(r => {
+            r.hidden = b.dataset.f !== 'all' && !r.dataset.by.split(' ').includes(b.dataset.f)
+          })
+        })
+      )
+    </script>
+  </body>
+</html>

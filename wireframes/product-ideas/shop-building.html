@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>فروشنده و مدیر ساختمان</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        padding: 10px 12px;
+        display: grid;
+        gap: 6px;
+      }
+      .stack {
+        display: flex;
+        height: 14px;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .field {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      .card .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .dim {
+        opacity: 0.45;
+        display: grid;
+        gap: 8px;
+      }
+      .flow {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>فروشنده و مدیر ساختمان</h1>
+      <p class="lead">
+        پنج ایده برای مغازه‌دار و مدیر ساختمان؛ امروز ۶ آبان ۱۴۰۵ است و عددها نمونه‌اند.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-a">الف) سقف اعتبار و سن بدهی</button>
+        <button data-idea="idea-b">ب) چک برگشتی</button>
+        <a href="shop-building-2.html#idea-c">ج) شمارش شبانه صندوق ←</a>
+        <a href="shop-building-2.html#idea-d">د) ساختمان: یادآوری شارژ ←</a>
+        <a href="shop-building-3.html#idea-e">ه) ساختمان: بودجه و پیش‌بینی ←</a>
+      </div>
+
+      <section class="idea" id="idea-a">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">طلب‌ها با سقف اعتبار</div>
+            <div class="app-bar"><span>طلب‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>آقای حسینی</b><b class="neg">۱۴٬۰۰۰٬۰۰۰</b></div>
+                <div class="new" data-idea="ایدهٔ ۱">
+                  <div class="bar warn"><i style="width: 93%"></i></div>
+                  <small>سقف اعتبار ۱۵٬۰۰۰٬۰۰۰ — ۹۳٪ پر شده</small>
+                </div>
+              </div>
+              <div class="card">
+                <div class="row"><b>خانم رضایی</b><b class="neg">۶٬۵۰۰٬۰۰۰</b></div>
+                <div class="new" data-idea="ایدهٔ ۱">
+                  <div class="bar"><i style="width: 65%"></i></div>
+                  <small>سقف اعتبار ۱۰٬۰۰۰٬۰۰۰ — ۶۵٪ پر شده</small>
+                </div>
+              </div>
+              <div class="card">
+                <div class="row"><b>آقای کریمی</b><b class="neg">۵٬۰۰۰٬۰۰۰</b></div>
+                <div class="new" data-idea="ایدهٔ ۱">
+                  <div class="bar bad"><i style="width: 100%"></i></div>
+                  <small>سقف اعتبار ۵٬۰۰۰٬۰۰۰ — پر است، فروش نسیه نده</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">ثبت فروش نسیه، هشدار سقف</div>
+            <div class="app-bar"><span>فروش نسیه</span><span>✕</span></div>
+            <div class="screen">
+              <div class="dim">
+                <div class="field"><span>مشتری</span><b>آقای حسینی</b></div>
+                <div class="field"><span>مبلغ فروش</span><b>۸٬۰۰۰٬۰۰۰</b></div>
+              </div>
+              <div class="sheet new" data-idea="ایدهٔ ۱">
+                <h3 class="neg">توجه، از سقف اعتبار بیشتر می‌شود</h3>
+                <div>سقف آقای حسینی ۱۵٬۰۰۰٬۰۰۰ است؛ با این فروش ۲۲٬۰۰۰٬۰۰۰ می‌شود</div>
+                <div class="bar bad"><i style="width: 100%"></i></div>
+                <div class="row">
+                  <button class="btn ghost">کم کردن مبلغ</button>
+                  <button class="btn">ثبت با همین مبلغ</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">گزارش سن بدهی</div>
+            <div class="app-bar"><span>گزارش‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <h3>سن طلب‌ها از مشتری‌ها</h3>
+                <div class="stack">
+                  <i style="width: 49%; background: var(--success)"></i>
+                  <i style="width: 31%; background: var(--warn)"></i>
+                  <i style="width: 20%; background: var(--danger)"></i>
+                </div>
+                <div class="row">
+                  <small>تا ۳۰ روز ۱۲٬۵۰۰٬۰۰۰</small>
+                  <small>از ۳۰ تا ۶۰ روز ۸٬۰۰۰٬۰۰۰</small>
+                </div>
+                <small>بیش از ۶۰ روز ۵٬۰۰۰٬۰۰۰ (قدیمی‌ترین ردیف‌ها اول)</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <div class="row">
+                  <b>آقای کریمی</b><span class="chip bad">۷۲ روز</span><b>۵٬۰۰۰٬۰۰۰</b>
+                </div>
+                <div class="row">
+                  <b>آقای حسینی</b><span class="chip warn">۴۱ روز</span><b>۸٬۰۰۰٬۰۰۰</b>
+                </div>
+                <div class="row">
+                  <b>خانم رضایی</b><span class="chip ok">۱۲ روز</span><b>۶٬۵۰۰٬۰۰۰</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>الف) سقف اعتبار هر مشتری و گزارش سن بدهی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مغازه‌دار نسیه می‌دهد و فقط جمع طلب را می‌بیند؛ نه این‌که مشتری از حدش گذشته، نه
+              این‌که پول چند وقت است مانده.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              برای هر مشتری یک سقف اعتبار؛ هنگام ثبت فروش نسیه هشدار؛ گزارشی که طلب را در سه بازهٔ
+              سنی نشان می‌دهد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>طلب قدیمی‌تر از ۶۰ روز معمولاً وصول نمی‌شود؛ دیدنش زودتر جلوی خسارت را می‌گیرد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>صفحهٔ طلب‌ها، طرف‌حساب‌ها و مانده هر مشتری. سقف و سن ندارند.</dd>
+            <dt>کجای اپ</dt>
+            <dd>کارت مشتری در طلب‌ها، فرم فروش نسیه، بخش گزارش‌ها.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              ستون تازهٔ «سقف اعتبار» برای طرف‌حساب؛ سن از تاریخ ثبت و سررسید طلب‌های موجود حساب
+              می‌شود.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              هشدار باید فقط هشدار باشد، نه مانع ثبت. پرداخت جزئی باید قدیمی‌ترین طلب را کم کند؛ این
+              قاعده باید روشن گفته شود.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-b">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">کارت چک با وضعیت تازه</div>
+            <div class="app-bar"><span>چک‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><b>چک دریافتی ۶۸۴۲۱۰</b><b>۱۲٬۰۰۰٬۰۰۰</b></div>
+                <small>آقای حسینی، سررسید ۴ آبان ۱۴۰۵ (دو روز گذشته)</small>
+                <div class="flow new" data-idea="ایدهٔ ۲">
+                  <span class="chip warn">در انتظار</span><span>←</span>
+                  <span class="chip ok">پاس شد</span><span>یا</span
+                  ><span class="chip bad">برگشت خورد</span>
+                </div>
+              </div>
+              <div class="card">
+                <div class="row"><b>چک دریافتی ۳۱۵۵۷۷</b><b>۷٬۵۰۰٬۰۰۰</b></div>
+                <small>خانم رضایی، سررسید ۲۵ آبان ۱۴۰۵</small>
+                <div class="flow new" data-idea="ایدهٔ ۲">
+                  <span class="chip warn">در انتظار</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">برگه «برگشت خورد»</div>
+            <div class="app-bar"><span>چک ۶۸۴۲۱۰</span><span>✕</span></div>
+            <div class="screen">
+              <div class="dim"><div class="card">چک آقای حسینی، ۱۲٬۰۰۰٬۰۰۰ تومان</div></div>
+              <div class="sheet new" data-idea="ایدهٔ ۲">
+                <h3>برگشت خورد</h3>
+                <div class="field"><span>دلیل</span><b>موجودی کافی نیست</b></div>
+                <div class="field"><span>کارمزد بانک</span><b>۸۵٬۰۰۰ تومان</b></div>
+                <label><input type="checkbox" checked /> طلب ۱۲٬۰۰۰٬۰۰۰ را دوباره بساز</label>
+                <label><input type="checkbox" checked /> هشدار «چک برگشتی» روی کارت مشتری</label>
+                <small class="neg"
+                  >طلب او می‌شود ۲۶٬۰۰۰٬۰۰۰ و از سقف ۱۵٬۰۰۰٬۰۰۰ بالاتر می‌رود</small
+                >
+                <button class="btn">ثبت برگشت</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">گزارش چک‌های برگشتی</div>
+            <div class="app-bar"><span>گزارش‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <h3>چک‌های برگشتی</h3>
+                <div class="num neg">جمع ۲۰٬۵۰۰٬۰۰۰</div>
+                <small>سه چک، دو مورد هنوز باز (۱۷٬۰۰۰٬۰۰۰)، کارمزد ۲۴۰٬۰۰۰</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <div class="row">
+                  <b>آقای حسینی</b><span class="chip bad">باز</span><b>۱۲٬۰۰۰٬۰۰۰</b>
+                </div>
+                <small>برگشت ۶ آبان، موجودی کافی نیست</small>
+                <div class="row">
+                  <b>آقای کریمی</b><span class="chip bad">باز</span><b>۵٬۰۰۰٬۰۰۰</b>
+                </div>
+                <small>برگشت ۱۹ مهر، امضا مغایر</small>
+                <div class="row">
+                  <b>فروشگاه نیک</b><span class="chip ok">تسویه شد</span><b>۳٬۵۰۰٬۰۰۰</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ب) چک برگشتی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              چک فقط «وصول‌شده» یا «نشده» است. وقتی برگشت می‌خورد، بدهی مشتری دوباره ثبت نمی‌شود و
+              کارمزد بانک جایی نمی‌رود.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              سه وضعیت: در انتظار، پاس شد، برگشت خورد. برگشت: دلیل و کارمزد، ساخت خودکار طلب، هشدار
+              روی مشتری، گزارش جدا.
+            </dd>
+            <dt>چرا</dt>
+            <dd>چک برگشتی خطر اصلی نقدینگی بازار است و اپ باید آن را خودش به یاد بیاورد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>چک دریافتی و پرداختی با سررسید و تیک وصول؛ طلب‌ها.</dd>
+            <dt>کجای اپ</dt>
+            <dd>کارت چک، صفحهٔ چک‌ها، کارت مشتری، گزارش‌ها.</dd>
+            <dt>داده لازم</dt>
+            <dd>ستون وضعیت چک (به‌جای تیک)، دلیل برگشت، کارمزد و شناسهٔ طلبِ ساخته‌شده.</dd>
+            <dt>خطر</dt>
+            <dd>
+              مهاجرت تیک‌های قدیمی به «پاس شد»؛ برگشتِ چک پرداختی معنای دیگری دارد و باید جدا طراحی
+              شود؛ ساخت طلب باید قابل واگرد باشد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

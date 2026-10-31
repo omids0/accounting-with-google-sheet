@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بدهی و هدف (۲)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+      .sheet {
+        border-radius: 16px 16px 0 0;
+        margin: 0 -12px -12px;
+      }
+      .acts {
+        display: flex;
+        gap: 8px;
+        margin: 6px 0;
+        flex-wrap: wrap;
+      }
+      button.chip {
+        font: inherit;
+        border: 0;
+        cursor: pointer;
+      }
+      button.chip.on {
+        background: var(--primary);
+        color: #fff;
+      }
+      .gentle {
+        background: var(--warn-soft);
+        color: var(--warn);
+        border-radius: 8px;
+        padding: 6px 8px;
+        margin: 6px 0;
+        font-size: 0.85rem;
+      }
+      input[type='range'] {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>بدهی و هدف (۲): هدف مهربان و اصل وام</h1>
+      <p class="lead">
+        هدف باید با لحن آرام بگوید کجا هستی و چه کاری کمک می‌کند؛ و دارایی خالص باید بگوید اگر همهٔ
+        بدهی را ببندی چه می‌ماند. برنامه‌ریز بدهی و هدف دارایی خالص در
+        <a href="debt-goals.html">صفحهٔ اول</a> هستند.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+      </p>
+      <div class="tabs">
+        <a class="chip" href="debt-goals.html#idea-a">الف) برنامه‌ریز بدهی (صفحهٔ اول) ←</a>
+        <a class="chip" href="debt-goals.html#idea-b">ب) هدف دارایی خالص (صفحهٔ اول) ←</a>
+        <button data-idea="idea-c">ج) هدف مهربان</button>
+        <button data-idea="idea-d">د) اصل وام در دارایی خالص</button>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">۶ آبان ۱۴۰۵ · کارت هدف</div>
+            <div class="app-bar"><span>هدف‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>سفر شمال</h3>
+                <div class="bar"><i style="width: 53%"></i></div>
+                <small>۱۶٬۰۰۰٬۰۰۰ از ۳۰٬۰۰۰٬۰۰۰ · موعد ۱۵ دی ۱۴۰۵</small>
+                <div class="gentle new" data-idea="ایدهٔ ۳">
+                  با این سرعت ۲۱ ماه دیر می‌رسی؛ ماهانه ۶ میلیون لازم است.
+                </div>
+                <button class="btn new" data-idea="ایدهٔ ۳">تنظیم قسط خودکار از حقوق</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">برگهٔ قسط خودکار</div>
+            <div class="app-bar"><span>هدف‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card sheet new" data-idea="ایدهٔ ۳" style="margin-top: 60px">
+                <h3>قسط خودکار از حقوق</h3>
+                <div class="row"><span>حقوق، روز ۱ هر ماه</span><b>۶۵٬۰۰۰٬۰۰۰</b></div>
+                <label for="gr">هر ماه به «سفر شمال»: <b id="gv">۶٬۰۰۰٬۰۰۰</b> تومان</label>
+                <input
+                  id="gr"
+                  type="range"
+                  min="600000"
+                  max="10000000"
+                  step="200000"
+                  value="6000000"
+                />
+                <div class="gentle" id="gm">با این مبلغ به‌موقع (۱۵ دی ۱۴۰۵) می‌رسی.</div>
+                <small>بعد از اجاره و اقساط می‌ماند: <b id="gl">۳۳٬۵۵۰٬۰۰۰</b> تومان</small>
+                <div class="acts">
+                  <button class="btn">فعال‌سازی</button><button class="btn ghost">فعلاً نه</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ج) هدفی که مهربانانه تذکر می‌دهد</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>نوار پیشرفت نمی‌گوید به این سرعت هرگز نمی‌رسی؛ هشدار تند هم دلسرد می‌کند.</dd>
+            <dt>ایده</dt>
+            <dd>
+              یک جملهٔ آرام دربارهٔ دیرکرد و مبلغ ماهانهٔ لازم، به‌اضافهٔ یک اقدام: قسط خودکار از
+              حقوق.
+            </dd>
+            <dt>چرا</dt>
+            <dd>کاربر قدم بعدی را می‌داند، بدون سرزنش.</dd>
+            <dt>اندازه</dt>
+            <dd>
+              <span class="chip ok">کوچک</span> جمله فقط محاسبه است؛ قسط خودکار تکرار ماهانهٔ تازه
+              می‌خواهد.
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: صفحهٔ هدف‌ها با نوار پیشرفت. تازه: جملهٔ سرعت روی کارت و برگهٔ قسط خودکار.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>موعد هدف، میانگین واریز ۳ ماه اخیر (حدود ۶۰۰٬۰۰۰ در ماه) و روز حقوق.</dd>
+            <dt>خطر</dt>
+            <dd>
+              لحن هرگز قرمز و سرزنش‌گر نباشد و قابل خاموش‌کردن باشد. با حقوق نامنظم قسط خودکار
+              گمراه‌کننده است. هدف بی‌موعد جمله ندارد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز: دارایی قابل اتکا</div>
+            <div class="app-bar"><span>داشبورد</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>دارایی قابل اتکا</h3>
+                <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
+                <div class="row">
+                  <span>منهای قسط‌های این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
+                </div>
+                <small>وام ۴٬۳۵۰٬۰۰۰ · لپ‌تاپ ۳٬۱۰۰٬۰۰۰ · کارت و سایر ۱۲٬۰۰۰٬۰۰۰</small>
+                <div class="num pos">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: سوییچ اصل وام</div>
+            <div class="app-bar"><span>دارایی قابل اتکا</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="acts new" data-idea="ایدهٔ ۴">
+                  <button class="chip on" data-nb="period">فقط قسط این دوره</button>
+                  <button class="chip" data-nb="total">کل باقی‌مانده</button>
+                </div>
+                <div id="nb-period">
+                  <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
+                  <div class="row">
+                    <span>منهای قسط‌های این دوره</span><b class="neg">۱۹٬۴۵۰٬۰۰۰</b>
+                  </div>
+                  <div class="num pos">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+                  <small>پاسخ به «این ماه چقدر آزاد خرج کنم؟»</small>
+                </div>
+                <div id="nb-total" class="new" data-idea="ایدهٔ ۴" hidden>
+                  <div class="row"><span>مجموع حساب‌ها</span><b>۱۳۵٬۷۳۱٬۲۵۰</b></div>
+                  <div class="row">
+                    <span>اصل باقی‌ماندهٔ وام <span class="chip warn">تخمین</span></span
+                    ><b class="neg">۷۳٬۹۵۰٬۰۰۰</b>
+                  </div>
+                  <div class="row">
+                    <span>۶ قسط باقی‌ماندهٔ لپ‌تاپ</span><b class="neg">۱۸٬۶۰۰٬۰۰۰</b>
+                  </div>
+                  <div class="row">
+                    <span>کارت اعتباری و سایر</span><b class="neg">۱۲٬۰۰۰٬۰۰۰</b>
+                  </div>
+                  <div class="num">۳۱٬۱۸۱٬۲۵۰ تومان</div>
+                  <small>پاسخ به «اگر امروز همهٔ بدهی را ببندم چقدر می‌ماند؟»</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: روی داشبورد</div>
+            <div class="app-bar"><span>داشبورد</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>دارایی قابل اتکا</h3>
+                <div class="num">۱۱۶٬۲۸۱٬۲۵۰ تومان</div>
+                <small class="new" data-idea="ایدهٔ ۴" style="display: block; margin-top: 14px"
+                  >با بستن همهٔ بدهی‌ها: ۳۱٬۱۸۱٬۲۵۰ تومان</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>د) اصل وام در دارایی خالص</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              عدد امروز فقط قسط این دوره را کم می‌کند و کاربر نمی‌داند با بستن همهٔ بدهی‌ها چه
+              می‌ماند.
+            </dd>
+            <dt>ایده</dt>
+            <dd>سوییچ «فقط قسط این دوره / کل باقی‌مانده» و یک جملهٔ توضیح برای هر عدد.</dd>
+            <dt>چرا</dt>
+            <dd>دو عدد دو سؤال متفاوت را پاسخ می‌دهند و نباید با هم اشتباه شوند.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span> داده از جدول اقساط می‌آید.</dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              امروز: تفکیک دارایی قابل اتکا با سوییچ‌های قسط و سررسید. تازه: سوییچ اصل وام و سطر زیر
+              کارت داشبورد.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>باقی‌ماندهٔ هر وام و قسط؛ اصل جدا از سود در صورت امکان.</dd>
+            <dt>خطر</dt>
+            <dd>
+              ۷۳٬۹۵۰٬۰۰۰ برابر ۱۷ قسط ۴٬۳۵۰٬۰۰۰ است و شاید سود را هم دارد؛ باید پرسید و تا آن موقع
+              «تخمین» نوشت. پیش‌فرض همان عدد امروز بماند تا گیج‌کننده نشود.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const fa = n => Math.round(n).toLocaleString('fa-IR')
+      gr.addEventListener('input', () => {
+        const x = +gr.value,
+          late = Math.round(14e6 / x - 70 / 30)
+        gv.textContent = fa(x)
+        gl.textContent = fa(39.55e6 - x)
+        gm.textContent =
+          late > 0
+            ? `با این مبلغ ${fa(late)} ماه دیر می‌رسی.`
+            : 'با این مبلغ به‌موقع (۱۵ دی ۱۴۰۵) می‌رسی.'
+      })
+      const nb = [...document.querySelectorAll('[data-nb]')]
+      nb.forEach(b =>
+        b.addEventListener('click', () => {
+          nb.forEach(x => x.classList.toggle('on', x === b))
+          document.getElementById('nb-period').hidden = b.dataset.nb !== 'period'
+          document.getElementById('nb-total').hidden = b.dataset.nb !== 'total'
+        })
+      )
+    </script>
+  </body>
+</html>

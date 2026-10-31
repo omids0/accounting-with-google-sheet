@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>فروشنده و مدیر ساختمان، بخش سوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .card .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+      .ln {
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 2;
+      }
+      .z {
+        stroke: var(--muted);
+        stroke-dasharray: 3;
+      }
+      svg text {
+        fill: var(--muted);
+        font-size: 9px;
+      }
+      input[type='range'] {
+        width: 100%;
+        accent-color: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>فروشنده و مدیر ساختمان، بخش سوم</h1>
+      <p class="lead">بودجهٔ سالانه و پیش‌بینی صندوق برای مدیر ساختمان؛ امروز ۶ آبان ۱۴۰۵ است.</p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <a href="shop-building.html#idea-a">الف) سقف اعتبار و سن بدهی ←</a>
+        <a href="shop-building.html#idea-b">ب) چک برگشتی ←</a>
+        <a href="shop-building-2.html#idea-c">ج) شمارش شبانه صندوق ←</a>
+        <a href="shop-building-2.html#idea-d">د) ساختمان: یادآوری شارژ ←</a>
+        <button data-idea="idea-e">ه) ساختمان: بودجه و پیش‌بینی</button>
+      </div>
+
+      <section class="idea" id="idea-e">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">بودجهٔ سال ۱۴۰۵ در برابر هزینهٔ واقعی</div>
+            <div class="app-bar"><span>هزینه‌ها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>تا امروز ۶۱٪ بودجه خرج شده</h3>
+                <div class="bar"><i style="width: 61%"></i></div>
+                <small>جمع ۲۱۸٬۸۰۰٬۰۰۰ از ۳۶۰٬۰۰۰٬۰۰۰؛ ۶۱٪ سال هم گذشته، پس در مسیر است.</small>
+                <div class="row">
+                  <span>نظافت و نگهبان</span><small>خرج ۷۲ از ۱۴۴ میلیون</small
+                  ><span class="chip ok">۵۰٪</span>
+                </div>
+                <div class="row">
+                  <span>برق و آب مشاعات</span><small>خرج ۴۳٫۲ از ۷۲ میلیون</small
+                  ><span class="chip ok">۶۰٪</span>
+                </div>
+                <div class="row">
+                  <span>آسانسور (تعمیر ۶٬۰۰۰٬۰۰۰)</span><small>خرج ۵۵ از ۶۰ میلیون</small
+                  ><span class="chip bad">۹۲٪</span>
+                </div>
+                <div class="row">
+                  <span>تعمیرات ساختمان</span><small>خرج ۳۹ از ۶۰ میلیون</small
+                  ><span class="chip warn">۶۵٪</span>
+                </div>
+                <div class="row">
+                  <span>بیمه و بازرسی</span><small>خرج ۹٫۶ از ۲۴ میلیون</small
+                  ><span class="chip ok">۴۰٪</span>
+                </div>
+              </div>
+              <div class="card">
+                <small
+                  >هزینه‌های واقعی هر نوع از قبل در صفحهٔ هزینه‌ها هست؛ ستون بودجه تازه است.</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">پیش‌بینی صندوق تا مرداد ۱۴۰۶</div>
+            <div class="app-bar"><span>صندوق</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>موجودی صندوق امروز</span><b>۱۲۵٬۲۶۵٬۰۰۰</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3 id="note" class="neg">صندوق تا مرداد کم می‌آورد (کمبود حدود ۲۷ میلیون)</h3>
+                <svg
+                  viewBox="0 0 300 130"
+                  width="100%"
+                  role="img"
+                  aria-label="نمودار پیش‌بینی صندوق"
+                >
+                  <line class="z" x1="0" x2="300" y1="95" y2="95" />
+                  <polyline
+                    id="line"
+                    class="ln"
+                    points="289,20 258,23 227,62 196,65 165,68 134,71 103,87.8 72,90.8 41,93.8 10,111.2"
+                  />
+                  <text x="289" y="124" text-anchor="middle">آبان</text>
+                  <text x="227" y="124" text-anchor="middle">دی</text>
+                  <text x="165" y="124" text-anchor="middle">اسفند</text>
+                  <text x="103" y="124" text-anchor="middle">اردیبهشت</text>
+                  <text x="20" y="124" text-anchor="middle">مرداد</text>
+                </svg>
+                <small
+                  >دی: تعمیر آسانسور ۶۰ میلیون؛ اردیبهشت: نما ۲۳ میلیون؛ مرداد: بیمه ۲۴ میلیون. با
+                  فرض ۹۰٪ وصول شارژ.</small
+                >
+                <label
+                  >شارژ هر واحد، <b id="val">۲٬۴۰۰٬۰۰۰</b>
+                  <input
+                    id="chg"
+                    type="range"
+                    min="2400000"
+                    max="3200000"
+                    step="100000"
+                    value="2400000"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">تقویم تمدید قرارداد و بیمه</div>
+            <div class="app-bar"><span>سررسیدها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <div class="row">
+                  <span>قرارداد آسانسور، شرکت پارسا</span><span class="chip bad">۴۶ روز</span>
+                </div>
+                <small>سررسید ۲۲ آذر ۱۴۰۵؛ پارسال ۶۰٬۰۰۰٬۰۰۰ بود</small>
+                <div class="row">
+                  <span>سرویس موتورخانه</span><span class="chip warn">۱۱۷ روز</span>
+                </div>
+                <small>سررسید ۳ اسفند ۱۴۰۵</small>
+                <div class="row">
+                  <span>قرارداد نظافت و نگهبان</span><span class="chip warn">۱۴۴ روز</span>
+                </div>
+                <small>سررسید ۱ فروردین ۱۴۰۶</small>
+                <div class="row"><span>بیمهٔ ساختمان</span><span class="chip">۲۸۲ روز</span></div>
+                <small>سررسید ۱۵ مرداد ۱۴۰۶؛ پارسال ۲۴٬۰۰۰٬۰۰۰ بود</small>
+              </div>
+              <div class="card">
+                <small
+                  >یادآوری امروز در اپ: چک‌ها، اقساط و یادآورهای شخصی؛ قرارداد ساختمان جدا
+                  نیست.</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ه) ساختمان: بودجه سالانه و پیش‌بینی صندوق</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مدیر ساختمان وقتی می‌فهمد صندوق خالی است که تعمیر بزرگ رسیده و ساکنان باید یک‌جا شارژ
+              فوق‌العاده بدهند.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              بودجهٔ سالانه هر نوع هزینه، مقایسه با واقعی، نمودار پیش‌بینی صندوق با کشوی شارژ، و
+              تقویم تمدید قرارداد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>تصمیم افزایش شارژ را زودتر و با عدد به جلسهٔ ساکنان می‌برد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip bad">بزرگ</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>
+              واحدها، شارژ ماهانه، صندوق و حساب‌های آن، هزینه‌ها با نوع، گزارش‌ها و سررسیدهای آینده.
+            </dd>
+            <dt>کجای اپ</dt>
+            <dd>گزارش‌های ساختمان، صفحهٔ صندوق و صفحهٔ سررسیدها.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              جدول بودجه (نوع هزینه، سال، مبلغ)؛ جدول قرارداد (عنوان، سررسید، مبلغ پارسال)؛ نرخ وصول
+              شارژ.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              پیش‌بینی فقط حدس است و باید همین را بگوید؛ کاربر باید فرض‌ها را ببیند و عوض کند. بودجه
+              باید ساده بماند، وگرنه کسی پرش نمی‌کند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const base = [125, 120, 55, 50, 45, 40, 12, 7, 2, -27],
+        fa = n => n.toLocaleString('fa-IR')
+      const $ = id => document.getElementById(id)
+      const draw = () => {
+        const c = +$('chg').value,
+          e = ((c - 2400000) * 12) / 1e6
+        const v = base.map((b, i) => b + e * i),
+          low = Math.min(...v),
+          bad = low < 0
+        $('line').setAttribute(
+          'points',
+          v.map((x, i) => `${289 - 31 * i},${Math.min(120, 95 - x * 0.6).toFixed(1)}`).join(' ')
+        )
+        $('note').textContent = bad
+          ? `صندوق تا مرداد کم می‌آورد (کمبود حدود ${fa(Math.round(-low))} میلیون)`
+          : 'صندوق تا مرداد کم نمی‌آورد'
+        $('note').className = bad ? 'neg' : 'pos'
+        $('val').textContent = fa(c)
+      }
+      $('chg').addEventListener('input', draw)
+    </script>
+  </body>
+</html>

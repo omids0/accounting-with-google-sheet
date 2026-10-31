@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>قبلاً ثبت شده؟</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- prettier-ignore -->
+    <style>
+button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
+.sheet{border-radius:16px 16px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.18);display:grid;gap:8px}
+.scrim{opacity:.4}
+.v{padding:8px 10px;border-radius:8px;font-weight:700}
+.v.ok{background:var(--success-soft);color:var(--success)}
+.v.warn{background:var(--warn-soft);color:var(--warn)}
+.btn{width:100%}
+.opt{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+.opt:last-of-type{border-bottom:0}
+.opt > span{flex:1}
+.opt input{width:18px;height:18px;accent-color:var(--primary)}
+</style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>قبلاً ثبت شده؟</h1>
+      <p class="lead">
+        یک خرج یا درآمد می‌تواند از سه راه وارد شود: دستی، پیامک بانک و تکرار ماهانه. وقتی هر سه یک
+        چیز را ثبت کنند، مانده دو بار کم یا زیاد می‌شود (اولویت ۳). امروز: ۶ آبان ۱۴۰۵.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+        <span class="chip warn">قانون کلی: همیشه می‌پرسد، هرگز بی‌صدا یکی نمی‌کند</span>
+        <a href="dedupe-2.html">ایده‌های «کارت بازبینی پیامک» و «تنظیمات و واگرد» در صفحهٔ دوم ←</a>
+      </p>
+      <div class="tabs">
+        <button data-idea="idea-a">الف) هشدار تکراری برای هر منبع</button>
+        <button data-idea="idea-b">ب) وضعیت هر مورد در «ثبت همه»</button>
+      </div>
+
+      <section class="idea" id="idea-a">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>ثبت درآمد</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>مبلغ</h3>
+                <div class="num">۳۸٬۰۰۰٬۰۰۰ تومان</div>
+              </div>
+              <div class="card">
+                <h3>دسته</h3>
+                <small>کمک‌هزینه</small>
+              </div>
+              <div class="card">
+                <h3>تاریخ</h3>
+                <small>۶ آبان ۱۴۰۵</small>
+              </div>
+              <small class="muted"
+                >هشدار تکراری امروز فقط رکوردهای دستی را می‌بیند. رکورد ۵ آبان از پیامک آمده، پس
+                هشداری نیست و دو بار ثبت می‌شود.</small
+              >
+              <button class="btn">ثبت درآمد</button>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: برگهٔ پایین هنگام ثبت</div>
+            <div class="app-bar"><span>ثبت درآمد</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card scrim">
+                <h3>مبلغ</h3>
+                <div class="num">۳۸٬۰۰۰٬۰۰۰ تومان</div>
+              </div>
+              <div class="card sheet new" data-idea="ایدهٔ الف">
+                <h3>قبلاً ثبت شده؟</h3>
+                <div class="v warn">به نظر این همان است: ۳۸٬۰۰۰٬۰۰۰ کمک‌هزینه ۵ آبان از پیامک</div>
+                <small class="muted"
+                  >مبلغ و دسته یکی است و فاصله ۱ روز است. بازهٔ جست‌وجو دو روز قبل و بعد است.
+                  منبع‌ها: <span class="chip">دستی</span> <span class="chip">پیامک</span>
+                  <span class="chip">تکرار</span></small
+                >
+                <button class="btn" data-demo="toggle" data-target="merged">
+                  همان است، یکی کن
+                </button>
+                <button class="btn ghost">فرق دارد، ثبت کن</button>
+                <button class="btn ghost">دیدن آن رکورد</button>
+                <div class="v ok" id="merged" hidden>یکی شد: یک رکورد با منبع «پیامک + دستی»</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ الف: هشدار تکراری برای هر منبع</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              کمک‌هزینهٔ ۳۸٬۰۰۰٬۰۰۰ را پیامک بانک ۵ آبان ثبت کرده؛ کاربر فردا همان را دستی هم ثبت
+              می‌کند و درآمد دو برابر می‌شود.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              هنگام ذخیره، همان مبلغ و همان دسته در ±۲ روز از هر منبع (دستی، پیامک، تکرار) بررسی
+              شود. در صورت تطابق برگه‌ای با سه دکمه: «همان است، یکی کن»، «فرق دارد، ثبت کن»، «دیدن
+              آن رکورد». دکمهٔ اول را بزن تا نتیجه را ببینی.
+            </dd>
+            <dt>چرا</dt>
+            <dd>یکی از رایج‌ترین دلیل‌های مانده غلط است و کاربر معمولاً دیر می‌فهمد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span> (گسترش یک بررسی موجود به منبع‌های دیگر)</dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم ثبت هزینه و درآمد، لحظهٔ ذخیره؛ همان منطق مشترک ثبت رکورد، نه فقط فرم.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: هشدار تکراری در فرم ثبت (فقط رکوردهای دستی) و فیلد منبع روی رکوردها. تازه:
+              مقایسه با رکوردهای پیامکی و تکراری، بازهٔ ±۲ روز و برگهٔ تصمیم.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              مثبت کاذب: دو قهوهٔ هم‌قیمت در یک روز دو خرج واقعی‌اند. پس همیشه بپرس و هرگز بی‌صدا
+              یکی نکن؛ دکمهٔ «فرق دارد، ثبت کن» همیشه در دسترس باشد.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-b">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>تکرارها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>تکرارهای ماهانه</h3>
+                <div class="row"><span>حقوق</span><b>۶۵٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>اجارهٔ خانه</span><b>۱۸٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>اینترنت</span><b>۴۵۰٬۰۰۰</b></div>
+                <small class="muted"
+                  >فقط نشان «ثبت‌شده این ماه» برای مواردی که خود تکرار ثبت کرده.</small
+                >
+              </div>
+              <button class="btn">ثبت همه</button>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده</div>
+            <div class="app-bar"><span>تکرارها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>تکرارهای ماهانه</h3>
+                <label class="opt new" data-idea="ایدهٔ ب"
+                  ><input type="checkbox" /><span>حقوق ۱ آبان <b>۶۵٬۰۰۰٬۰۰۰</b></span
+                  ><span class="chip ok">قبلاً با پیامک ثبت شده</span></label
+                >
+                <label class="opt new" data-idea="ایدهٔ ب"
+                  ><input type="checkbox" checked /><span>اجارهٔ خانه ۵ آبان <b>۱۸٬۰۰۰٬۰۰۰</b></span
+                  ><span class="chip bad">پرداخت‌نشده</span></label
+                >
+                <label class="opt new" data-idea="ایدهٔ ب"
+                  ><input type="checkbox" /><span>اینترنت ۴ آبان <b>۴۵۰٬۰۰۰</b></span
+                  ><span class="chip warn">احتمالاً تکراری</span></label
+                >
+                <small class="muted"
+                  >«احتمالاً تکراری»: هزینهٔ دستی مشابه ۴ آبان هست.
+                  <a href="#idea-b">دیدن رکورد</a></small
+                >
+              </div>
+              <button class="btn new" data-idea="ایدهٔ ب" id="postBtn">
+                ثبت موارد انتخاب‌شده (۱)
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ب: وضعیت هر مورد در «ثبت همه»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              «ثبت همه» کورکورانه همه را می‌نویسد؛ اگر حقوق را پیامک ثبت کرده یا اینترنت را خودم
+              دستی زده‌ام، دوباره ثبت می‌شود.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              پیش از ثبت، کنار هر مورد وضعیتش: «قبلاً با پیامک ثبت شده»، «پرداخت‌نشده» یا «احتمالاً
+              تکراری». فقط موارد پرداخت‌نشده پیش‌انتخاب‌اند؛ کاربر هر تیک را می‌تواند عوض کند و دکمه
+              تعداد را نشان می‌دهد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>
+              «ثبت همه» برای صرفه‌جویی در زمان است؛ نباید خطا بسازد. بدون این، کاربر باید همه را
+              دستی چک کند.
+            </dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span> (همان منطق ایدهٔ الف، فقط برای فهرست)</dd>
+            <dt>کجای اپ</dt>
+            <dd>کارت تکرارها (پیش از دکمهٔ «ثبت همه»).</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: نشان «ثبت‌شده این ماه» برای رکوردهای ساخته‌شده توسط خود تکرار. تازه: تطبیق با
+              رکوردهای پیامکی و دستی همان ماه و ±۲ روز.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              اگر اشتباهاً «قبلاً ثبت شده» بخواند، یک تکرار واقعی ثبت نمی‌شود؛ پس تیک همیشه
+              قابل‌تغییر باشد و موارد «احتمالاً» تیک نخورند ولی پنهان نشوند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <!-- prettier-ignore -->
+    <script>
+;(() => {
+  const boxes = [...document.querySelectorAll('#idea-b input[type=checkbox]')]
+  const upd = () => (document.getElementById('postBtn').textContent = `ثبت موارد انتخاب‌شده (${boxes.filter(b => b.checked).length.toLocaleString('fa-IR')})`)
+  boxes.forEach(b => b.addEventListener('change', upd))
+})()
+</script>
+  </body>
+</html>
