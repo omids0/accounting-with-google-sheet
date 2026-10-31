@@ -2,7 +2,12 @@ import { useMemo } from 'react'
 
 import ActivityList from './ActivityList'
 import { activityPerson, activityWhen } from './activityText'
+import RevertButton from './RevertButton'
+import RevertTrailModal from './RevertTrailModal'
+import TrailChanges from './TrailChanges'
+import type { TrailView } from './trailView'
 import { ALL, useActivityPage } from './useActivityPage'
+import { useRevertTrail } from './useRevertTrail'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
@@ -29,7 +34,8 @@ function exportActivityCsv(spreadsheetId: string) {
 
 function activityColumns(
   info: SharingInfo | null,
-  moduleLabel: (id: string) => string
+  moduleLabel: (id: string) => string,
+  trail: TrailView
 ): DataTableColumn<ActivityEntry>[] {
   return [
     {
@@ -62,9 +68,20 @@ function activityColumns(
       header: 'خلاصه',
       // A long unbroken name must wrap inside the cell, not stretch the whole table.
       className: 'min-w-[12rem] [overflow-wrap:anywhere]',
-      cell: entry => entry.summary
+      cell: entry => (
+        <>
+          {entry.summary}
+          <TrailChanges lines={trail.lines(entry)} />
+        </>
+      )
     },
-    { id: 'device', header: 'دستگاه', className: 'whitespace-nowrap', cell: e => e.device }
+    { id: 'device', header: 'دستگاه', className: 'whitespace-nowrap', cell: e => e.device },
+    {
+      id: 'revert',
+      header: 'بازگردانی',
+      className: 'whitespace-nowrap',
+      cell: entry => <RevertButton entry={entry} trail={trail} />
+    }
   ]
 }
 
@@ -99,7 +116,11 @@ export default function ActivityPage() {
 
   useRegisterPageSpeedDial(speedDial)
 
-  const columns = useMemo(() => activityColumns(info, moduleLabel), [info, moduleLabel])
+  const revert = useRevertTrail(page.entries, refresh)
+  const columns = useMemo(
+    () => activityColumns(info, moduleLabel, revert.view),
+    [info, moduleLabel, revert.view]
+  )
 
   return (
     <div className={activityPageClass}>
@@ -136,9 +157,17 @@ export default function ActivityPage() {
         <DataTable label="فعالیت" rows={page.visible} columns={columns} rowKey={e => e.id} />
       ) : (
         <CalmBlock title="فعالیت">
-          <ActivityList entries={page.visible} info={page.info} />
+          <ActivityList entries={page.visible} info={page.info} trail={revert.view} />
         </CalmBlock>
       )}
+
+      <RevertTrailModal
+        state={revert.state}
+        accountName={revert.accountName}
+        confirming={revert.confirming}
+        onClose={revert.close}
+        onConfirm={() => void revert.confirm()}
+      />
 
       {page.hasMore ? (
         <Button variant="secondary" size="sm" className={activityMoreClass} onClick={page.showMore}>

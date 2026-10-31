@@ -42,12 +42,15 @@ export async function submitRecordEdit({
   editingForm,
   formValues: marked,
   vehicleExpense,
+  revertOf,
   onSuccess
 }: {
   editingRecord: StoredRecord
   editingForm: CustomForm
   formValues: Record<string, string | number>
   vehicleExpense?: VehicleExpenseFormValues & { note?: string }
+  /** The edit is the «بازگردانی» of this activity-log row: it logs «بازگردانی شد», not «ویرایش». */
+  revertOf?: string
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
   if (!isConfigured() || !requireAuth()) return false
@@ -144,7 +147,14 @@ export async function submitRecordEdit({
       formValues
     ).catch(() => showError('تغییر ذخیره شد ولی سهم واحدها یا بدهی به‌روز نشد'))
     await syncBridgedEdit(editingForm, editingRecord.id, formValues)
-    logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
+    logRecordActivity(
+      settings.spreadsheetId,
+      revertOf ? 'revert' : 'update',
+      editingRecord.id,
+      formValues,
+      revertOf ? { reverted: 'update' } : undefined,
+      { form: editingForm, before: editingRecord.values, revertOf }
+    )
     if (choice) {
       const was = editingRecord.values[SHARED_LINK_FIELD_ID] ?? ''
 
@@ -157,7 +167,7 @@ export async function submitRecordEdit({
         was
       )
     }
-    showSuccess('تراکنش ویرایش شد')
+    showSuccess(revertOf ? 'ویرایش بازگردانده شد' : 'تراکنش ویرایش شد')
     // A debt or receivable payment linked to this record follows its new amount and date.
     await syncLinkedOnRecordUpdated(
       settings.spreadsheetId,
@@ -241,7 +251,7 @@ export async function deleteStoredRecord({
   clearRecordDeletePending(spreadsheetId, record.id)
 
   if (removed) {
-    logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
+    logRecordActivity(spreadsheetId, 'delete', record.id, record.values, undefined, { form })
     if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
   }
   // The delete is committed: payments of a debt or receivable that pointed at the record go with it.
