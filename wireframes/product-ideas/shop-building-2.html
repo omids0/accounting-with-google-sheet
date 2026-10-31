@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>فروشنده و مدیر ساختمان، بخش دوم</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        padding: 10px 12px;
+        display: grid;
+        gap: 6px;
+      }
+      .field {
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 8px;
+      }
+      .field input {
+        width: 64px;
+        font: inherit;
+        text-align: center;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .card .new {
+        margin-top: 14px;
+        padding: 4px 6px;
+      }
+      .dim {
+        opacity: 0.45;
+        display: grid;
+        gap: 8px;
+      }
+      .msg {
+        background: var(--primary-soft);
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 0.82rem;
+      }
+      .tabs a {
+        padding: 6px 12px;
+        border: 1px dashed var(--border);
+        border-radius: 999px;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>فروشنده و مدیر ساختمان، بخش دوم</h1>
+      <p class="lead">شمارش صندوق مغازه و یادآوری شارژ ساختمان؛ امروز ۶ آبان ۱۴۰۵ است.</p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+      </p>
+
+      <div class="tabs">
+        <a href="shop-building.html#idea-a">الف) سقف اعتبار و سن بدهی ←</a>
+        <a href="shop-building.html#idea-b">ب) چک برگشتی ←</a>
+        <button data-idea="idea-c">ج) شمارش شبانه صندوق</button>
+        <button data-idea="idea-d">د) ساختمان: یادآوری شارژ</button>
+        <a href="shop-building-3.html#idea-e">ه) ساختمان: بودجه و پیش‌بینی ←</a>
+      </div>
+
+      <section class="idea" id="idea-c">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">بستن صندوق، شمارش اسکناس</div>
+            <div class="app-bar"><span>حساب نقدی</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>موجودی صندوق طبق اپ</span><b>۶٬۸۵۰٬۰۰۰</b></div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۳">
+                <h3>شمارش امشب، تعداد هر اسکناس</h3>
+                <label class="field"
+                  ><span>اسکناس ۱۰۰٬۰۰۰</span
+                  ><input type="number" min="0" value="48" data-v="100000"
+                /></label>
+                <label class="field"
+                  ><span>اسکناس ۵۰٬۰۰۰</span><input type="number" min="0" value="28" data-v="50000"
+                /></label>
+                <label class="field"
+                  ><span>اسکناس ۲۰٬۰۰۰</span><input type="number" min="0" value="18" data-v="20000"
+                /></label>
+                <label class="field"
+                  ><span>اسکناس ۱۰٬۰۰۰</span><input type="number" min="0" value="15" data-v="10000"
+                /></label>
+                <label class="field"
+                  ><span>اسکناس ۵٬۰۰۰</span><input type="number" min="0" value="16" data-v="5000"
+                /></label>
+                <div class="row"><span>جمع شمارش</span><b id="cnt">۶٬۷۹۰٬۰۰۰</b></div>
+                <div class="row">
+                  <span>اختلاف با اپ</span><b id="diff" class="neg">کسری ۶۰٬۰۰۰</b>
+                </div>
+                <small>عددها را عوض کن تا اختلاف همان لحظه عوض شود.</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">برگهٔ ثبت اختلاف</div>
+            <div class="app-bar"><span>حساب نقدی</span><span>✕</span></div>
+            <div class="screen">
+              <div class="dim"><div class="card">شمارش ۶٬۷۹۰٬۰۰۰، طبق اپ ۶٬۸۵۰٬۰۰۰</div></div>
+              <div class="sheet new" data-idea="ایدهٔ ۳">
+                <h3 class="neg">کسری ۶۰٬۰۰۰ تومان</h3>
+                <div class="field"><span>دلیل</span><b>کسری شمارش شبانه</b></div>
+                <small>این تعدیل ساخته می‌شود، نه خرج معمولی:</small>
+                <div class="card">
+                  <div class="row"><b>تعدیل صندوق، ۶ آبان ۱۴۰۵</b><b class="neg">−۶۰٬۰۰۰</b></div>
+                </div>
+                <small>موجودی اپ می‌شود ۶٬۷۹۰٬۰۰۰ و با کشو یکی است.</small>
+                <button class="btn">ثبت اختلاف</button>
+                <button class="btn ghost">بعداً دوباره می‌شمارم</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ج) شمارش شبانه صندوق</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              مانده صندوق در اپ با اسکناس‌های کشو یکی نیست و کسی نمی‌فهمد کسری از کی و چقدر است.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              آخر شب تعداد هر اسکناس را بزن؛ اپ اختلاف را نشان می‌دهد و «ثبت اختلاف» یک تعدیل
+              می‌سازد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>دفتر قابل‌اتکا می‌ماند و کسری تکراری الگو پیدا می‌کند (مثلاً سه بار در ماه).</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>حساب نقدی با مانده. در بخش ساختمان «مغایرت‌گیری صندوق» هست که الگوی آماده است.</dd>
+            <dt>کجای اپ</dt>
+            <dd>کارت حساب نقدی، دکمهٔ «بستن صندوق» و یک یادآوری ساعت ۲۱.</dd>
+            <dt>داده لازم</dt>
+            <dd>یک نوع رکورد «تعدیل شمارش». ذخیرهٔ تعداد هر اسکناس اختیاری است.</dd>
+            <dt>خطر</dt>
+            <dd>تعدیل نباید در سود و زیان مثل خرج دیده شود؛ یادآوری روزانه نباید مزاحم شود.</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-d">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">ساختمان آفتاب، شارژ آبان</div>
+            <div class="app-bar"><span>شارژ آبان</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>هر واحد ۲٬۴۰۰٬۰۰۰، هفت واحد پرداخت کرده</h3>
+                <label class="row"
+                  ><span>واحد ۳، آقای احمدی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                >
+                <label class="row"
+                  ><span>واحد ۵، خانم موسوی</span><b class="neg">۴٬۸۰۰٬۰۰۰</b></label
+                >
+                <label class="row"
+                  ><span>واحد ۷، آقای تقوی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                >
+                <label class="row"
+                  ><span>واحد ۹، خانم فرهادی</span><b class="neg">۷٬۲۰۰٬۰۰۰</b></label
+                >
+                <label class="row"
+                  ><span>واحد ۱۱، آقای نجفی</span><b class="neg">۲٬۴۰۰٬۰۰۰</b></label
+                >
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <div class="row"><span>پنج واحد، جمع بدهی</span><b>۱۹٬۲۰۰٬۰۰۰</b></div>
+                <button class="btn">یادآوری به پنج واحد</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">پیش‌نمایش متن برای واحد ۳</div>
+            <div class="app-bar"><span>یادآوری</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <div class="row">
+                  <button class="btn" data-ch="sms">پیامک</button>
+                  <button class="btn ghost" data-ch="wa">واتس‌اپ</button>
+                </div>
+                <div class="msg" id="m-sms">
+                  آقای احمدی عزیز، شارژ آبان ۱۴۰۵ واحد ۳ ساختمان آفتاب، ۲٬۴۰۰٬۰۰۰ تومان باقی است.
+                  لطفاً تا ۱۰ آبان به کارت صندوق واریز کنید.
+                </div>
+                <div class="msg" id="m-wa" hidden>
+                  سلام آقای احمدی، وقتتان بخیر. مانده شارژ آبان واحد ۳ مبلغ ۲٬۴۰۰٬۰۰۰ تومان است. اگر
+                  واریز کرده‌اید، تصویر رسید را بفرستید. ممنون از همکاری شما.
+                </div>
+                <small>متن را می‌شود پیش از ارسال ویرایش کرد.</small>
+                <button class="btn ghost">باز کردن در برنامهٔ پیام</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">رسید پرداخت</div>
+            <div class="app-bar"><span>رسید</span><span>✕</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>رسید پرداخت شارژ</h3>
+                <div class="row"><span>واحد ۵، خانم موسوی</span><b>۴٬۸۰۰٬۰۰۰</b></div>
+                <div class="row"><span>تاریخ پرداخت</span><b>۶ آبان ۱۴۰۵</b></div>
+                <div class="row"><span>مانده بعد از پرداخت</span><b class="pos">صفر</b></div>
+                <div class="row">
+                  <button class="btn ghost">اشتراک رسید</button
+                  ><button class="btn ghost">تصویر</button>
+                </div>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <div class="row">
+                  <button class="btn ghost">فایل PDF</button
+                  ><button class="btn">ارسال برای ساکن</button>
+                </div>
+                <small>رسید همان لحظه با متن آمادهٔ تشکر فرستاده می‌شود.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>د) ساختمان: یادآوری شارژ و رسید پرداخت</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>مدیر ساختمان هر ماه پنج‌شش نفر را دستی پیام می‌دهد و متن هر بار فرق می‌کند.</dd>
+            <dt>ایده</dt>
+            <dd>
+              انتخاب واحدهای بدهکار، پیش‌نمایش متن (پیامک یا واتس‌اپ) برای هر واحد، و رسید پرداخت با
+              PDF و ارسال.
+            </dd>
+            <dt>چرا</dt>
+            <dd>وصول شارژ سریع‌تر می‌شود و لحن یکدست و مؤدبانه است.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>الان در اپ</dt>
+            <dd>واحدها، شارژ ماهانه، صندوق، پرداخت واحد و رسید متنی و تصویری.</dd>
+            <dt>کجای اپ</dt>
+            <dd>صفحهٔ شارژ ماه و برگهٔ رسید پرداخت.</dd>
+            <dt>داده لازم</dt>
+            <dd>شمارهٔ موبایل ساکن (در واحدها هست)؛ قالب متن در تنظیمات ساختمان.</dd>
+            <dt>خطر</dt>
+            <dd>
+              ارسال خودکار بدون سرور ممکن نیست؛ فقط باز کردن برنامهٔ پیام با متن آماده. موبایل
+              ساکنان حریم خصوصی است.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      const $ = id => document.getElementById(id),
+        fa = n => n.toLocaleString('fa-IR')
+      const inputs = [...document.querySelectorAll('[data-v]')]
+      const calc = () => {
+        const total = inputs.reduce((sum, i) => sum + i.value * i.dataset.v, 0),
+          d = total - 6850000
+        $('cnt').textContent = fa(total)
+        $('diff').textContent = d ? (d < 0 ? 'کسری ' : 'اضافه ') + fa(Math.abs(d)) : 'بدون اختلاف'
+        $('diff').className = d ? 'neg' : 'pos'
+      }
+      inputs.forEach(i => i.addEventListener('input', calc))
+      const btns = [...document.querySelectorAll('[data-ch]')]
+      btns.forEach(b =>
+        b.addEventListener('click', () => {
+          $('m-sms').hidden = b.dataset.ch !== 'sms'
+          $('m-wa').hidden = b.dataset.ch !== 'wa'
+          btns.forEach(x => x.classList.toggle('ghost', x !== b))
+        })
+      )
+    </script>
+  </body>
+</html>
