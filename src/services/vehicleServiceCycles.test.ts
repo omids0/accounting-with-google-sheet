@@ -1,17 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { deleteLinkedExpenseRecord } from './paymentTransactions'
 import { applyWalletChanges, recordLedgerContext, walletEffectOf } from './recordWallet'
 import type * as SettingsModule from './settings'
 import { updateRecord } from './sheets'
+import { handleExpenseRecordDeleted } from './vehicleExpenseActions'
 import { fetchVehicleHistory } from './vehicleHistory'
 import { fetchVehiclePeriodicServices } from './vehiclePeriodicServices'
 import { fetchVehicleTransactions, sumVehicleTransactionAmounts } from './vehicleTransactions'
+import { WALLET_ACCOUNT_FIELD_ID } from '../components/form/fieldUtils'
 import { deleteVehicleDetailItem } from '../components/vehicles/vehicleDetailMutations'
 import { testSettings } from '../test/dashboardFixtures'
 import {
   balance,
   expectBalanceAndLedgerAgree,
   expenseById,
+  expenseRecords,
   expenseForm,
   firstService,
   ID,
@@ -105,5 +109,80 @@ describe('«ثبت انجام سرویس» again: history, delete and edit', () 
 
     expect(items.map(item => item.amount)).toEqual([2_300_000, 2_100_000, 1_450_000])
     expect(sumVehicleTransactionAmounts(items)).toBe(5_850_000)
+  })
+})
+
+describe('«ثبت انجام سرویس» after a cycle was deleted', () => {
+  beforeEach(() => {
+    seed()
+  })
+
+  async function deleteHistoryLine(expenseId: string) {
+    const line = (await fetchVehicleHistory(ID, 'v1')).find(
+      item => item.expenseRecordId === expenseId
+    )!
+
+    await deleteVehicleDetailItem({
+      spreadsheetId: ID,
+      target: { kind: 'history', item: line },
+      deleteLinkedExpense: true
+    })
+  }
+
+  async function linkOf(): Promise<string> {
+    return (await fetchVehiclePeriodicServices(ID, 'v1'))[0].expenseRecordId
+  }
+
+  it('re-points the service to the previous cycle, and the next redo is paid from its account', async () => {
+    const first = await firstService(1_450_000)
+    const second = await service(2_100_000, first, '2026-10-25')
+
+    await deleteHistoryLine(second)
+
+    const [row] = await fetchVehiclePeriodicServices(ID, 'v1')
+
+    expect(row.expenseRecordId).toBe(first)
+    expect(row.amount).toBe(1_450_000)
+    expect(await balance()).toBe(START - 1_450_000)
+
+    const third = await service(600_000, row.expenseRecordId, '2026-10-30')
+
+    expect((await expenseById(third))?.values[WALLET_ACCOUNT_FIELD_ID]).toBe('wallet-1')
+    expect(await balance()).toBe(START - 1_450_000 - 600_000)
+    await expectBalanceAndLedgerAgree()
+  })
+
+  it('clears the link when the only cycle is deleted; the next cycle then has no account', async () => {
+    const first = await firstService(1_450_000)
+
+    await deleteHistoryLine(first)
+    expect(await linkOf()).toBe('')
+
+    const next = await service(600_000, '')
+
+    expect((await expenseById(next))?.values[WALLET_ACCOUNT_FIELD_ID]).toBe('')
+    expect(await balance()).toBe(START)
+    await expectBalanceAndLedgerAgree()
+  })
+
+  it('follows a delete made on the records page, and a stale link still finds the account', async () => {
+    const first = await firstService(1_450_000)
+    const second = await service(2_100_000, first, '2026-10-25')
+
+    await handleExpenseRecordDeleted(ID, second, 'خودرو')
+    await deleteLinkedExpenseRecord(ID, second)
+    expect(await linkOf()).toBe(first)
+    expect(await expenseRecords()).toHaveLength(1)
+
+    // A row left pointing at a deleted expense (an older app version) falls back to the history.
+    const third = await service(600_000, first, '2026-10-30')
+
+    await deleteLinkedExpenseRecord(ID, third)
+
+    const fourth = await service(300_000, third, '2026-10-31')
+
+    expect((await expenseById(fourth))?.values[WALLET_ACCOUNT_FIELD_ID]).toBe('wallet-1')
+    expect(await balance()).toBe(START - 1_450_000 - 300_000)
+    await expectBalanceAndLedgerAgree()
   })
 })

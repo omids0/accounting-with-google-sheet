@@ -23,6 +23,7 @@ import {
 import { createVehicleExpense, deleteVehicleExpense } from '../../services/vehicleExpenses'
 import { createVehicleHistoryEntry, deleteVehicleHistoryEntry } from '../../services/vehicleHistory'
 import { completePeriodicService } from '../../services/vehiclePeriodicComplete'
+import { repointServicesAfterExpenseDelete } from '../../services/vehiclePeriodicLink'
 import {
   createVehiclePeriodicService,
   deleteVehiclePeriodicService,
@@ -266,6 +267,8 @@ export async function deleteVehicleDetailItem(params: {
 
   if (deleteLinkedExpense && expenseId) {
     await deleteVehicleExpense(spreadsheetId, expenseId)
+    // A service row pointing at it follows the previous cycle (or is cleared).
+    await repointServicesAfterExpenseDelete(spreadsheetId, expenseId)
   }
 
   if (target.kind === 'periodic') {

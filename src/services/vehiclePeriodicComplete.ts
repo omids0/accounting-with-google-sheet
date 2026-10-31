@@ -1,6 +1,7 @@
 import { syncVehicleMileage } from './vehicleActions'
 import { createNextCycleVehicleExpense } from './vehicleExpenses'
 import { createVehicleHistoryEntry } from './vehicleHistory'
+import { serviceCycleExpenseIds } from './vehiclePeriodicLink'
 import { updateVehiclePeriodicService } from './vehiclePeriodicServices'
 import { calculateNextKm } from '../components/vehicles/utils'
 import type { VehicleProfile } from '../types/vehicles'
@@ -9,7 +10,8 @@ import type { VehicleProfile } from '../types/vehicles'
  * «ثبت انجام سرویس»: closes one service cycle. Every cycle is its own expense and its own history
  * line; the service row keeps pointing at the LATEST cycle's expense (one id is all the sheet
  * holds), and the earlier cycles stay reachable through their history lines. `previousExpenseId`
- * is only read, to pay the new cycle from the same account as the last one.
+ * is only read (with the history lines' expenses, when it was deleted), to pay the new cycle from the
+ * same account as the last one.
  */
 export async function completePeriodicService(params: {
   spreadsheetId: string
@@ -55,18 +57,21 @@ export async function completePeriodicService(params: {
   }
 
   const nextKm = calculateNextKm(mileage, intervalKm)
-  // A new expense on the chosen date; the previous cycle's expense is left as it is.
-  const expenseRecordId = await createNextCycleVehicleExpense(
+  // The row's link may point at a deleted expense: the newest cycle that still has one stands in.
+  const earlierExpenseIds = await serviceCycleExpenseIds(
     spreadsheetId,
-    previousExpenseId ?? '',
-    {
-      title: `${serviceType} — ${vehicle.title}`,
-      amount,
-      subCategory: serviceType,
-      date,
-      note: [brand, location, notes].filter(Boolean).join(' · ')
-    }
+    vehicle.id,
+    serviceId,
+    previousExpenseId
   )
+  // A new expense on the chosen date; the previous cycle's expense is left as it is.
+  const expenseRecordId = await createNextCycleVehicleExpense(spreadsheetId, earlierExpenseIds, {
+    title: `${serviceType} — ${vehicle.title}`,
+    amount,
+    subCategory: serviceType,
+    date,
+    note: [brand, location, notes].filter(Boolean).join(' · ')
+  })
 
   await updateVehiclePeriodicService(spreadsheetId, rowNumber, {
     currentMileage: mileage,
