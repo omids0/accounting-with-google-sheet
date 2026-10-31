@@ -18,10 +18,14 @@ describe('recurringStatusLabel', () => {
     expect(recurringStatusLabel({ kind: 'probable', record }, false)).toBe('احتمال تکراری')
   })
 
-  it('names the day of the record it is already registered as', () => {
+  it('says «در حال بررسی» until the records are read', () => {
+    expect(recurringStatusLabel(null, false)).toBe('در حال بررسی')
+  })
+
+  it('names the day of the record in a short form that fits one line', () => {
     const label = recurringStatusLabel({ kind: 'registered', record }, false)
 
-    expect(label.startsWith('قبلاً ثبت شده (')).toBe(true)
-    expect(label).toContain('آبان')
+    expect(label).toBe('ثبت شده ۲ آبان')
+    expect(label.length).toBeLessThanOrEqual(16)
   })
 })

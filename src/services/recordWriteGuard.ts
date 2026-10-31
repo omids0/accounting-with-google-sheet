@@ -146,6 +146,15 @@ export function findWriteDuplicate(
   return best
 }
 
+/** Why the existing record looks like the new one, in words that match the real case. */
+export function duplicateReason(candidateDate: string, record: Pick<LedgerEntry, 'date'>): string {
+  const days = Math.abs(diffIsoDays(record.date, candidateDate))
+
+  return days === 0
+    ? 'مبلغ و روز یکی است.'
+    : 'مبلغ یکی است و روز آن فقط یک روز با این رکورد فرق دارد.'
+}
+
 /**
  * The same rule on the open workbook's records (archives included), minus the records that are
  * already linked to a debt, receivable, check or installment. A read that fails answers `null`:

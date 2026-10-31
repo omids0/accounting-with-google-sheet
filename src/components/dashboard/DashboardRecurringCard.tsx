@@ -4,7 +4,7 @@ import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSubmitLock } from '../../hooks/useSubmitLock'
 import { pendingReminders, recurringDueDate } from '../../services/recurring'
 import { fetchRecurringItems, stripRow } from '../../services/recurringSheet'
-import type { RecurringStatus } from '../../services/recurringStatus'
+import { tickedIds } from '../../services/recurringTicks'
 import { getSettings } from '../../services/settings'
 import { fetchWalletAccounts } from '../../services/wallet'
 import type { RecurringItem } from '../../types'
@@ -29,9 +29,6 @@ import {
   recurringCardHeadClass,
   recurringRowsClass
 } from '../ui/recurringStyles'
-
-// Until the records are read every item is «ثبت می‌شود» (the service module loads on demand).
-const NEW_STATUS: RecurringStatus = { kind: 'new' }
 
 /**
  * «ثبت تکرارهای مهر» (resume-card family): reminder-mode items not handled this month,
@@ -70,15 +67,8 @@ export default function DashboardRecurringCard() {
   }, [spreadsheetId, revision])
 
   const statuses = useRecurringStatuses(items, today)
-  const ticked = useMemo(
-    () =>
-      new Set(
-        items
-          .filter(item => choices.get(item.id) ?? (statuses.get(item.id)?.kind ?? 'new') === 'new')
-          .map(item => item.id)
-      ),
-    [items, choices, statuses]
-  )
+  // Nothing is ticked, and nothing can be posted, until the records have been checked.
+  const ticked = useMemo(() => tickedIds(items, statuses, choices), [items, statuses, choices])
 
   if (!spreadsheetId || !items.length) return null
 
@@ -90,7 +80,7 @@ export default function DashboardRecurringCard() {
     submitLock(async () => {
       const settings = getSettings()
 
-      if (!settings) return
+      if (!settings || !statuses) return
 
       setBusy(true)
       try {
@@ -132,12 +122,20 @@ export default function DashboardRecurringCard() {
         <div className={guideCardTextClass}>
           <span className={guideCardTitleClass}>{`ثبت تکرارهای ${monthName}`}</span>
           <span className={guideCardHintClass}>
-            {`${ticked.size.toLocaleString('fa-IR')} از ${items.length.toLocaleString(
-              'fa-IR'
-            )} تراکنش تکراری این ماه انتخاب شده`}
+            {statuses
+              ? `${ticked.size.toLocaleString('fa-IR')} از ${items.length.toLocaleString(
+                  'fa-IR'
+                )} تراکنش تکراری این ماه انتخاب شده`
+              : 'در حال بررسی ثبت‌های قبلی…'}
           </span>
         </div>
-        <Button type="button" size="sm" loading={busy} disabled={busy} onClick={postAll}>
+        <Button
+          type="button"
+          size="sm"
+          loading={busy}
+          disabled={busy || !statuses}
+          onClick={postAll}
+        >
           ثبت همه
         </Button>
       </div>
@@ -148,7 +146,7 @@ export default function DashboardRecurringCard() {
             item={item}
             day={isoToJalali(recurringDueDate(item, monthKey)).day}
             account={accounts.get(item.accountId)}
-            status={statuses.get(item.id) ?? NEW_STATUS}
+            status={statuses ? statuses.get(item.id) ?? { kind: 'new' } : null}
             ticked={ticked.has(item.id)}
             disabled={busy}
             onToggle={checked => setChoices(current => new Map(current).set(item.id, checked))}

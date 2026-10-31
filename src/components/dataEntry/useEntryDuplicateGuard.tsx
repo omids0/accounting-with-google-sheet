@@ -5,7 +5,11 @@ import DuplicateRecordCard from './DuplicateRecordCard'
 import { recordFocusPath } from '../../routes/paths'
 import { getDateFieldId } from '../../services/dashboardAggregation'
 import type { LedgerEntry } from '../../services/recordDuplicates'
-import { findDuplicateBeforeWrite, type WriteCandidate } from '../../services/recordWriteGuard'
+import {
+  duplicateReason,
+  findDuplicateBeforeWrite,
+  type WriteCandidate
+} from '../../services/recordWriteGuard'
 import { getSettings } from '../../services/settings'
 import type { CustomForm } from '../../types'
 import { parseNumeric } from '../../utils/parseNumeric'
@@ -33,6 +37,8 @@ export function entryWriteCandidate(
 interface Pending {
   record: LedgerEntry
   type: LedgerEntry['type']
+  /** Day of the entry being saved, to say how close the existing record is. */
+  date: string
   run: () => Promise<void>
 }
 
@@ -57,7 +63,7 @@ export function useEntryDuplicateGuard(form: CustomForm) {
       const record = await findDuplicateBeforeWrite(settings, candidate).catch(() => null)
 
       if (!record) return false
-      setPending({ record, type: candidate.type, run })
+      setPending({ record, type: candidate.type, date: candidate.date, run })
 
       return true
     },
@@ -72,7 +78,9 @@ export function useEntryDuplicateGuard(form: CustomForm) {
     <ConfirmActionModal
       open={pending !== null}
       title="قبلاً ثبت شده؟"
-      message="به نظر این همان است: مبلغ، حساب و روز یکی است. اگر خرج جدایی است «فرق دارد، ثبت کن» را بزنید."
+      message={`به نظر این همان است: ${
+        pending ? duplicateReason(pending.date, pending.record) : ''
+      } اگر مورد جدایی است «فرق دارد، ثبت کن» را بزنید.`}
       confirmLabel="فرق دارد، ثبت کن"
       cancelLabel="دیدن آن رکورد"
       confirming={confirming}

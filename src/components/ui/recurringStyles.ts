@@ -58,6 +58,14 @@ export const recurringCheckboxClass =
 
 /** «دیدن آن رکورد» under a row whose payment looks already recorded. */
 export const recurringRowLinkClass = cx(
-  'inline-flex min-h-touch-min w-fit cursor-pointer items-center border-none bg-transparent',
-  'text-[0.75rem] font-semibold text-primary underline-offset-2 hover:underline'
+  // Small to look at, 44px to touch: the hit area reaches past the text, inside the row.
+  'relative cursor-pointer border-none bg-transparent p-0 text-[0.75rem] font-semibold text-primary',
+  'underline-offset-2 hover:underline',
+  'after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[""]'
 )
+
+/** Chip and link of a row side by side; they wrap under each other in a narrow column. */
+export const recurringRowStatusClass = 'mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1'
+
+/** The warning under a ticked row: wraps (never truncated) and keeps its contrast in dark mode. */
+export const recurringRowNoteClass = 'text-[0.72rem] font-semibold leading-relaxed text-warning'

@@ -53,10 +53,10 @@ export const duplicateRecordTitleClass = 'text-[0.9rem] font-bold text-text'
 export const duplicateRecordMetaClass = 'text-[0.78rem] leading-relaxed text-muted'
 
 /** Small status pill: «قبلاً ثبت شده» / «احتمال تکراری» / «ثبت می‌شود». */
-export function duplicateChipClass(kind: 'new' | 'registered' | 'probable') {
+export function duplicateChipClass(kind: 'new' | 'registered' | 'probable' | 'pending') {
   return cx(
-    'inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-[0.7rem] font-semibold',
-    kind === 'new' && 'border-border bg-bg text-muted',
+    'inline-flex w-fit items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[0.7rem] font-semibold',
+    (kind === 'new' || kind === 'pending') && 'border-border bg-bg text-muted',
     kind === 'registered' &&
       'border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-success',
     kind === 'probable' &&

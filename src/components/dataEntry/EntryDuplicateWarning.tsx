@@ -20,7 +20,7 @@ import { entryDuplicateActionsClass, entryDuplicateLinkClass } from '../ui/entry
 
 /**
  * «احتمالاً تکراری»: same amount, category and date as a record created in the last
- * 60 minutes. Shown under the amount; never blocks saving. «فرق دارد، ثبت کن»
+ * 60 minutes. Shown under the amount; never blocks saving. «بستن هشدار»
  * dismisses it for this form (per matched record).
  */
 export default function EntryDuplicateWarning({
@@ -84,7 +84,7 @@ export default function EntryDuplicateWarning({
           className={entryDuplicateLinkClass}
           onClick={() => setDismissed(current => new Set(current).add(matchId))}
         >
-          فرق دارد، ثبت کن
+          بستن هشدار
         </button>
       </div>
     </div>

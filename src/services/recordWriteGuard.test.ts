@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { LedgerEntry } from './recordDuplicates'
 import {
+  duplicateReason,
   findUnwarnedDuplicate,
   findWriteDuplicate,
   recordSourceLabel,
@@ -165,5 +166,13 @@ describe('findUnwarnedDuplicate (one warning per record)', () => {
     const other = entry({ id: 'b', date: '2026-10-21', createdAtMs: NOW - 4 * 60 * 60_000 })
 
     expect(findUnwarnedDuplicate(candidate(), [shown, other], NOW)?.id).toBe('b')
+  })
+})
+
+describe('duplicateReason', () => {
+  it('names the real difference in days', () => {
+    expect(duplicateReason('2026-10-22', { date: '2026-10-22' })).toBe('مبلغ و روز یکی است.')
+    expect(duplicateReason('2026-10-22', { date: '2026-10-21' })).toContain('یک روز')
+    expect(duplicateReason('2026-10-22', { date: '2026-10-23' })).toContain('یک روز')
   })
 })
