@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>راحتی و خانواده — حساب‌کتاب</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .home {
+        background: linear-gradient(var(--primary-soft), var(--bg));
+      }
+      .widget {
+        background: var(--surface);
+        border-radius: 16px;
+        padding: 10px 14px;
+        display: grid;
+        gap: 4px;
+      }
+      .widget.big {
+        min-height: 130px;
+      }
+      .apps {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        text-align: center;
+        font-size: 0.72rem;
+        margin-top: 12px;
+      }
+      .apps span {
+        padding: 14px 0;
+        border-radius: 12px;
+        background: var(--surface);
+      }
+      .kind {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>راحتی و خانواده</h1>
+      <p class="lead">
+        کارهای کوچکی که زندگی روزمره را آسان‌تر می‌کنند: رسید و گارانتی گم نشود، خرج با صدا ثبت شود،
+        موجودی روی صفحهٔ گوشی باشد، ماه با یک نامه جمع شود و بچه‌ها هم جیب‌خرجی داشته باشند. امروز ۶
+        آبان ۱۴۰۵ است.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <a href="comfort.html">بخش ۱: گارانتی و ثبت صوتی ←</a>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-widget">ج) ویجت صفحهٔ اصلی گوشی</button>
+        <button data-idea="idea-letter">د) نامهٔ ماهانه</button>
+        <button data-idea="idea-kid">ه) حساب جیب‌خرجی بچه</button>
+      </div>
+
+      <section class="idea" id="idea-widget">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">ویجت کوچک</div>
+            <div class="app-bar"><span>صفحهٔ اصلی گوشی</span><span>ساعت نه</span></div>
+            <div class="screen home">
+              <div class="widget new" data-idea="ایدهٔ ۳">
+                <small>دارایی قابل اتکا</small>
+                <b>۱۱۶٬۲۸۱٬۲۵۰</b>
+              </div>
+              <div class="apps">
+                <span>پیام</span><span>دوربین</span><span>حساب‌کتاب</span><span>مرورگر</span>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">ویجت بزرگ</div>
+            <div class="app-bar"><span>صفحهٔ اصلی گوشی</span><span>ساعت نه</span></div>
+            <div class="screen home">
+              <div class="widget big new" data-idea="ایدهٔ ۳">
+                <small>دارایی قابل اتکا</small>
+                <b>۱۱۶٬۲۸۱٬۲۵۰ تومان</b>
+                <div class="row"><span>سررسید بعدی</span><b class="neg">اینترنت ۱٬۱۵۰٬۰۰۰</b></div>
+                <small>دو روز دیگر، هشتم آبان</small>
+              </div>
+              <div class="apps">
+                <span>پیام</span><span>دوربین</span><span>حساب‌کتاب</span><span>مرورگر</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۳: ویجت صفحهٔ اصلی گوشی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>برای دیدن موجودی باید اپ را باز کرد و صبر کرد؛ سررسید فردا هم دیده نمی‌شود.</dd>
+            <dt>ایده</dt>
+            <dd>دو ویجت روی صفحهٔ اصلی: کوچک با دارایی قابل اتکا، بزرگ با دارایی و سررسید بعدی.</dd>
+            <dt>چرا</dt>
+            <dd>نگاه بی‌زحمت چند بار در روز، بدون ورود و بدون صبر.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip bad">بزرگ</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>
+              فقط در پوستهٔ اندروید؛ در وب و آیفون نمی‌شود. سرویس عکس لحظه‌ای (ویجت) در کد موجود
+              است.
+            </dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: همان عکس لحظه‌ای دارایی و سررسید. تازه: کد بومی ویجت و گزینهٔ «مبلغ را پنهان
+              کن».
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              روی این رایانه ابزار ساخت اندروید نیست و ساخت فقط در گیت‌هاب اکشنز است. مبلغ روی صفحهٔ
+              قفل هم دیده می‌شود.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-letter">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز: گزارش ماهانه</div>
+            <div class="app-bar"><span>گزارش ماهانه</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>درآمد</span><b class="pos">۶۵٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>هزینه</span><b class="neg">۴۸٬۲۰۰٬۰۰۰</b></div>
+                <button class="btn ghost">خروجی پی‌دی‌اف</button>
+              </div>
+              <small class="muted">فقط جدول و عدد؛ جمع‌بندی و حرفی با آدم نمی‌زند.</small>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده: نامهٔ ماهانه (پایان آبان)</div>
+            <div class="app-bar"><span>آبان شما</span><span>۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card new letter" data-idea="ایدهٔ ۴">
+                <h3>آبان شما</h3>
+                <div class="row"><span>درآمد</span><b class="pos">۶۵٬۰۰۰٬۰۰۰</b></div>
+                <div class="row"><span>هزینه</span><b class="neg">۴۸٬۲۰۰٬۰۰۰</b></div>
+                <small>سه خرج بزرگ: اجاره ۱۸٬۰۰۰٬۰۰۰، خوراک ۱۱٬۸۰۰٬۰۰۰، اقساط ۷٬۴۵۰٬۰۰۰.</small>
+                <p>این ماه ۱۶٬۸۰۰٬۰۰۰ کنار گذاشتی؛ ۲٬۱۰۰٬۰۰۰ بیشتر از مهر. دستت درد نکند.</p>
+                <small>هدف «صندوق نوروز»: ۱۳٬۰۰۰٬۰۰۰ از ۲۱٬۰۰۰٬۰۰۰</small>
+                <div class="bar"><i style="width: 62%"></i></div>
+                <div class="row">
+                  <button class="btn">اشتراک‌گذاری</button
+                  ><button class="btn ghost">پی‌دی‌اف</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۴: نامهٔ ماهانه «آبان شما»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>گزارش ماهانه عدد می‌دهد ولی نمی‌گوید ماه چطور گذشت؛ کمتر کسی بازش می‌کند.</dd>
+            <dt>ایده</dt>
+            <dd>
+              اول هر ماه یک صفحهٔ کوتاه: درآمد، هزینه، سه خرج بزرگ، یک جملهٔ مهربان، پیشرفت هدف و
+              دکمهٔ اشتراک یا پی‌دی‌اف.
+            </dd>
+            <dt>چرا</dt>
+            <dd>مرور ماه عادت می‌شود و همسر هم بدون جدول می‌فهمد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>صفحهٔ گزارش ماهانه (موجود) و خروجی پی‌دی‌اف موجود؛ یک نمایش تازه روی همان داده.</dd>
+            <dt>داده لازم</dt>
+            <dd>هیچ ستون تازه‌ای؛ فقط جمع‌های ماه و هدف‌های موجود.</dd>
+            <dt>خطر</dt>
+            <dd>
+              جملهٔ اشتباه یا سرزنشگر (ماه بد) آزاردهنده است؛ جمله‌ها از قالب‌های ثابت و بدون قضاوت
+              انتخاب شوند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-kid">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">نمای پدر و مادر</div>
+            <div class="app-bar"><span>جیب‌خرجی آرین</span><span>هر شنبه</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۵">
+                <h3>جیب‌خرجی هفتگی</h3>
+                <div class="row"><span>مبلغ هر هفته</span><b>۲۵۰٬۰۰۰ تومان</b></div>
+                <div class="row"><span>مانده الان</span><b class="neg">۶۰٬۰۰۰ تومان</b></div>
+                <div class="bar bad"><i style="width: 24%"></i></div>
+                <div class="row">
+                  <button class="btn ghost">ثبت خرج آرین</button
+                  ><button class="btn ghost">هدیه یا اضافه</button>
+                </div>
+              </div>
+              <div class="card kind new" data-idea="ایدهٔ ۵">
+                <h3>مانده کم است</h3>
+                <small
+                  >جیب‌خرجی آرین ۶۰٬۰۰۰ مانده؛ شنبه ۲۵۰٬۰۰۰ دیگر اضافه می‌شود. شاید وقت یک گپ
+                  دربارهٔ خرج باشد.</small
+                >
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">نمای کودک (فقط همین)</div>
+            <div class="app-bar"><span>پول من</span><span>آرین</span></div>
+            <div class="screen">
+              <div class="card new kid" data-idea="ایدهٔ ۵">
+                <small>مانده تو</small>
+                <div class="num">۶۰٬۰۰۰ تومان</div>
+                <div class="bar warn"><i style="width: 24%"></i></div>
+                <small>شنبه دوباره پر می‌شود.</small>
+                <div class="row"><span>این هفته خرج کردی</span><b>۱۹۰٬۰۰۰</b></div>
+              </div>
+              <small class="muted"
+                >دارایی، بدهی و حساب‌های خانواده برای کودک نشان داده نمی‌شود.</small
+              >
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۵: حساب جیب‌خرجی بچه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>جیب‌خرجی بچه‌ها همیشه شفاهی است؛ نه بچه می‌داند چقدر مانده و نه پدر و مادر.</dd>
+            <dt>ایده</dt>
+            <dd>
+              یک حساب کوچک برای هر کودک با مبلغ هفتگی، مانده و پیام مهربان وقتی کم شد؛ کودک فقط
+              مانده خودش را می‌بیند.
+            </dd>
+            <dt>چرا</dt>
+            <dd>بچه یاد می‌گیرد پول کم‌وبیش می‌شود، بدون دیدن حساب خانواده.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>زیر حساب‌ها یا حساب مشترک؛ نمای کودک یک صفحهٔ جدا با نقش فقط‌خواندنی.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              تازه: حساب کودک و مبلغ هفتگی (ستون یا برگهٔ جدید؛ پیش از ساخت از مالک پرسیده می‌شود).
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              پولی واقعاً جابه‌جا نمی‌شود و فقط یادداشت است؛ مانده با کیف بچه ممکن است نخواند. نمای
+              کودک نباید راهی به داده‌های دیگر باز کند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

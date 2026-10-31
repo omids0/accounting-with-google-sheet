@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>راحتی و خانواده — حساب‌کتاب</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .photo {
+        height: 80px;
+        display: grid;
+        place-items: center;
+        border: 1px dashed var(--muted);
+        border-radius: 8px;
+        font-size: 0.8rem;
+        background: repeating-linear-gradient(
+          45deg,
+          var(--primary-soft),
+          var(--primary-soft) 8px,
+          var(--surface) 8px,
+          var(--surface) 16px
+        );
+      }
+      .sheet {
+        border-top: 3px solid var(--primary);
+        background: var(--surface);
+        border-radius: 14px 14px 0 0;
+        padding: 10px 12px;
+      }
+      .wave {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+      }
+      .wave i {
+        width: 6px;
+        border-radius: 3px;
+        background: var(--primary);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">نشان دادن/پنهان کردن بخش‌های تازه</button>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>راحتی و خانواده</h1>
+      <p class="lead">
+        کارهای کوچکی که زندگی روزمره را آسان‌تر می‌کنند: رسید و گارانتی گم نشود، خرج با صدا ثبت شود،
+        موجودی روی صفحهٔ گوشی باشد، ماه با یک نامه جمع شود و بچه‌ها هم جیب‌خرجی داشته باشند. امروز ۶
+        آبان ۱۴۰۵ است.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <a href="comfort-2.html">بخش ۲: ویجت، نامهٔ ماهانه و جیب‌خرجی ←</a>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-warranty">الف) عکس رسید و گارانتی</button>
+        <button data-idea="idea-voice">ب) ثبت صوتی</button>
+      </div>
+
+      <section class="idea" id="idea-warranty">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">ثبت خرید با عکس رسید</div>
+            <div class="app-bar"><span>هزینهٔ تازه</span><span>انصراف</span></div>
+            <div class="screen">
+              <div class="card">
+                <div class="row"><span>عنوان</span><b>یخچال ساید‌بای‌ساید</b></div>
+                <div class="row"><span>مبلغ</span><b>۴۲٬۰۰۰٬۰۰۰ تومان</b></div>
+                <div class="row"><span>قسط ماهانه</span><b>۴٬۲۰۰٬۰۰۰ تومان</b></div>
+                <button class="btn ghost">افزودن پیوست</button>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <div class="photo">عکس رسید و کارت گارانتی</div>
+                <div class="row"><span>پایان گارانتی</span><b>خرداد ۱۴۰۷</b></div>
+                <small>اپ تاریخ را از متن کارت خواند؛ اگر اشتباه است درستش کن.</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">جستجو: «گارانتی»</div>
+            <div class="app-bar"><span>جستجو</span><span>گارانتی</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۱">
+                <h3>گارانتی‌هایی که رو به پایان‌اند</h3>
+                <div class="row">
+                  <span>ماشین لباسشویی</span><span class="chip bad">گارانتی تا ۱۴۰۵/۰۹</span>
+                </div>
+                <div class="row">
+                  <span>گوشی همراه</span><span class="chip warn">گارانتی تا ۱۴۰۶/۰۱</span>
+                </div>
+                <div class="row">
+                  <span>یخچال ساید‌بای‌ساید</span><span class="chip ok">گارانتی تا ۱۴۰۷/۰۳</span>
+                </div>
+                <small>یادآوری سه ماه و یک ماه قبل از پایان گارانتی.</small>
+              </div>
+              <div class="card">
+                <h3>جستجوی عادی امروز</h3>
+                <small>فقط عنوان و توضیح رکورد جستجو می‌شود؛ تاریخ گارانتی جایی نیست.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۱: عکس رسید و گارانتی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              وقتی یخچال خراب می‌شود، رسید و کارت گارانتی پیدا نمی‌شود و معلوم نیست گارانتی تمام شده
+              یا نه.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              روی هر خرید عکس رسید بماند، پایان گارانتی ثبت شود و با جستجوی «گارانتی» کالاهای رو به
+              پایان یک‌جا دیده شوند.
+            </dd>
+            <dt>چرا</dt>
+            <dd>پول گارانتی فراموش‌شده همان پولی است که برای تعمیر می‌دهیم.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span> تا <span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>فرم ثبت هزینه و جزئیات رکورد (پیوست موجود است) و جستجو.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: پیوست عکس. تازه: یک ستون «پایان گارانتی»؛ تغییر شیت پیش از کدنویسی از مالک
+              پرسیده می‌شود.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              عکس‌ها حجم شیت و فضای گوگل را پر می‌کنند و باید فشرده شوند. خواندن خودکار تاریخ از عکس
+              اختیاری و اشتباه‌پذیر است.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-voice">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">در حال گوش دادن</div>
+            <div class="app-bar"><span>ثبت صوتی</span><span>انصراف</span></div>
+            <div class="screen">
+              <div class="sheet new" data-idea="ایدهٔ ۲">
+                <h3>بگو چه خرجی کردی</h3>
+                <div class="wave">
+                  <i style="height: 10px"></i><i style="height: 24px"></i
+                  ><i style="height: 38px"></i><i style="height: 18px"></i
+                  ><i style="height: 32px"></i><i style="height: 12px"></i
+                  ><i style="height: 26px"></i>
+                </div>
+                <div class="card">
+                  <small>متن زنده</small>
+                  <div>ناهار ۴۵۰ هزار تومان از ملی</div>
+                </div>
+                <button class="btn">تمام شد</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">پیش‌نمایش برای تایید</div>
+            <div class="app-bar"><span>هزینهٔ تازه</span><span>امروز</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۲">
+                <h3>این را فهمیدم</h3>
+                <div class="row"><span>مبلغ</span><b>۴۵۰٬۰۰۰ تومان</b></div>
+                <div class="row"><span>دسته</span><b>خوراک بیرون</b></div>
+                <div class="row"><span>حساب</span><b>کارت بانک ملی</b></div>
+                <div class="row"><span>تاریخ</span><b>۶ آبان ۱۴۰۵</b></div>
+                <small>اگر چیزی اشتباه است، رویش بزن و عوضش کن.</small>
+                <div class="row">
+                  <button class="btn">ثبت کن</button><button class="btn ghost">ویرایش</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۲: ثبت صوتی</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>وسط خرید یا رانندگی تایپ کردن سخت است و خرج ثبت نمی‌شود.</dd>
+            <dt>ایده</dt>
+            <dd>
+              یک دکمهٔ میکروفون؛ جمله گفته شود، متن زنده دیده شود، مبلغ و دسته و حساب جدا شوند و فقط
+              تایید بخواهد.
+            </dd>
+            <dt>چرا</dt>
+            <dd>ثبت در ده ثانیه، پس کمتر چیزی از قلم می‌افتد.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>دکمه‌ای کنار «هزینهٔ تازه»؛ همان فرم ثبت پر می‌شود، نه فرم جدید.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              هیچ ستون تازه‌ای. تحلیل جمله در خود گوشی با ابزارهای موجود (ارقام فارسی، تطبیق نام
+              حساب و دسته).
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              تشخیص گفتار فارسی در عدد و نام‌ها ضعیف است و بدون اینترنت ممکن است کار نکند. پس همیشه
+              پیش‌نمایش، هیچ ثبت بی‌پرسش.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
