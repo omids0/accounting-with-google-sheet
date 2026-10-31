@@ -57,9 +57,15 @@
               <div class="card">
                 <h3>پیامک بانک ملی <span class="chip warn">تکراری؟</span></h3>
                 <div class="num pos">واریز ۳۸٬۰۰۰٬۰۰۰</div>
-                <small>۶ آبان · حساب ملی</small>
+                <small>۵ آبان · حساب ملی</small>
                 <div class="btns">
-                  <button class="btn">ثبت</button><button class="btn ghost">نادیده</button>
+                  <button class="btn">ثبت</button
+                  ><button
+                    class="btn ghost"
+                    data-demo-msg="این پیامک نادیده گرفته می‌شود و دوباره پرسیده نمی‌شود"
+                  >
+                    نادیده
+                  </button>
                 </div>
               </div>
               <small class="muted"
@@ -74,24 +80,33 @@
               <div class="card">
                 <h3>پیامک بانک ملی <span class="chip warn">تکراری؟</span></h3>
                 <div class="num pos">واریز ۳۸٬۰۰۰٬۰۰۰</div>
-                <small>۶ آبان · حساب ملی</small>
+                <small>۵ آبان · حساب ملی</small>
                 <div class="card new" data-idea="ایدهٔ ج" style="margin-top: 14px">
                   <small class="muted">رکورد مشابه ثبت‌شده:</small>
-                  <div class="row"><span>کمک‌هزینه · ۵ آبان</span><b>۳۸٬۰۰۰٬۰۰۰</b></div>
+                  <div class="row"><span>کمک‌هزینه · ۶ آبان</span><b>۳۸٬۰۰۰٬۰۰۰</b></div>
                   <span class="chip">ثبت دستی</span>
                 </div>
                 <div class="btns new" data-idea="ایدهٔ ج" style="margin-top: 14px">
                   <button class="btn" data-demo="toggle" data-target="after">یکی کن</button>
-                  <button class="btn ghost">جدا ثبت کن</button>
+                  <button class="btn ghost" data-demo-msg="پیامک به‌صورت رکورد جدا ثبت می‌شود">
+                    جدا ثبت کن
+                  </button>
                 </div>
-                <button class="btn ghost" style="margin-top: 6px">نادیده</button>
+                <button
+                  class="btn ghost"
+                  style="margin-top: 6px"
+                  data-demo-msg="این پیامک نادیده گرفته می‌شود و دوباره پرسیده نمی‌شود"
+                >
+                  نادیده
+                </button>
               </div>
               <div class="card" id="after" hidden>
                 <h3>بعد از یکی‌کردن <span class="chip ok">یک رکورد</span></h3>
                 <div class="row"><span>کمک‌هزینه · ۵ آبان</span><b>۳۸٬۰۰۰٬۰۰۰</b></div>
                 <span class="chip">پیامک + دستی</span>
                 <small class="muted"
-                  >دسته و یادداشت دستی می‌ماند، متن پیامک هم کنارش نگه داشته می‌شود.</small
+                  >دسته و یادداشت دستی می‌ماند، متن پیامک هم کنارش نگه داشته می‌شود؛ تاریخ پیامک (۵
+                  آبان) می‌ماند.</small
                 >
               </div>
             </div>
@@ -142,16 +157,20 @@
             <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
             <div class="screen">
               <div class="card">
-                <div class="row"><span>قفل برنامه</span><input type="checkbox" checked /></div>
-              </div>
-              <div class="card">
                 <div class="row">
-                  <span>یادآوری سررسیدها</span><input type="checkbox" checked />
+                  <span>قفل برنامه</span><input type="checkbox" checked aria-label="قفل برنامه" />
                 </div>
               </div>
               <div class="card">
                 <div class="row">
-                  <span>خواندن پیامک بانکی</span><input type="checkbox" checked />
+                  <span>یادآوری سررسیدها</span
+                  ><input type="checkbox" checked aria-label="یادآوری سررسیدها" />
+                </div>
+              </div>
+              <div class="card">
+                <div class="row">
+                  <span>خواندن پیامک بانکی</span
+                  ><input type="checkbox" checked aria-label="خواندن پیامک بانکی" />
                 </div>
               </div>
               <small class="muted">هشدار تکراری امروز تنظیم ندارد.</small>
@@ -162,7 +181,10 @@
             <div class="app-bar"><span>تنظیمات</span><span>☰</span></div>
             <div class="screen">
               <div class="card new" data-idea="ایدهٔ د">
-                <div class="row"><b>بررسی تکراری بودن</b><input type="checkbox" checked /></div>
+                <div class="row">
+                  <b>بررسی تکراری بودن</b
+                  ><input type="checkbox" checked aria-label="بررسی تکراری بودن" />
+                </div>
                 <div class="seg">
                   <button data-s="exact">دقیق</button>
                   <button data-s="mid" class="on">متوسط</button>
@@ -175,14 +197,14 @@
                 <h3>موارد یکی‌شدهٔ این ماه <span class="chip">سه مورد</span></h3>
                 <div class="opt">
                   <span
-                    >کمک‌هزینه ۶ آبان <b>۳۸٬۰۰۰٬۰۰۰</b><br /><small class="muted"
+                    >کمک‌هزینه ۵ آبان <b>۳۸٬۰۰۰٬۰۰۰</b><br /><small class="muted"
                       >پیامک + دستی</small
                     ></span
                   ><button class="undo">برگردان</button>
                 </div>
                 <div class="opt">
                   <span
-                    >اینترنت ۴ آبان <b>۴۵۰٬۰۰۰</b><br /><small class="muted"
+                    >اینترنت ۴ آبان <b>۱٬۱۵۰٬۰۰۰</b><br /><small class="muted"
                       >تکرار + پیامک</small
                     ></span
                   ><button class="undo">برگردان</button>
@@ -242,7 +264,7 @@
   const desc = { exact: 'مبلغ، دسته و روز یکسان؛ هشدار کمتر.', mid: 'مبلغ و دسته یکسان در دو روز قبل و بعد؛ هشدار بیشتر.' }
   const segs = [...document.querySelectorAll('[data-s]')]
   segs.forEach(b => (b.onclick = () => { segs.forEach(x => x.classList.toggle('on', x === b)); document.getElementById('sDesc').textContent = desc[b.dataset.s] }))
-  document.querySelectorAll('.undo').forEach(b => (b.onclick = () => { b.closest('.opt').classList.add('undone'); b.textContent = 'دو رکورد شد'; b.disabled = true }))
+  document.querySelectorAll('.undo').forEach(b => (b.onclick = () => { const u = b.closest('.opt').classList.toggle('undone'); b.textContent = u ? 'دو رکورد شد؛ دوباره یکی کن' : 'برگردان' }))
 })()
 </script>
   </body>

@@ -71,6 +71,7 @@
     const button = event.target.closest?.('[data-demo-msg]')
 
     if (!button || button.disabled) return
+    if (button.tagName === 'A') event.preventDefault()
     button.classList.add('done')
     toast.textContent = `نمونه: در اپ اینجا ${button.dataset.demoMsg}.`
     toast.hidden = false
