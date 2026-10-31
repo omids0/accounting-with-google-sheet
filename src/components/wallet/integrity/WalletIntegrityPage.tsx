@@ -21,11 +21,19 @@ const lineClass = 'm-0 text-[0.82rem] leading-[1.9] text-muted'
 
 const count = (value: number) => toPersianDigits(String(value))
 
-function verdictOf(report: IntegrityReport): string {
-  const problems = report.findings.filter(item => item.severity === 'problem').length
+/** Findings the account list already shows (one row per account), not listed twice. */
+const ACCOUNT_KINDS = new Set(['balance-mismatch', 'no-history'])
 
-  if (report.clean)
+const othersOf = (report: IntegrityReport) =>
+  report.findings.filter(item => !ACCOUNT_KINDS.has(item.kind))
+
+function verdictOf(report: IntegrityReport): string {
+  const others = othersOf(report)
+  const problems = others.filter(item => item.severity === 'problem').length
+
+  if (!report.mismatched && !others.length) {
     return 'همه‌چیز می‌خواند؛ موجودی هر حساب با گردشش برابر است و مورد دیگری پیدا نشد.'
+  }
   if (!report.mismatched && !problems) {
     return 'موجودی همهٔ حساب‌ها با گردششان برابر است؛ فقط چند مورد برای اطلاع هست.'
   }
@@ -77,8 +85,8 @@ export default function WalletIntegrityPage() {
     )
   }
 
-  const bad =
-    !report.clean && (report.mismatched > 0 || report.findings.some(f => f.severity === 'problem'))
+  const others = othersOf(report)
+  const bad = !report.clean && (report.mismatched > 0 || others.some(f => f.severity === 'problem'))
 
   return (
     <div className={listModulePageClass}>
@@ -114,10 +122,10 @@ export default function WalletIntegrityPage() {
           ))}
         </ul>
       </CalmBlock>
-      {report.findings.length ? (
-        <CalmBlock title="موردهای دیگر" badge={`· ${count(report.findings.length)}`}>
+      {others.length ? (
+        <CalmBlock title="موردهای دیگر" badge={`· ${count(others.length)}`}>
           <ul className={calmListClass}>
-            {report.findings.map(finding => (
+            {others.map(finding => (
               <IntegrityFindingRow key={finding.id} finding={finding} />
             ))}
           </ul>
