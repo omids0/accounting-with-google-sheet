@@ -35,6 +35,8 @@ type ConfirmActionModalProps = {
   cancelLabel?: string
   /** The cancel button is a second answer, not a close (✕ and the backdrop still close). */
   onCancel?: () => void
+  /** Only the confirm button: a message the person just acknowledges. */
+  hideCancel?: boolean
   /**
    * `danger`: the question is about deleting something. The cancel button is the bright one
    * (filled, red, big, first focus) and the confirm button is the quiet secondary one, so a
@@ -57,6 +59,7 @@ export default function ConfirmActionModal({
   confirmLabel = 'بله',
   cancelLabel = 'خیر',
   onCancel,
+  hideCancel = false,
   tone = 'default',
   checkbox,
   children
@@ -128,16 +131,18 @@ export default function ConfirmActionModal({
           >
             {confirmLabel}
           </Button>
-          <Button
-            type="button"
-            variant={danger ? 'outflow' : 'secondary'}
-            className={danger ? 'py-4 text-base' : undefined}
-            disabled={confirming}
-            onClick={onCancel ?? onClose}
-            data-modal-initial-focus={danger ? true : undefined}
-          >
-            {cancelLabel}
-          </Button>
+          {hideCancel ? null : (
+            <Button
+              type="button"
+              variant={danger ? 'outflow' : 'secondary'}
+              className={danger ? 'py-4 text-base' : undefined}
+              disabled={confirming}
+              onClick={onCancel ?? onClose}
+              data-modal-initial-focus={danger ? true : undefined}
+            >
+              {cancelLabel}
+            </Button>
+          )}
         </div>
       </div>
     </div>,
