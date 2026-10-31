@@ -1,43 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as SettingsModule from './settings'
-import {
-  VEHICLE_EXPENSE_META_HEADERS,
-  VEHICLE_MECHANIC_HEADERS,
-  VEHICLES_HEADERS
-} from './sheetHeadersVehicle'
-import {
-  VEHICLE_EXPENSE_META_SHEET,
-  VEHICLE_MECHANIC_SHEET,
-  VEHICLES_SHEET,
-  WALLET_SHEET
-} from './sheetNames'
-import { fetchRecords } from './sheets'
-import { markSheetsPrepared } from './sheetsMeta'
-import { clearStore, setSheetAllRows } from './spreadsheetStore'
+import { WALLET_SHEET } from './sheetNames'
 import { saveMechanicVisit } from './vehicleActions'
 import { createManualVehicleExpense } from './vehicleExpenseActions'
 import { createVehicleExpense } from './vehicleExpenses'
-import {
-  fetchVehicleHistory,
-  VEHICLE_HISTORY_HEADERS,
-  VEHICLE_HISTORY_SHEET
-} from './vehicleHistory'
-import { completePeriodicService } from './vehiclePeriodicComplete'
-import {
-  createVehiclePeriodicService,
-  fetchVehiclePeriodicServices,
-  VEHICLE_PERIODIC_HEADERS,
-  VEHICLE_PERIODIC_SHEET
-} from './vehiclePeriodicServices'
+import { fetchVehicleHistory } from './vehicleHistory'
+import { createVehiclePeriodicService } from './vehiclePeriodicServices'
 import {
   buildVehicleExpenseTypeBreakdown,
   fetchVehicleTransactions,
   sumVehicleTransactionAmounts
 } from './vehicleTransactions'
-import { fetchWalletAccounts } from './wallet'
-import { fetchLedger, WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } from './walletLedger'
-import { seedDashboardSheets, testSettings } from '../test/dashboardFixtures'
+import { fetchLedger } from './walletLedger'
+import { WALLET_ACCOUNT_FIELD_ID, WALLET_APPLY_FIELD_ID } from '../components/form/fieldUtils'
+import { testSettings } from '../test/dashboardFixtures'
+import {
+  balance,
+  carRecordsTotal,
+  expectBalanceAndLedgerAgree,
+  expenseById,
+  expenseRecords,
+  firstService,
+  ID,
+  seed,
+  service,
+  START,
+  vehicle
+} from '../test/vehicleServiceFixtures'
 
 const mocks = vi.hoisted(() => ({ enqueue: vi.fn() }))
 
@@ -49,180 +39,82 @@ vi.mock('./settings', async importOriginal => ({
 }))
 vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn(), showSuccess: vi.fn() }))
 
-const ID = 'vehicle-service-wallet'
-const START = 10_000_000
-
-const vehicle = { id: 'v1', title: 'پژو', mileage: 1000, rowNumber: 2 } as never
-
-function seed(): void {
-  clearStore(ID)
-  localStorage.clear()
-  seedDashboardSheets(ID, START)
-  setSheetAllRows(ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
-  setSheetAllRows(ID, VEHICLE_PERIODIC_SHEET, [VEHICLE_PERIODIC_HEADERS])
-  setSheetAllRows(ID, VEHICLE_HISTORY_SHEET, [VEHICLE_HISTORY_HEADERS])
-  setSheetAllRows(ID, VEHICLES_SHEET, [VEHICLES_HEADERS])
-  setSheetAllRows(ID, VEHICLE_MECHANIC_SHEET, [VEHICLE_MECHANIC_HEADERS])
-  setSheetAllRows(ID, VEHICLE_EXPENSE_META_SHEET, [VEHICLE_EXPENSE_META_HEADERS])
-  // The tabs exist: no call to Google to check them.
-  markSheetsPrepared(ID, [
-    ...testSettings.forms.map(form => form.sheetName),
-    WALLET_SHEET,
-    WALLET_LEDGER_SHEET,
-    VEHICLE_PERIODIC_SHEET,
-    VEHICLE_HISTORY_SHEET,
-    VEHICLES_SHEET,
-    VEHICLE_MECHANIC_SHEET,
-    VEHICLE_EXPENSE_META_SHEET
-  ])
-}
-
-async function balance(): Promise<number> {
-  return (await fetchWalletAccounts(ID)).find(account => account.id === 'wallet-1')!.balance
-}
-
-/** The service as «ثبت انجام سرویس» is filled in; `previous` is the expense it replaces. */
-async function service(amount: number, previous: string, date = '2026-10-20') {
-  const [row] = await fetchVehiclePeriodicServices(ID, 'v1')
-
-  await completePeriodicService({
-    spreadsheetId: ID,
-    vehicle,
-    rowNumber: row.rowNumber,
-    serviceType: 'تعویض روغن',
-    serviceId: row.id,
-    mileage: 1000,
-    intervalKm: 5000,
-    brand: '',
-    location: '',
-    amount,
-    notes: '',
-    date,
-    previousExpenseId: previous,
-    isHistorical: true
-  })
-
-  return (await fetchVehiclePeriodicServices(ID, 'v1'))[0].expenseRecordId
-}
-
-async function firstService(amount: number): Promise<string> {
-  const expenseId = await createVehicleExpense(ID, {
-    title: 'تعویض روغن — پژو',
-    amount,
-    date: '2026-10-01',
-    walletAccount: 'wallet-1'
-  })
-
-  await createVehiclePeriodicService(ID, {
-    vehicleId: 'v1',
-    serviceType: 'تعویض روغن',
-    currentMileage: 900,
-    intervalKm: 5000,
-    nextKm: 5900,
-    brand: '',
-    location: '',
-    amount,
-    notes: '',
-    expenseRecordId: expenseId
-  })
-
-  return expenseId
-}
-
-async function carRecordsTotal(): Promise<number> {
-  const form = testSettings.forms.find(item => item.type === 'expense')!
-  const records = await fetchRecords(ID, form)
-
-  return records
-    .filter(record => record.values.category === 'خودرو')
-    .reduce((sum, record) => sum + Number(record.values.amount), 0)
-}
-
-describe('«ثبت انجام سرویس» again', () => {
+describe('«ثبت انجام سرویس» again: the wallet and the ledger', () => {
   beforeEach(() => {
     seed()
   })
 
-  it('moves the account by the difference only, however often it is redone', async () => {
+  it('creates a new expense and leaves the earlier cycle untouched', async () => {
     const first = await firstService(1_450_000)
+    const before = await expenseById(first)
+    const second = await service(2_100_000, first, '2026-10-25')
 
-    expect(await balance()).toBe(START - 1_450_000)
-
-    const second = await service(2_100_000, first)
-
-    expect(await balance()).toBe(START - 2_100_000)
-
-    const third = await service(2_100_000, second)
-
-    expect(await balance()).toBe(START - 2_100_000)
-
-    await service(1_000_000, third)
-    expect(await balance()).toBe(START - 1_000_000)
+    expect(second).not.toBe(first)
+    expect(await expenseById(first)).toEqual(before)
+    expect(await expenseRecords()).toHaveLength(2)
+    expect((await expenseById(second))?.values).toMatchObject({
+      amount: '2100000',
+      date: '2026-10-25',
+      title: 'تعویض روغن — پژو'
+    })
   })
 
-  it('writes one ledger line for a replaced expense, none when the amount is the same', async () => {
+  it('moves the account once per cycle, never refunds an earlier one, and the ledger agrees', async () => {
     const first = await firstService(1_450_000)
     const before = (await fetchLedger(ID, 'wallet-1')).length
-
-    const second = await service(2_100_000, first)
-    const lines = await fetchLedger(ID, 'wallet-1')
-
-    expect(lines).toHaveLength(before + 1)
-    expect(lines[0]).toMatchObject({ delta: -650_000, source: 'ویرایش', recordId: second })
-
-    await service(2_100_000, second)
-    expect(await fetchLedger(ID, 'wallet-1')).toHaveLength(before + 1)
-  })
-
-  it('sends ONE write to the account row, and a ledger that still adds up per record', async () => {
-    const first = await firstService(1_450_000)
 
     mocks.enqueue.mockClear()
 
     const second = await service(2_100_000, first)
     const walletWrites = mocks.enqueue.mock.calls.filter(([, op]) => op.sheetName === WALLET_SHEET)
+    const lines = await fetchLedger(ID, 'wallet-1')
 
     expect(walletWrites).toHaveLength(1)
-    expect(second).toBe(first)
-
-    const lines = (await fetchLedger(ID, 'wallet-1')).filter(line => line.recordId === second)
-
-    expect(lines.reduce((sum, line) => sum + line.delta, 0)).toBe(-2_100_000)
+    expect(lines).toHaveLength(before + 1)
+    expect(lines[0]).toMatchObject({ delta: -2_100_000, source: 'ثبت', recordId: second })
+    expect(lines.filter(line => line.recordId === first).map(line => line.delta)).toEqual([
+      -1_450_000
+    ])
+    expect(await balance()).toBe(START - 1_450_000 - 2_100_000)
+    await expectBalanceAndLedgerAgree()
   })
 
-  it('moves the expense to the chosen day and resets the next-due baseline', async () => {
-    const first = await firstService(1_450_000)
-    const second = await service(2_100_000, first, '2026-10-25')
-    const [row] = await fetchVehiclePeriodicServices(ID, 'v1')
-    const expense = (
-      await fetchRecords(ID, testSettings.forms.find(f => f.type === 'expense')!)
-    ).find(record => record.id === second)
+  it('keeps one expense and one history line per cycle, however often it is redone', async () => {
+    let previous = await firstService(1_000_000)
 
-    expect(expense?.values.date).toBe('2026-10-25')
-    expect((await fetchVehicleHistory(ID, 'v1')).map(line => line.date)).toEqual(['2026-10-25'])
-    expect(row.currentMileage).toBe(1000)
-    expect(row.nextKm).toBe(6000)
+    for (const amount of [1_100_000, 1_200_000, 1_200_000]) {
+      previous = await service(amount, previous)
+    }
+
+    expect(await expenseRecords()).toHaveLength(4)
+    expect(await fetchVehicleHistory(ID, 'v1')).toHaveLength(4)
+    expect(await balance()).toBe(START - 4_500_000)
+    await expectBalanceAndLedgerAgree()
   })
 
-  it('refreshes the history line of an identical redo and adds one when something changed', async () => {
-    const first = await firstService(1_450_000)
+  it('stays consistent when two redos are saved at the same moment', async () => {
+    const first = await firstService(1_000_000)
 
-    await service(2_100_000, first)
-    await service(2_100_000, first)
-    expect(await fetchVehicleHistory(ID, 'v1')).toHaveLength(1)
+    await Promise.all([
+      service(500_000, first, '2026-10-20'),
+      service(700_000, first, '2026-10-21')
+    ])
 
-    await service(2_500_000, first)
-    expect(await fetchVehicleHistory(ID, 'v1')).toHaveLength(2)
+    expect(await expenseRecords()).toHaveLength(3)
+    expect(await balance()).toBe(START - 2_200_000)
+    await expectBalanceAndLedgerAgree()
   })
 
-  it('refunds an expense that is redone with no amount', async () => {
+  it('makes no expense for a redo with no amount, and leaves the earlier one alone', async () => {
     const first = await firstService(1_450_000)
 
     expect(await service(0, first)).toBe('')
-    expect(await balance()).toBe(START)
+    expect(await expenseById(first)).toBeDefined()
+    expect(await balance()).toBe(START - 1_450_000)
+    await expectBalanceAndLedgerAgree()
   })
 
-  it('moves nothing for an expense that did not touch the balance', async () => {
+  it('pays the new cycle from the same account, and moves nothing when the last one opted out', async () => {
     const id = await createVehicleExpense(ID, {
       title: 'روغن',
       amount: 500,
@@ -242,8 +134,13 @@ describe('«ثبت انجام سرویس» again', () => {
       notes: '',
       expenseRecordId: id
     })
-    await service(700, id)
 
+    const second = await service(700, id)
+
+    expect((await expenseById(second))?.values).toMatchObject({
+      [WALLET_ACCOUNT_FIELD_ID]: 'wallet-1',
+      [WALLET_APPLY_FIELD_ID]: 'خیر'
+    })
     expect(await balance()).toBe(START)
   })
 })
@@ -279,10 +176,10 @@ describe('the car page total equals the car expenses in the records', () => {
 
     const items = await fetchVehicleTransactions(ID, 'v1')
 
-    expect(await carRecordsTotal()).toBe(3_000_000)
-    expect(sumVehicleTransactionAmounts(items)).toBe(3_000_000)
+    expect(await carRecordsTotal()).toBe(4_450_000)
+    expect(sumVehicleTransactionAmounts(items)).toBe(4_450_000)
     expect(buildVehicleExpenseTypeBreakdown(items).reduce((s, row) => s + row.total, 0)).toBe(
-      3_000_000
+      4_450_000
     )
   })
 })

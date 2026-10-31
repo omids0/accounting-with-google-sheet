@@ -1,7 +1,6 @@
 import {
   createLinkedExpenseRecord,
   deleteLinkedRecord,
-  linkedRecordValues,
   type LinkedRecordWallet
 } from './paymentTransactions'
 import {
@@ -11,9 +10,10 @@ import {
   walletEffectOf
 } from './recordWallet'
 import { getSettings, updateFormCategories } from './settings'
-import { fetchRecords, updateRecord } from './sheets'
+import { fetchRecords } from './sheets'
 import { WALLET_ACCOUNT_FIELD_ID, WALLET_APPLY_FIELD_ID } from '../components/form/fieldUtils'
 import { VEHICLE_EXPENSE_CATEGORY } from '../components/vehicles/constants'
+import type { CustomForm } from '../types'
 import { getTodayIso } from '../utils/jalaliDate'
 import { withLockedExpenseCategories } from '../utils/protectedCategories'
 
@@ -40,10 +40,7 @@ interface VehicleExpenseParams {
   subCategory?: string
   note?: string
   date?: string
-  /**
-   * Account (and balance switch) of the record this one replaces; the balance moves
-   * with the new amount unless that record opted out.
-   */
+  /** Account (and balance switch) the expense names; the balance moves unless it opted out. */
   walletAccount?: string
   walletApply?: string
 }
@@ -77,60 +74,44 @@ export async function deleteVehicleExpense(
   return deleteLinkedRecord(spreadsheetId, 'expense', expenseRecordId)
 }
 
+async function findFirstRecord(spreadsheetId: string, form: CustomForm, ids: string[]) {
+  const records = await fetchRecords(spreadsheetId, form)
+
+  for (const id of ids) {
+    const match = records.find(record => record.id === id)
+
+    if (match) return match
+  }
+
+  return undefined
+}
+
 /**
- * A service done again takes the place of its earlier expense. The record is EDITED in place (same
- * id, same account and balance switch), exactly as the records page edits it: the account moves by
- * the difference in ONE write and one «ویرایش» line, instead of a refund and a new debit as two
- * writes on the same wallet row, one of which a slow or interrupted sync could lose. Without an
- * earlier record, or without a new amount, there is nothing to net: it is created or deleted.
- * Each service cycle still REPLACES the previous cycle's expense, by existing design (an owner
- * decision is pending on whether a new cycle should be its own expense).
- * @returns the id of the expense that now stands for the service ('' without an amount).
+ * A service done again is a NEW cycle with its OWN expense: the earlier cycle's record (its amount,
+ * date and wallet effect) is never touched, so history, totals and the account ledger keep every
+ * cycle. Only the account and balance switch of the earlier record are read (never written), so
+ * the new cycle is paid from the same account the last one was. `previousExpenseIds` lists the
+ * earlier cycles' expenses, newest first; the first that still exists is used, and when none
+ * does (the only cycle was deleted) the new expense has no account. The wallet move is the shared
+ * `createVehicleExpense` path (one serial wallet write, one «ثبت» ledger line).
+ * @returns the id of the new expense ('' without an amount: no expense is made).
  */
-export async function replaceVehicleExpense(
+export async function createNextCycleVehicleExpense(
   spreadsheetId: string,
-  previousExpenseId: string,
+  previousExpenseIds: string[],
   params: Omit<VehicleExpenseParams, 'walletAccount' | 'walletApply'>
 ): Promise<string> {
+  if (params.amount <= 0) return ''
+
   const form = getSettings()?.forms.find(item => item.type === 'expense')
   const previous =
-    form && previousExpenseId && params.amount > 0
-      ? (await fetchRecords(spreadsheetId, form)).find(record => record.id === previousExpenseId)
+    form && previousExpenseIds.length
+      ? await findFirstRecord(spreadsheetId, form, previousExpenseIds)
       : undefined
 
-  if (!form || !previous) {
-    const wallet = await deleteVehicleExpense(spreadsheetId, previousExpenseId)
-
-    return createVehicleExpense(spreadsheetId, { ...params, ...wallet })
-  }
-
-  await ensureVehicleExpenseCategory()
-
-  const values = {
-    ...previous.values,
-    ...linkedRecordValues({
-      ...params,
-      category: VEHICLE_EXPENSE_CATEGORY,
-      walletAccount: previous.values[WALLET_ACCOUNT_FIELD_ID],
-      walletApply: previous.values[WALLET_APPLY_FIELD_ID]
-    })
-  }
-
-  await updateRecord(
-    spreadsheetId,
-    form,
-    previous.rowNumber,
-    previous.id,
-    previous.createdAt,
-    values,
-    previous.sheetName
-  )
-  await applyWalletChanges(
-    spreadsheetId,
-    walletEffectOf('expense', previous.values),
-    walletEffectOf('expense', values),
-    recordLedgerContext(values, 'ویرایش', previous.id)
-  )
-
-  return previous.id
+  return createVehicleExpense(spreadsheetId, {
+    ...params,
+    walletAccount: previous?.values[WALLET_ACCOUNT_FIELD_ID],
+    walletApply: previous?.values[WALLET_APPLY_FIELD_ID]
+  })
 }
