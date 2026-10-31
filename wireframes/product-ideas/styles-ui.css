@@ -1,0 +1,147 @@
+/* Product-ideas prototype: cards, chips, bars and the purple marker for new parts. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.card h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.card small,
+.muted {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.num {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.pos {
+  color: var(--success);
+}
+
+.neg {
+  color: var(--danger);
+}
+
+.btn {
+  font: inherit;
+  border: 0;
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.chip.warn {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.chip.bad {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.chip.ok {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+/* A part of the screen that does not exist in the app today. */
+.new {
+  position: relative;
+  outline: 2px dashed var(--new);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.new::after {
+  content: attr(data-idea);
+  position: absolute;
+  top: -10px;
+  inset-inline-start: 8px;
+  background: var(--new);
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 0 8px;
+  border-radius: 999px;
+}
+
+body.hide-new .new {
+  outline: 0;
+}
+
+body.hide-new .new::after {
+  display: none;
+}
+
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.bar > i {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.bar.warn > i {
+  background: var(--warn);
+}
+
+.bar.bad > i {
+  background: var(--danger);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  margin: 8px 0 16px;
+}

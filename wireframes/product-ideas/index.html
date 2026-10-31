@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پروتوتایپ ایده‌های محصول — حساب‌کتاب</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .topic {
+        display: grid;
+        gap: 6px;
+      }
+      .topic h2 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+      .topic ul {
+        margin: 4px 0;
+        padding-inline-start: 18px;
+        font-size: 0.88rem;
+      }
+      .meta {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .rank {
+        display: inline-grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: #fff;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <span>پروتوتایپ ایده‌های محصول (فقط تصویر؛ کدی در اپ تغییر نکرده)</span>
+      <span>
+        <button data-toggle="theme">تیره / روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>ایده‌ها را ببینید، بعد انتخاب کنید</h1>
+      <p class="lead">
+        این ایده‌ها از گزارش چهار کاربر شبیه‌سازی‌شده (مادر، کارمند حسابدار، کاسب و مدیر ساختمان،
+        تخریبگر) و جلسه حساب مشترک جمع شده‌اند. هر کارت یک صفحه دارد با چند ایده، صفحهٔ گوشی «قبل و
+        بعد»، و یادداشت مشکل، چرا، اندازه، داده لازم و خطر.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <span class="chip ok">کوچک</span>
+        <span class="chip warn">متوسط</span>
+        <span class="chip bad">بزرگ</span>
+      </p>
+
+      <div class="grid-3">
+        <article class="card topic">
+          <h2><span class="rank">۱</span> پیش‌بینی و تقویم نقدینگی</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط</span>
+            <span class="chip">هر چهار نفر خواستند</span>
+          </div>
+          <ul>
+            <li>تا آخر ماه چقدر می‌ماند؟ و روزی که موجودی کم می‌آورد</li>
+            <li>تقویم ۳۰ و ۶۰ روزه با رنگ «پول کافی هست؟»</li>
+            <li>می‌توانم این را بخرم؟</li>
+            <li>پول لازم ۳۰ روز آینده برای کاسب</li>
+          </ul>
+          <a href="forecast.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۲</span> اعتماد و حسابرسی</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط تا بزرگ</span>
+            <span class="chip">کارمند، تخریبگر، حساب مشترک</span>
+          </div>
+          <ul>
+            <li>بستن ماه با قفل و «اصلاحیه»</li>
+            <li>ردپای کامل با مقدار قبل و بعد و بازگردانی</li>
+            <li>دکمه «بررسی یکپارچگی» از روی گردش حساب</li>
+            <li>خروجی استاندارد برای حسابدار</li>
+          </ul>
+          <a href="trust.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۳</span> «قبلاً ثبت شده؟»</h2>
+          <div class="meta">
+            <span class="chip ok">کوچک تا متوسط</span>
+            <span class="chip">مادر، کارمند، کاسب</span>
+          </div>
+          <ul>
+            <li>یک قاعده برای ثبت دستی، پیامک و تکرار ماهانه</li>
+            <li>وضعیت هر تکرار قبل از «ثبت همه»</li>
+            <li>یکی‌کردن پیامک و رکورد دستی با برگشت</li>
+          </ul>
+          <a href="dedupe.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۴</span> بودجه هوشمند</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط</span>
+            <span class="chip">مادر، کارمند</span>
+          </div>
+          <ul>
+            <li>پاکت‌های بودجه (مدرسه، خوراک، ماشین)</li>
+            <li>بودجه‌بندی روز حقوق، هزینه‌های فصلی</li>
+            <li>هشدار «قبض دو برابر شد»، تشخیص اشتراک، قاعده خودکار</li>
+          </ul>
+          <a href="budget.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۵</span> بدهی و هدف</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط</span>
+            <span class="chip">مادر، کارمند</span>
+          </div>
+          <ul>
+            <li>برنامه‌ریز بدهی برفی یا بهمنی</li>
+            <li>هدف دارایی خالص و «در مسیر هستی؟»</li>
+            <li>هدفی که مهربانانه تذکر می‌دهد</li>
+            <li>اصل وام در دارایی خالص</li>
+          </ul>
+          <a href="debt-goals.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۶</span> فروشنده و مدیر ساختمان</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط تا بزرگ</span>
+            <span class="chip">کاسب و مدیر ساختمان</span>
+          </div>
+          <ul>
+            <li>سقف اعتبار مشتری و سن بدهی</li>
+            <li>چک برگشتی و شمارش شبانه صندوق</li>
+            <li>یادآوری شارژ با پیش‌نمایش و رسید</li>
+            <li>بودجه سالانه و پیش‌بینی صندوق ساختمان</li>
+          </ul>
+          <a href="shop-building.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۷</span> حساب مشترک، نسخهٔ بعد</h2>
+          <div class="meta">
+            <span class="chip warn">متوسط تا بزرگ</span>
+            <span class="chip">جلسهٔ مادر و کاسب</span>
+          </div>
+          <ul>
+            <li>تسویه با یک ضربه و سهم دلخواه</li>
+            <li>علامت «خصوصی» و سقف ماهانه هر عضو</li>
+            <li>تأیید خرج بزرگ، اعلان و خروج شریک</li>
+          </ul>
+          <a href="shared.html">دیدن صفحه ←</a>
+        </article>
+
+        <article class="card topic">
+          <h2><span class="rank">۸</span> راحتی و خانواده</h2>
+          <div class="meta">
+            <span class="chip bad">متوسط تا بزرگ</span>
+            <span class="chip">مادر و کارمند</span>
+          </div>
+          <ul>
+            <li>عکس رسید و گارانتی</li>
+            <li>ثبت صوتی «ناهار ۴۵۰ هزار»</li>
+            <li>ویجت صفحه اصلی، نامهٔ ماهانه، جیب‌خرجی بچه</li>
+          </ul>
+          <a href="comfort.html">دیدن صفحه ←</a>
+        </article>
+      </div>
+
+      <h2 style="margin-top: 28px">تصمیم‌هایی که قبل از شروع لازم است</h2>
+      <div class="card">
+        <ol>
+          <li>
+            هزینهٔ چرخهٔ سرویس خودرو: هر چرخه هزینهٔ جدا داشته باشد و قبلی پاک نشود (پیشنهاد: بله).
+          </li>
+          <li>
+            سقف حجم بسته الان ۱٫۲۵ از ۱٫۳ مگابایت است: سقف بالا برود یا ویژگی‌های بزرگ تنبل‌بار
+            شوند.
+          </li>
+          <li>اولویت: کدام سه موضوع اول ساخته شود؟ پیشنهاد من: ۱، ۲ و ۳.</li>
+        </ol>
+      </div>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
