@@ -1,9 +1,10 @@
 import { create } from 'zustand'
 
 import * as apkUpdate from '../services/appUpdate'
-import type { AvailableUpdate } from '../services/appUpdate'
+import { UPDATE_BACKUP_FAILED_MESSAGE, type AvailableUpdate } from '../services/appUpdate'
 import { isNativePlatform } from '../services/googleAuthNative'
 import * as webUpdate from '../services/webUpdate'
+import { showInfo } from '../utils/toast'
 
 const RECHECK_THROTTLE_MS = 30 * 60_000
 
@@ -14,9 +15,11 @@ interface AppUpdateStore {
   /** «بعداً»: per launch on the web; the APK remembers the postponed build. */
   dismissedKey: string | null
   checking: boolean
+  /** «در حال گرفتن پشتیبان…»: the backup before the update is running; a second press is ignored. */
+  preparing: boolean
   lastCheckedAt: number
   check: (options?: { force?: boolean }) => Promise<AvailableUpdate | null>
-  apply: () => void
+  apply: () => Promise<void>
   dismiss: () => void
 }
 
@@ -29,6 +32,7 @@ export const useAppUpdateStore = create<AppUpdateStore>((set, get) => ({
   update: null,
   dismissedKey: native ? apkUpdate.getDismissedKey() : null,
   checking: false,
+  preparing: false,
   lastCheckedAt: 0,
   check: async ({ force = false } = {}) => {
     const { checking, lastCheckedAt, update } = get()
@@ -47,12 +51,26 @@ export const useAppUpdateStore = create<AppUpdateStore>((set, get) => ({
       set({ checking: false })
     }
   },
-  apply: () => {
-    const { update } = get()
+  apply: async () => {
+    const { update, preparing } = get()
 
-    if (!update) return
+    if (!update || preparing) return
+
+    set({ preparing: true })
+    try {
+      // Loaded on demand: the backup code stays out of the main chunk until someone updates.
+      const { backupBeforeUpdate } = await import('../services/updateBackup')
+
+      await backupBeforeUpdate(update.versionName || undefined)
+    } catch {
+      // The backup never blocks the update.
+      showInfo(UPDATE_BACKUP_FAILED_MESSAGE)
+    } finally {
+      set({ preparing: false })
+    }
+
     if (native) apkUpdate.applyUpdate(update)
-    else void webUpdate.applyUpdate()
+    else await webUpdate.applyUpdate()
   },
   dismiss: () => {
     const { update } = get()

@@ -25,7 +25,11 @@ export default function LayoutUpdateItem() {
 
   const apply = useAppUpdateStore(state => state.apply)
 
-  const label = update
+  const preparing = useAppUpdateStore(state => state.preparing)
+
+  const label = preparing
+    ? 'در حال گرفتن پشتیبان…'
+    : update
     ? `به‌روزرسانی به ${update.versionName || 'نسخه جدید'}`
     : checking
     ? 'در حال بررسی…'
@@ -33,7 +37,7 @@ export default function LayoutUpdateItem() {
 
   const handleClick = async () => {
     if (update) {
-      apply()
+      void apply()
 
       return
     }
@@ -59,8 +63,8 @@ export default function LayoutUpdateItem() {
         type="button"
         className={appMenuItemClass(!!update)}
         onClick={() => void handleClick()}
-        disabled={checking}
-        aria-busy={checking}
+        disabled={checking || preparing}
+        aria-busy={checking || preparing}
       >
         <span className={appMenuItemIconClass(!!update)}>
           <AppIcon name={update ? 'import' : 'refresh'} size={20} />

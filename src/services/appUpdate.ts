@@ -26,6 +26,9 @@ export const APK_DOWNLOAD_URL =
 
 const DISMISSED_KEY = 'accounting_update_dismissed'
 
+/** The quiet toast when the backup taken before an update failed or ran out of time (`updateBackup.ts`). */
+export const UPDATE_BACKUP_FAILED_MESSAGE = 'پشتیبان پیش از به‌روزرسانی ساخته نشد'
+
 /**
  * A newer version, from the APK release manifest or a waiting web service worker.
  * `webUpdate.ts` exposes the same `checkForUpdate` / `applyUpdate` / `status` as
