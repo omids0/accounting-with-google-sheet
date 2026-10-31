@@ -43,6 +43,7 @@ describe('appUpdateStore.apply', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.backupBeforeUpdate.mockResolvedValue('saved')
+    mocks.applyApk.mockReturnValue(true)
   })
 
   it('backs up first, then installs the web update', async () => {
@@ -118,6 +119,20 @@ describe('appUpdateStore.apply', () => {
     expect(mocks.showInfo).toHaveBeenCalledWith('ساخته نشد')
     expect(mocks.applyWeb).toHaveBeenCalledTimes(1)
     expect(store.getState().preparing).toBe(false)
+  })
+
+  it('on the APK, a refused installer link waits for one more tap without a second backup', async () => {
+    mocks.applyApk.mockReturnValueOnce(false)
+
+    const store = await loadStore(true)
+
+    await store.getState().apply()
+    expect(store.getState().installBlocked).toBe(true)
+
+    await store.getState().apply()
+    expect(mocks.applyApk).toHaveBeenCalledTimes(2)
+    expect(mocks.backupBeforeUpdate).toHaveBeenCalledTimes(1)
+    expect(store.getState().installBlocked).toBe(false)
   })
 
   it('does nothing without an update', async () => {

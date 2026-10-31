@@ -17,6 +17,8 @@ interface AppUpdateStore {
   checking: boolean
   /** «در حال گرفتن پشتیبان…»: the backup before the update is running; a second press is ignored. */
   preparing: boolean
+  /** APK: the installer link was refused after the backup; the next tap («باز کردن لینک نصب») opens it. */
+  installBlocked: boolean
   lastCheckedAt: number
   check: (options?: { force?: boolean }) => Promise<AvailableUpdate | null>
   apply: () => Promise<void>
@@ -33,6 +35,7 @@ export const useAppUpdateStore = create<AppUpdateStore>((set, get) => ({
   dismissedKey: native ? apkUpdate.getDismissedKey() : null,
   checking: false,
   preparing: false,
+  installBlocked: false,
   lastCheckedAt: 0,
   check: async ({ force = false } = {}) => {
     const { checking, lastCheckedAt, update } = get()
@@ -52,9 +55,15 @@ export const useAppUpdateStore = create<AppUpdateStore>((set, get) => ({
     }
   },
   apply: async () => {
-    const { update, preparing } = get()
+    const { update, preparing, installBlocked } = get()
 
     if (!update || preparing) return
+    if (installBlocked) {
+      // The backup is done; this tap is itself the gesture that lets the link open.
+      if (apkUpdate.applyUpdate(update)) set({ installBlocked: false })
+
+      return
+    }
 
     set({ preparing: true })
     try {
@@ -69,8 +78,8 @@ export const useAppUpdateStore = create<AppUpdateStore>((set, get) => ({
       set({ preparing: false })
     }
 
-    if (native) apkUpdate.applyUpdate(update)
-    else await webUpdate.applyUpdate()
+    if (!native) await webUpdate.applyUpdate()
+    else if (!apkUpdate.applyUpdate(update)) set({ installBlocked: true })
   },
   dismiss: () => {
     const { update } = get()

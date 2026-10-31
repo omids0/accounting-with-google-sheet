@@ -16,6 +16,7 @@ import { useAppUpdateStore } from '../stores/appUpdateStore'
 export default function UpdateBanner() {
   const { update, apply, dismiss } = useAppUpdateCheck()
   const preparing = useAppUpdateStore(state => state.preparing)
+  const installBlocked = useAppUpdateStore(state => state.installBlocked)
 
   if (!update) return null
 
@@ -40,7 +41,7 @@ export default function UpdateBanner() {
           aria-busy={preparing}
           onClick={() => void apply()}
         >
-          {preparing ? 'در حال گرفتن پشتیبان…' : 'به‌روزرسانی'}
+          {preparing ? 'در حال پشتیبان…' : installBlocked ? 'باز کردن لینک نصب' : 'به‌روزرسانی'}
         </Button>
         <button type="button" className={nudgeLinkClass} disabled={preparing} onClick={dismiss}>
           بعداً

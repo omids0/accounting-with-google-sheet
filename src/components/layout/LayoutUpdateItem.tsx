@@ -27,8 +27,12 @@ export default function LayoutUpdateItem() {
 
   const preparing = useAppUpdateStore(state => state.preparing)
 
+  const installBlocked = useAppUpdateStore(state => state.installBlocked)
+
   const label = preparing
-    ? 'در حال گرفتن پشتیبان…'
+    ? 'در حال پشتیبان…'
+    : installBlocked
+    ? 'باز کردن لینک نصب'
     : update
     ? `به‌روزرسانی به ${update.versionName || 'نسخه جدید'}`
     : checking
