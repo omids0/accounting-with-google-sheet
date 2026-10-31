@@ -58,7 +58,7 @@
     })
   })
 
-  // Demo buttons: [data-demo-msg="what the app records"] shows a toast and a done mark.
+  // Demo buttons: [data-demo-msg="what the app records, as a full clause"] shows a toast and a done mark.
   const toast = document.createElement('div')
   let timer
 
@@ -72,7 +72,7 @@
 
     if (!button || button.disabled) return
     button.classList.add('done')
-    toast.textContent = `نمونه: در اپ اینجا ${button.dataset.demoMsg} ثبت می‌شود`
+    toast.textContent = `نمونه: در اپ اینجا ${button.dataset.demoMsg}.`
     toast.hidden = false
     clearTimeout(timer)
     timer = setTimeout(() => (toast.hidden = true), 3200)

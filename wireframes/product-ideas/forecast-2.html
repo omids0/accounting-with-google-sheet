@@ -45,7 +45,7 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
       </p>
       <div class="tabs">
         <button data-idea="idea-c">ج) می‌توانم بخرم؟</button>
-        <button data-idea="idea-d">د) پول لازم ۳۰ روز آینده</button>
+        <button data-idea="idea-d">د) پول لازم ۵ هفتهٔ آینده</button>
       </div>
 
       <section class="idea" id="idea-c">
@@ -56,7 +56,7 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
             <div class="screen">
               <div class="card">
                 <h3>مبلغ</h3>
-                <div class="num">۵٬۰۰۰٬۰۰۰ تومان</div>
+                <div class="num"><span class="fAmt">۵٬۰۰۰٬۰۰۰</span> تومان</div>
               </div>
               <div class="card">
                 <h3>دسته</h3>
@@ -76,10 +76,10 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
             <div class="screen">
               <div class="card scrim">
                 <h3>مبلغ</h3>
-                <div class="num">۵٬۰۰۰٬۰۰۰ تومان</div>
+                <div class="num"><span class="fAmt">۵٬۰۰۰٬۰۰۰</span> تومان</div>
               </div>
               <div class="card sheet new" data-idea="ایدهٔ ج">
-                <h3>می‌توانم بخرم؟ <span class="chip warn">تخمین</span></h3>
+                <h3>می‌توانم بخرم؟ <span class="chip warn">برآورد</span></h3>
                 <label class="muted"
                   >مبلغ خرید: <b id="aOut">۵٬۰۰۰٬۰۰۰</b> تومان
                   <input type="range" id="amt" min="0" max="15000000" step="500000" value="5000000"
@@ -89,12 +89,20 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
                   <button class="chip" data-v="5000000">پنج میلیون</button>
                   <button class="chip" data-v="10000000">ده میلیون</button>
                 </div>
-                <div class="row"><small>بدون خرید، کمترین مانده</small><small id="m0"></small></div>
-                <div class="row"><small>با خرید، کمترین مانده</small><small id="m1"></small></div>
+                <div class="row">
+                  <small>بدون خرید، کمترین مانده (برآورد)</small><small id="m0"></small>
+                </div>
+                <div class="row">
+                  <small>با خرید، کمترین مانده (برآورد)</small><small id="m1"></small>
+                </div>
                 <div class="v" id="verdict"></div>
                 <small id="tip"></small>
                 <div class="row">
-                  <button class="btn">ثبت کن</button><button class="btn ghost">یادآوری بعدی</button>
+                  <button class="btn" id="doIt" data-demo-msg="هزینه با همین مبلغ ثبت می‌شود">
+                    ثبت کن</button
+                  ><button class="btn ghost" data-demo-msg="یادآوری برای روز امن‌تر ساخته می‌شود">
+                    یادآوری بعدی
+                  </button>
                 </div>
               </div>
             </div>
@@ -111,7 +119,8 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
             <dt>ایده</dt>
             <dd>
               برگه‌ای که مبلغ را می‌گیرد و کمترین مانده ۳۰ روز آینده را قبل و بعد از خرید نشان
-              می‌دهد. حکم: «می‌توانی ولی ۲۳ آبان کم می‌آوری» و پیشنهاد عقب انداختن تا روزی که امن
+              می‌دهد. حکم از همان کمترین مانده و تاریخ ساخته می‌شود («با این خرید از ۲۳ آبان مانده
+              منفی می‌شود»، «حاشیهٔ امنت کم می‌شود» یا «بخر») و پیشنهاد عقب انداختن تا روزی که امن
               است. نوار را بکش.
             </dd>
             <dt>چرا</dt>
@@ -145,35 +154,40 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
             <div class="screen">
               <div class="card">
                 <h3>پرداختی</h3>
-                <div class="row"><span>چک آقای احمدی</span><b>۲۲٬۰۰۰٬۰۰۰</b></div>
-                <div class="row"><span>چک فروشگاه نور</span><b>۱۱٬۵۳۱٬۲۵۰</b></div>
+                <div id="todayOut"></div>
               </div>
               <div class="card">
                 <h3>دریافتی</h3>
-                <div class="row"><span>چک آقای رضایی</span><b>۸٬۰۰۰٬۰۰۰</b></div>
+                <div id="todayIn"></div>
               </div>
               <small class="muted">فهرست ساده است؛ جمع هر هفته و مانده دیده نمی‌شود.</small>
             </div>
           </div>
           <div class="phone">
-            <div class="cap">با ایده (نمونهٔ مغازه‌دار، بدون حقوق ثابت)</div>
+            <div class="cap">با ایده (نمونهٔ مغازه‌دار، بدون حقوق ثابت؛ ۶ آبان تا ۱۰ آذر)</div>
             <div class="app-bar"><span>چک‌ها</span><span>☰</span></div>
             <div class="screen">
               <div class="card new" data-idea="ایدهٔ د">
-                <h3>پول لازم ۳۰ روز آینده <span class="chip warn">تخمین</span></h3>
+                <h3>پول لازم ۵ هفتهٔ آینده <span class="chip warn">برآورد</span></h3>
                 <div class="v bad" id="alert"></div>
                 <label class="muted"
                   ><input type="checkbox" id="late" /> اگر چک‌های دریافتی یک هفته دیر وصول
                   شوند</label
                 >
                 <div id="weeks"></div>
-                <small class="muted">فقط چک‌ها؛ فروش و خرج روزانه حساب نشده‌اند.</small>
+                <label class="muted"
+                  ><input type="checkbox" id="daily" /> خرج روزانهٔ ۱٬۰۰۰٬۰۰۰ را هم حساب کن (مثل
+                  صفحهٔ اول)</label
+                >
+                <small class="muted"
+                  >مانده امروز <bdi>۶۴٬۵۸۱٬۲۵۰</bdi> (ملی و نقدی). فروش آینده حساب نشده است.</small
+                >
               </div>
             </div>
           </div>
         </div>
         <div class="notes">
-          <h2>ایدهٔ د: کارت «پول لازم ۳۰ روز آینده»</h2>
+          <h2>ایدهٔ د: کارت «پول لازم ۵ هفتهٔ آینده»</h2>
           <dl>
             <dt>مشکل</dt>
             <dd>
@@ -209,44 +223,6 @@ button.chip{border:0;font:inherit;font-size:.72rem;cursor:pointer}
       </section>
     </main>
     <script src="app.js"></script>
-    <!-- prettier-ignore -->
-    <script>
-;(() => {
-  const S = 64581250, SAFE = 5e6, q = id => document.getElementById(id)
-  const fa = n => Math.abs(Math.round(n)).toLocaleString('fa-IR')
-  const money = n => (n < 0 ? 'منفی ' : '') + fa(n)
-  const day = i => (i < 25 ? `${fa(6 + i)} آبان` : `${fa(i - 24)} آذر`)
-  const ev = [[4, -3100000], [6, -4350000], [8, -22e6], [12, -800000], [16, -11531250], [19, 8e6], [25, 65e6], [29, -18e6]]
-  let b = S
-  const bal = Array.from({ length: 30 }, (_, i) => (b += ev.filter(e => e[0] === i).reduce((s, e) => s + e[1], 0) - 1e6))
-  const calc = () => {
-    const A = +q('amt').value, m0 = Math.min(...bal), af = bal.map(v => v - A), m1 = Math.min(...af), neg = af.findIndex(v => v < 0)
-    const k = bal.findIndex((_, k) => bal.slice(k).every(v => v - A >= 0))
-    q('aOut').textContent = fa(A)
-    q('m0').textContent = `${money(m0)} تومان (${day(bal.indexOf(m0))})`
-    q('m1').textContent = `${money(m1)} تومان (${day(af.indexOf(m1))})`
-    const [cls, txt] = m1 < 0 ? ['bad', `می‌توانی ولی ${day(neg)} کم می‌آوری`] : m1 < SAFE ? ['warn', 'می‌توانی ولی حاشیهٔ امنت کم می‌شود'] : ['ok', 'بخر؛ مانده‌ات بالای حاشیهٔ امن می‌ماند']
-    q('verdict').className = 'v ' + cls; q('verdict').textContent = txt
-    q('tip').textContent = m1 < 0 ? `پیشنهاد: خرید را تا ${day(k)} عقب بینداز؛ تا آن روز مانده‌ات بالا می‌رود.` : ''
-  }
-  q('amt').oninput = calc
-  document.querySelectorAll('[data-v]').forEach(c => (c.onclick = () => { q('amt').value = c.dataset.v; calc() }))
-  const W = [['۶ تا ۱۲ آبان', 9e6, 4e6], ['۱۳ تا ۱۹ آبان', 22e6, 6.5e6], ['۲۰ تا ۲۶ آبان', 31531250, 8e6], ['۲۷ آبان تا ۳ آذر', 24e6, 5e6], ['۴ تا ۱۰ آذر', 18e6, 9e6]]
-  const weeks = () => {
-    let r = S, first = -1
-    q('weeks').innerHTML = W.map(([l, o, i], n) => {
-      const inn = q('late').checked ? (n ? W[n - 1][2] : 0) : i
-      r += inn - o; if (r < 0 && first < 0) first = n
-      return `<div class="wk"><b>هفتهٔ ${fa(n + 1)} · ${l}</b><div class="row"><small>چک پرداختی</small><small>${fa(o)}</small></div><div class="bar bad"><i style="width:${(o / 32e6) * 100}%"></i></div>
-        <div class="row"><small>چک دریافتی</small><small>${fa(inn)}</small></div><div class="bar ok"><i style="width:${(inn / 32e6) * 100}%"></i></div>
-        <div class="row"><span>مانده پایان هفته</span><b class="${r < 0 ? 'neg' : 'pos'}">${money(r)}</b></div></div>`
-    }).join('')
-    q('alert').textContent = first < 0 ? 'در این هفته‌ها منفی نمی‌شوی' : `از این هفته منفی می‌شود: هفتهٔ ${fa(first + 1)} (${W[first][0]})`
-    q('alert').className = 'v ' + (first < 0 ? 'ok' : 'bad')
-  }
-  q('late').onchange = weeks
-  calc(); weeks()
-})()
-</script>
+    <script src="forecast-2.js"></script>
   </body>
 </html>
