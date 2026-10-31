@@ -71,6 +71,7 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   'report-counterparties': '/reports/counterparties',
   'report-cash-flow': '/reports/cash-flow',
   'report-due-dates': '/reports/due-dates',
+  'report-forecast': '/reports/forecast',
   'report-assets-liabilities': '/reports/assets-liabilities',
   'report-opening-balances': '/reports/opening-balances',
   'report-wallet': '/reports/wallet',

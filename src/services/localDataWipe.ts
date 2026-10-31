@@ -98,7 +98,9 @@ const ACCOUNT_KEYS = [
   // The shared account turned off on this device (sharedAccountSwitch.ts).
   'accounting_shared_hidden_v1',
   // Copies of personal records still to be sent to the shared account (sharedLinkPrefs.ts).
-  'accounting_shared_link_v1'
+  'accounting_shared_link_v1',
+  // «تا آخر ماه چقدر می‌ماند؟»: accounts left out of the forecast (cashForecastLoad.ts).
+  'accounting_cash_forecast_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

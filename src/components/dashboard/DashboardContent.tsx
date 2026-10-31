@@ -36,6 +36,7 @@ export interface DashboardNavigation {
   onOpenFilter: () => void
   onConfigureNetAvailable: () => void
   onViewDueDates: () => void
+  onOpenForecast: () => void
   onViewRecords: () => void
   onOpenCharts: () => void
   onViewBreakdown: () => void
@@ -113,6 +114,7 @@ export default function DashboardContent({
           className={dashboardCellClass.upcoming}
           items={upcomingReminders}
           onViewAll={nav.onViewDueDates}
+          onOpenForecast={nav.onOpenForecast}
         />
 
         <DashboardRecentBlock

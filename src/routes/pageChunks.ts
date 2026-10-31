@@ -51,6 +51,9 @@ export const loadAssetsLiabilitiesReportPage: PageLoader = () =>
 export const loadCashFlowReportPage: PageLoader = () =>
   import('../components/reports/CashFlowReportPage')
 
+export const loadCashForecastPage: PageLoader = () =>
+  import('../components/forecast/CashForecastPage')
+
 export const loadDueDatesReportPage: PageLoader = () =>
   import('../components/reports/DueDatesReportPage')
 
@@ -221,6 +224,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-counterparties': loadCounterpartiesReportPage,
   'report-cash-flow': loadCashFlowReportPage,
   'report-due-dates': loadDueDatesReportPage,
+  'report-forecast': loadCashForecastPage,
   'report-assets-liabilities': loadAssetsLiabilitiesReportPage,
   'report-opening-balances': loadOpeningBalanceReportPage,
   'report-wallet': loadModuleReportPage,

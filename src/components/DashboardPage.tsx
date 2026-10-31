@@ -104,6 +104,7 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
         onOpenFilter: dashboard.openFilterModal,
         onConfigureNetAvailable: () => nav().onTabChange('net-available-settings'),
         onViewDueDates: () => nav().onTabChange('report-due-dates'),
+        onOpenForecast: () => nav().onTabChange('report-forecast'),
         onViewRecords: () => nav().onOpenRecords(),
         onOpenCharts: () => nav().onTabChange('charts'),
         onViewBreakdown: () => {
