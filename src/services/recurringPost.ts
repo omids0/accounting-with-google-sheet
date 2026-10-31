@@ -101,6 +101,11 @@ function freshItem(
 export interface ReminderPostOptions {
   /** Told for each item whose payment is already among the records: it is marked, not posted. */
   onDuplicate?: (item: RecurringItem) => void
+  /**
+   * Items the user ticked again although their payment is already a record («قبلاً ثبت شده»):
+   * they get their own record, the duplicate lookup is skipped for them.
+   */
+  recordAnyway?: ReadonlySet<string>
 }
 
 /**
@@ -131,7 +136,7 @@ async function postReminderLocked(
   items: RecurringItem[],
   checkedIds: ReadonlySet<string>,
   todayIso: string,
-  { onDuplicate }: ReminderPostOptions
+  { onDuplicate, recordAnyway }: ReminderPostOptions
 ): Promise<number> {
   const { spreadsheetId } = settings
   const monthKey = getJalaliMonthKey(todayIso)
@@ -159,12 +164,9 @@ async function postReminderLocked(
     if (handled) continue
     await saveRecurringItem(spreadsheetId, { ...row, lastPosted: monthKey })
 
-    const existing = findExistingRecordForRecurring(
-      row,
-      recurringDueDate(row, monthKey),
-      ledger,
-      usedRecordIds
-    )
+    const existing = recordAnyway?.has(item.id)
+      ? null
+      : findExistingRecordForRecurring(row, recurringDueDate(row, monthKey), ledger, usedRecordIds)
 
     if (existing) {
       if (existing.id) usedRecordIds.add(existing.id)
