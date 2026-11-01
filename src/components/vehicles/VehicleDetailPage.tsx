@@ -55,8 +55,12 @@ export default function VehicleDetailPage({
   })
   const transactionFilters = useVehicleTransactionFilters(page.transactions, page.detailTab)
   const filteredFuelStats = useMemo(
-    () => buildMonthlyFuelStats(filterFuelTransactions(transactionFilters.filteredItems)),
-    [transactionFilters.filteredItems]
+    () =>
+      buildMonthlyFuelStats(
+        filterFuelTransactions(transactionFilters.filteredItems),
+        filterFuelTransactions(page.transactions)
+      ),
+    [transactionFilters.filteredItems, page.transactions]
   )
 
   const detailTabOptions = useMemo(
