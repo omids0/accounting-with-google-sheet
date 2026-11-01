@@ -65,6 +65,35 @@ export default function TransactionTypeSegment({
     else if (tabBox.right > listBox.right) list.scrollLeft += tabBox.right - listBox.right + 8
   }, [scrollable, value])
 
+  // A mouse wheel only scrolls vertically and the scrollbar is hidden, so without this a desktop
+  // user could never reach the tabs off the edge. Native listener: React's onWheel is passive.
+  useEffect(() => {
+    const list = listRef.current
+
+    if (!scrollable || !list) return
+
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return
+
+      const rtl = getComputedStyle(list).direction === 'rtl'
+      const step = event.deltaY * (event.deltaMode === 1 ? 16 : 1) * (rtl ? -1 : 1)
+      const max = list.scrollWidth - list.clientWidth
+      const next = list.scrollLeft + step
+      const [low, high] = rtl ? [-max, 0] : [0, max]
+
+      // At either end let the page scroll as usual.
+      if (next === list.scrollLeft || (step < 0 ? list.scrollLeft <= low : list.scrollLeft >= high))
+        return
+
+      event.preventDefault()
+      list.scrollTo({ left: Math.min(high, Math.max(low, next)), behavior: 'instant' })
+    }
+
+    list.addEventListener('wheel', onWheel, { passive: false })
+
+    return () => list.removeEventListener('wheel', onWheel)
+  }, [scrollable])
+
   if (options.length <= 1) return null
 
   return (
