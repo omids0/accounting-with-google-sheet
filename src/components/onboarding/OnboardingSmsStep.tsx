@@ -5,6 +5,7 @@ import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/b
 import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { showError, showSuccess } from '../../utils/toast'
 import AppIcon from '../AppIcon'
+import SmsPermissionHelp from '../bankSms/SmsPermissionHelp'
 import Button from '../ui/Button'
 import {
   onboardingSavedNoteClass,
@@ -15,6 +16,7 @@ import {
 export default function OnboardingSmsStep({ onReadyChange }: OnboardingStepProps) {
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const [busy, setBusy] = useState(false)
+  const [denied, setDenied] = useState(false)
 
   useEffect(() => {
     onReadyChange(enabled)
@@ -25,6 +27,7 @@ export default function OnboardingSmsStep({ onReadyChange }: OnboardingStepProps
     try {
       const result = await enableBankSmsCapture()
 
+      if (result === 'denied') setDenied(true)
       if (result !== 'enabled') {
         showError(BANK_SMS_ENABLE_MESSAGES[result])
 
@@ -57,6 +60,10 @@ export default function OnboardingSmsStep({ onReadyChange }: OnboardingStepProps
           <AppIcon name="bell" size={18} />
           دادن اجازه پیامک
         </Button>
+      )}
+
+      {denied && !enabled && (
+        <SmsPermissionHelp grantedAction={{ label: 'فعال‌سازی', onClick: enable, busy }} />
       )}
     </>
   )
