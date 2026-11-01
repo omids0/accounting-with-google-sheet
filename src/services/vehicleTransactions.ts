@@ -8,6 +8,7 @@ import type { MonthlyFuelStats, VehicleTransactionItem } from '../types/vehicles
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
 import { isFuelExpenseType } from '../utils/vehicleExpenseUtils'
+import { computeFuelEfficiencyL100km } from '../utils/vehicleFuelEfficiency'
 
 const KIND_LABELS: Record<string, string> = {
   periodic: 'سرویس دوره‌ای',
@@ -166,16 +167,7 @@ export function buildMonthlyFuelStats(
       }
     }
 
-    let efficiencyL100km: number | null = null
-    const mileages = sorted.map(item => item.mileage ?? 0).filter(value => value > 0)
-
-    if (mileages.length >= 2) {
-      const distance = mileages[mileages.length - 1] - mileages[0]
-
-      if (distance > 0) {
-        efficiencyL100km = (totalLiters / distance) * 100
-      }
-    }
+    const efficiencyL100km = computeFuelEfficiencyL100km(sorted)
 
     stats.push({
       monthKey,
