@@ -4,6 +4,7 @@ import { inviteMember } from './buildingMemberDrive'
 import { parseMembers, ROLE_ROW_PREFIX } from './buildingRoles'
 import { registerWorkspaceSpreadsheet } from './buildingTemplate'
 import { inviteBlockMessages } from './memberMessages'
+import { markActivityTrailMigrated } from './migrateActivityTrailColumns'
 import { markCompactGridsMigrated } from './migrateCompactGrids'
 import { SHARED_SHEET_SPECS } from './moduleSheetSpecs'
 import { MEMBERSHIP_DATE_KEY } from './periodSettings'
@@ -107,6 +108,8 @@ export async function createSharedSpreadsheet(
   markFreshlyCreated(spreadsheetId)
   // Its tabs were created with exact grids, so the first download has nothing to shrink either.
   markCompactGridsMigrated(spreadsheetId)
+  // Its activity tab was created with all twelve columns, the trail ones included.
+  markActivityTrailMigrated(spreadsheetId)
   // Known before the first activation, so its forms, tabs and menu are the shared account's.
   setWorkspaceType(spreadsheetId, 'shared')
   registerSharedSpreadsheet(spreadsheetId, title)
