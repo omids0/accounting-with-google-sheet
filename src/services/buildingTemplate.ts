@@ -4,6 +4,7 @@ import { buildingLabel } from './buildingLabel'
 import { ROLE_ROW_PREFIX } from './buildingRoles'
 import { buildingCategoryGroups, buildingSubcategories } from './buildingTemplateData'
 import { groupsToRows, withDefaults } from './categoryGroups'
+import { markActivityTrailMigrated } from './migrateActivityTrailColumns'
 import { markCompactGridsMigrated } from './migrateCompactGrids'
 import { BUILDING_MODULE_SHEET_SPECS, BUILDING_SHEET_SPECS } from './moduleSheetSpecs'
 import { MEMBERSHIP_DATE_KEY } from './periodSettings'
@@ -193,6 +194,8 @@ export async function createBuildingSpreadsheet(
   markFreshlyCreated(spreadsheetId)
   // Its tabs were created with exact grids, so the first download has nothing to shrink either.
   markCompactGridsMigrated(spreadsheetId)
+  // Its activity tab was created with all twelve columns, the trail ones included.
+  markActivityTrailMigrated(spreadsheetId)
   // Known before the first activation, so its forms and category locks are the building's.
   setWorkspaceType(spreadsheetId, 'building')
   registerBuildingSpreadsheet(spreadsheetId, title)
