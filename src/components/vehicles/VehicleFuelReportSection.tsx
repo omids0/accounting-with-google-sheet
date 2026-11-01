@@ -136,7 +136,9 @@ export default function VehicleFuelReportSection({ stats }: VehicleFuelReportSec
                 لیتر در ۱۰۰ کیلومتر
               </span>
             ) : (
-              <span className="text-[0.76rem] text-muted">حداقل ۲ بار بنزین برای محاسبه مصرف</span>
+              <span className="text-[0.76rem] text-muted">
+                برای محاسبه مصرف، کارکرد دو بار بنزین پشت‌سرهم لازم است
+              </span>
             )}
           </div>
 

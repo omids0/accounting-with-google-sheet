@@ -125,9 +125,9 @@ export async function fetchVehicleTransactions(
   return sortByDateDesc(transactions)
 }
 
-export function buildMonthlyFuelStats(
+function groupFuelByMonth(
   fuelTransactions: VehicleTransactionItem[]
-): MonthlyFuelStats[] {
+): Map<string, VehicleTransactionItem[]> {
   const byMonth = new Map<string, VehicleTransactionItem[]>()
 
   for (const item of fuelTransactions) {
@@ -141,15 +141,47 @@ export function buildMonthlyFuelStats(
     byMonth.set(monthKey, bucket)
   }
 
+  return byMonth
+}
+
+/** Each month measures from the highest odometer reading of the months before it. */
+function buildEfficiencyByMonth(
+  fuelTransactions: VehicleTransactionItem[]
+): Map<string, number | null> {
+  const byMonth = groupFuelByMonth(fuelTransactions)
+  const efficiency = new Map<string, number | null>()
+  let previousMileage: number | null = null
+
+  for (const monthKey of [...byMonth.keys()].sort()) {
+    const fills = byMonth.get(monthKey) ?? []
+    const monthTop = Math.max(0, ...fills.map(fill => fill.mileage ?? 0))
+
+    efficiency.set(monthKey, computeFuelEfficiencyL100km(fills, previousMileage))
+
+    if (monthTop > 0) previousMileage = Math.max(previousMileage ?? 0, monthTop)
+  }
+
+  return efficiency
+}
+
+/**
+ * `allFuelTransactions` is the unfiltered list: the consumption of a month needs the readings
+ * of the month before it even when a filter hides them from the cards.
+ */
+export function buildMonthlyFuelStats(
+  fuelTransactions: VehicleTransactionItem[],
+  allFuelTransactions: VehicleTransactionItem[] = fuelTransactions
+): MonthlyFuelStats[] {
+  const byMonth = groupFuelByMonth(fuelTransactions)
+  const efficiencyByMonth = buildEfficiencyByMonth(allFuelTransactions)
   const stats: MonthlyFuelStats[] = []
 
   for (const [monthKey, items] of byMonth) {
-    const sorted = [...items].sort((a, b) => (a.mileage ?? 0) - (b.mileage ?? 0))
     const priceMap = new Map<number, { liters: number; amount: number }>()
     let totalLiters = 0
     let totalAmount = 0
 
-    for (const item of sorted) {
+    for (const item of items) {
       const liters = item.fuelLiters ?? 0
       const amount = item.amount
       const price = item.fuelPricePerLiter ?? 0
@@ -167,8 +199,6 @@ export function buildMonthlyFuelStats(
       }
     }
 
-    const efficiencyL100km = computeFuelEfficiencyL100km(sorted)
-
     stats.push({
       monthKey,
       totalLiters,
@@ -176,7 +206,7 @@ export function buildMonthlyFuelStats(
       byPrice: [...priceMap.entries()]
         .map(([price, values]) => ({ price, ...values }))
         .sort((a, b) => a.price - b.price),
-      efficiencyL100km,
+      efficiencyL100km: efficiencyByMonth.get(monthKey) ?? null,
       entries: [...items]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map(item => ({
