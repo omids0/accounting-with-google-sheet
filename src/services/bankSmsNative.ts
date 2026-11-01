@@ -34,6 +34,8 @@ interface BankSmsPlugin {
   /** Lines (newline-joined) appended to the digest on `date` only. */
   setDigestNotes(options: { date: string; lines: string }): Promise<void>
   openNotificationSettings(): Promise<void>
+  /** The app's info screen in system settings (permissions, «Allow restricted settings»). */
+  openAppSettings(): Promise<void>
 }
 
 const BankSms = registerPlugin<BankSmsPlugin>('BankSms')
@@ -127,6 +129,18 @@ export async function openNativeNotificationSettings(): Promise<boolean> {
   if (!isBankSmsAvailable()) return false
 
   return BankSms.openNotificationSettings()
+    .then(() => true)
+    .catch(() => false)
+}
+
+/**
+ * Opens this app's info screen; false on the web, when the screen could not be opened, or when
+ * the installed APK predates the method.
+ */
+export async function openNativeAppSettings(): Promise<boolean> {
+  if (!isBankSmsAvailable()) return false
+
+  return BankSms.openAppSettings()
     .then(() => true)
     .catch(() => false)
 }
