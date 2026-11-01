@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import BankSmsHelp from './BankSmsHelp'
+import SmsPermissionHelp from './SmsPermissionHelp'
 import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { SETTINGS_REMINDERS_PATH } from '../../routes/paths'
 import { BANK_SMS_ENABLE_MESSAGES, enableBankSmsCapture } from '../../services/bankSmsEnable'
@@ -26,6 +27,8 @@ type BankSmsSettingsCardProps = {
 export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardProps) {
   const [enabled, setEnabled] = useState(() => getBankSmsPrefs().enabled)
   const [granted, setGranted] = useState(true)
+  // Refused (not just never asked): Android needs the app's settings screen from here.
+  const [denied, setDenied] = useState(false)
   const [busy, setBusy] = useState(false)
   const [notifyAllowed, setNotifyAllowed] = useState(true)
   const navigate = useNavigate()
@@ -34,7 +37,10 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
 
   useEffect(() => {
     void getBankSmsPermission()
-      .then(state => setGranted(state === 'granted'))
+      .then(state => {
+        setGranted(state === 'granted')
+        setDenied(state === 'denied')
+      })
       .catch(() => {})
     void getNotificationPermission()
       .then(state => setNotifyAllowed(state === 'granted'))
@@ -46,13 +52,17 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
     try {
       const result = await enableBankSmsCapture()
 
-      if (result === 'denied') setGranted(false)
+      if (result === 'denied') {
+        setGranted(false)
+        setDenied(true)
+      }
       if (result !== 'enabled') {
         showError(BANK_SMS_ENABLE_MESSAGES[result])
 
         return
       }
       setGranted(true)
+      setDenied(false)
       setEnabled(true)
       showSuccess(BANK_SMS_ENABLE_MESSAGES.enabled)
       onChanged()
@@ -78,8 +88,18 @@ export default function BankSmsSettingsCard({ onChanged }: BankSmsSettingsCardPr
       <h2 className={smsCardTitleClass}>ثبت خودکار از پیامک بانکی</h2>
       <BankSmsHelp />
 
-      {enabled && !granted && (
+      {enabled && !granted && !denied && (
         <p className={smsHintClass}>اجازه دسترسی به پیامک‌ها لغو شده است؛ دوباره اجازه دهید.</p>
+      )}
+
+      {denied && (
+        // The «فعال‌سازی» button below is the offer to turn capture on once it is granted.
+        <SmsPermissionHelp
+          onGranted={() => {
+            setGranted(true)
+            if (enabled) setDenied(false)
+          }}
+        />
       )}
 
       {enabled && !notifyAllowed && isPersonal && (
