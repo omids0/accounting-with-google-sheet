@@ -100,6 +100,7 @@ export default function DashboardRecentBlock({
     <CalmBlock
       className={className}
       title="تراکنش‌های اخیر"
+      icon="records"
       action={rows.length ? { label: 'همه ←', onClick: onViewAll } : undefined}
     >
       {!rows.length ? (

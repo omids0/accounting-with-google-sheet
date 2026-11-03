@@ -7,11 +7,11 @@ export const listCardInsetClass = 'p-2'
 export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
 
 /** List module pages — filters, card grid, footer stats with consistent vertical rhythm. */
-export const listModulePageClass = cx('flex flex-col gap-4 md:gap-5 [&_.list-card]:mb-0')
+export const listModulePageClass = cx('flex flex-col gap-3 md:gap-5 [&_.list-card]:mb-0')
 
 /** Wraps mapped list cards — responsive multi-column grid on desktop. */
 export const listCardsContainerClass = cx(
-  'flex flex-col gap-3',
+  'flex flex-col gap-2',
   // One column until 56rem: a half-width card at a 768px tablet is too narrow for a money row.
   'md:gap-4 min-[56rem]:grid min-[56rem]:grid-cols-2 xl:grid-cols-3 [&_.list-card]:mb-0'
 )

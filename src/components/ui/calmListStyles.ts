@@ -11,6 +11,12 @@ export const calmBlockHeadClass = 'flex min-h-9 items-center justify-between gap
 
 export const calmBlockTitleClass = 'm-0 text-[0.86rem] font-bold text-text'
 
+/** A small tinted tile with the section's icon, before its title. */
+export const calmBlockIconClass = cx(
+  'inline-flex size-7 shrink-0 items-center justify-center rounded-xl',
+  'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary-dark'
+)
+
 export const calmBlockBadgeClass = 'ms-1 text-[0.72rem] font-medium text-danger'
 
 export const calmBlockLinkClass = cx(
@@ -53,7 +59,7 @@ export const calmDayBadgeDangerClass =
   'bg-[var(--color-danger-bg)] text-[color-mix(in_srgb,var(--color-danger)_80%,var(--color-text))]'
 
 export const calmBarTrackClass =
-  'mt-1.5 h-1 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--color-text)_9%,transparent)]'
+  'mt-1.5 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--color-text)_9%,transparent)]'
 
 export const calmBarClass =
   'h-full rounded-full origin-right transition-transform duration-700 ease-out motion-reduce:transition-none'

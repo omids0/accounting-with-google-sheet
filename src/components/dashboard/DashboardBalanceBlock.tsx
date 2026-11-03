@@ -81,6 +81,7 @@ export default function DashboardBalanceBlock({
     <CalmBlock
       className={className}
       title="دارایی و بدهی"
+      icon="wallet"
       action={{ label: 'جزئیات ←', onClick: onDetails }}
     >
       <ul className={calmListClass}>

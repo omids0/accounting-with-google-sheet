@@ -5,6 +5,7 @@ import DashboardGoalCongratsCard from './DashboardGoalCongratsCard'
 import DashboardGuideCard from './DashboardGuideCard'
 import DashboardHero from './DashboardHero'
 import DashboardPeriodRow from './DashboardPeriodRow'
+import DashboardQuickActions from './DashboardQuickActions'
 import DashboardRecentBlock from './DashboardRecentBlock'
 import DashboardRecurringCard from './DashboardRecurringCard'
 import DashboardUpcomingBlock from './DashboardUpcomingBlock'
@@ -109,6 +110,8 @@ export default function DashboardContent({
           onConfigure={nav.onConfigureNetAvailable}
           previousMonth={period.kind === 'month' ? data.previousMonth : undefined}
         />
+
+        <DashboardQuickActions />
 
         <DashboardUpcomingBlock
           className={dashboardCellClass.upcoming}

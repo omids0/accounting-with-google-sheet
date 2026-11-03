@@ -40,6 +40,7 @@ export default function DashboardActivityBlock({ className }: { className?: stri
     <CalmBlock
       className={className}
       title="فعالیت اخیر"
+      icon="counterparties"
       action={{ label: 'همه ←', onClick: () => navigate(SETTINGS_ACTIVITY_PATH) }}
     >
       <ActivityList entries={entries} info={info} />

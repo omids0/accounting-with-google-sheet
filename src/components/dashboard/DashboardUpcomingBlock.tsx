@@ -34,6 +34,7 @@ export default function DashboardUpcomingBlock({
     <CalmBlock
       className={className}
       title="پیش رو"
+      icon="clock"
       badge={overdueCount > 0 ? `· ${formatPersianNumber(overdueCount)} معوق` : undefined}
       action={{ label: 'همه ←', onClick: onViewAll }}
     >

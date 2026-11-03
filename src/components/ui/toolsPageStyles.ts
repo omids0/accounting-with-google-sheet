@@ -2,10 +2,10 @@ import { listModulePageClass } from './featureCardStyles'
 import { reportPageDesktopClass } from './responsiveStyles'
 import { cn, cx } from '../../utils/cn'
 
-export const reportPageClass = cx('flex flex-col gap-4 md:gap-5')
+export const reportPageClass = cx('flex flex-col gap-3 md:gap-5')
 
 /** Pair chart/table or twin summary cards side-by-side on desktop. */
-export const reportPageSplitClass = cx('flex flex-col gap-4', reportPageDesktopClass)
+export const reportPageSplitClass = cx('flex flex-col gap-3', reportPageDesktopClass)
 
 /** Desktop grid for report chart cards (donut/bar pairs). */
 export const reportChartsGridClass = cx(
