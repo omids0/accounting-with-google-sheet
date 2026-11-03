@@ -1,5 +1,9 @@
 import type { SpreadsheetEntry } from '../types'
-import { listAccountingSpreadsheetsFromDrive, type DriveSpreadsheetFile } from './drive'
+import {
+  isForeignReadOnlyFile,
+  listAccountingSpreadsheetsFromDrive,
+  type DriveSpreadsheetFile
+} from './drive'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 
 function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
@@ -13,6 +17,9 @@ function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
 /**
  * Merges the sheets Drive reports with the ones this device already knows. Under
  * drive.file, Drive lists only sheets the app created or the user picked with it.
+ * A sheet someone else owns and this user can only read (a child's account shared with a parent)
+ * is never added here: without the device-local child registry it would pass for the user's own
+ * books. It stays listed only when this device registered it.
  */
 export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
   const settings = getSettings() ?? getDefaultSettings()
@@ -29,8 +36,12 @@ export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
     // device registered.
     const known = merged.get(file.id)
 
+    if (!known && isForeignReadOnlyFile(file)) continue
+
     merged.set(file.id, {
       ...driveFileToEntry(file),
+      // A child's name is the one the parent gave it, not the child's own sheet title.
+      ...(known?.kind === 'child' ? { name: known.name } : {}),
       ...(known?.kind ? { kind: known.kind } : {}),
       ...(known?.active === false ? { active: false } : {})
     })

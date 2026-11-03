@@ -52,6 +52,7 @@ import {
   RECURRING_SHEET,
   CATEGORIES_SHEET,
   CHECKS_SHEET,
+  CHILD_VIEW_SHEETS,
   COUNTERPARTIES_SHEET,
   DANG_SHEET,
   DANG_SPLIT_ALLOCATIONS_SHEET,
@@ -156,4 +157,9 @@ export const BUILDING_MODULE_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filte
  */
 export const SHARED_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(spec =>
   SHARED_ACCOUNT_SHEETS.includes(spec.sheetName)
+)
+
+/** The module tabs of a child's account a parent downloads (read-only), besides the record forms. */
+export const CHILD_SHEET_SPECS: SheetSpec[] = MODULE_SHEET_SPECS.filter(spec =>
+  CHILD_VIEW_SHEETS.includes(spec.sheetName)
 )

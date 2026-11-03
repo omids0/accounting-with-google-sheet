@@ -6,7 +6,7 @@ import {
   formatSpreadsheetTitle,
   getSpreadsheetLabel
 } from '../../services/spreadsheetCatalog'
-import { isBuildingEntry } from '../../services/workspace'
+import { isBuildingEntry, isChildEntry } from '../../services/workspace'
 import type { SpreadsheetEntry } from '../../types'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import { FormField, FormSelect } from '../form'
@@ -36,6 +36,7 @@ function sheetOptionLabel(sheet: SpreadsheetEntry, activeId: string): string {
   return (
     getSpreadsheetLabel(sheet.name) +
     (isBuildingEntry(sheet) ? ' · ساختمان' : '') +
+    (isChildEntry(sheet) ? ' · فرزند' : '') +
     (pending ? ` · ${toPersianDigits(String(pending))} تغییر در انتظار` : '')
   )
 }

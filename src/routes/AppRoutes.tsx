@@ -22,6 +22,10 @@ import {
   LazyBuildingUnitPage,
   LazyBuildingUnitsPage,
   LazyChartsPage,
+  LazyChildCategoriesPage,
+  LazyChildHomePage,
+  LazyChildRecordsPage,
+  LazyChildrenHomePage,
   LazyChecksPage,
   LazyCounterpartiesPage,
   LazyCurrencyConverterPage,
@@ -34,6 +38,7 @@ import {
   LazyLoanRequestCalculatorPage,
   LazyNetAvailableSettingsPage,
   LazyOpeningBalancePage,
+  LazyParentsHomePage,
   LazyReceivablesPage,
   LazySearchPage,
   LazyRecordsPage,
@@ -241,6 +246,11 @@ export function AppAuthenticatedRoutes() {
             <Route path="building/settings/members" element={<LazyBuildingMembersPage />} />
             <Route path="building/settings/lists" element={<LazyBuildingListsPage />} />
             <Route path="building/reports" element={<LazyBuildingReportsPage />} />
+            <Route path="children" element={<LazyChildrenHomePage />} />
+            <Route path="parents" element={<LazyParentsHomePage />} />
+            <Route path="child" element={<LazyChildHomePage />} />
+            <Route path="child/records" element={<LazyChildRecordsPage />} />
+            <Route path="child/categories" element={<LazyChildCategoriesPage />} />
             <Route path="shared" element={<LazySharedHomePage />} />
             <Route path="shared/records" element={<LazySharedRecordsPage />} />
             <Route path="shared/settle" element={<LazySharedSettlePage />} />

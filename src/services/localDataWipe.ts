@@ -58,6 +58,8 @@ const ACCOUNT_KEYS = [
   GOAL_CONGRATS_STORAGE_KEY,
   // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
   'accounting_budget_alerts_v1',
+  // The children a parent follows read-only (childrenRegistry.ts), named here to keep that module out.
+  'accounting_children_v1',
   // «دسته‌های پیشنهادی» offer dismissal (categoryDefaults.ts), named here for the same reason.
   'accounting_category_defaults_offer_v1',
   // «پرتکرار» pins/hides (entryTemplates.ts), named here to keep that module out of this chunk.

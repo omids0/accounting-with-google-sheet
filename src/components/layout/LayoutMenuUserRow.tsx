@@ -35,7 +35,7 @@ export default function LayoutMenuUserRow({
   useDataRevision()
   const workspace = useWorkspaceType()
   const role =
-    workspace === 'personal'
+    workspace === 'personal' || workspace === 'child'
       ? null
       : optionLabel(registryOf(workspace).roles, roleOf<string>(getUserEmail() ?? ''))
 

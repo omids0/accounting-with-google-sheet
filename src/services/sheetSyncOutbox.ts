@@ -1,3 +1,4 @@
+import { assertNotChildReadOnly, isChildReadOnly } from './childReadOnly'
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { withOutboxLock } from './outboxLock'
 import { RowEditConflictError } from './rowConflict'
@@ -75,6 +76,7 @@ export function dismissFailedWrites(spreadsheetId: string): void {
 }
 
 export function queueOutboxWrite(spreadsheetId: string, operation: OutboxOperation): void {
+  assertNotChildReadOnly(spreadsheetId)
   addOutboxEntry(spreadsheetId, coalesceUpdate(spreadsheetId, operation))
   refreshPendingCount(spreadsheetId)
   refreshFailedCount(spreadsheetId)
@@ -241,7 +243,7 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
 }
 
 export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
-  if (!spreadsheetId) return true
+  if (!spreadsheetId || isChildReadOnly(spreadsheetId)) return true
   if (isOffline()) return false
   if (isQuotaBlocked()) return false
 

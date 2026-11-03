@@ -1,4 +1,4 @@
-import type { AppSettings } from '../types'
+import type { AppSettings, CustomForm } from '../types'
 import { getSettings } from './settings'
 import {
   ACTIVITY_LOG_SHEET,
@@ -8,6 +8,7 @@ import {
   BUILDING_UNITS_SHEET,
   CATEGORIES_SHEET,
   CHECKS_SHEET,
+  CHILD_VIEW_SHEETS,
   COUNTERPARTIES_SHEET,
   DANG_SHEET,
   DANG_SPLIT_ALLOCATIONS_SHEET,
@@ -83,10 +84,14 @@ const STATIC_SHEETS = [
   ACTIVITY_LOG_SHEET
 ]
 
+const isRecordForm = (form: CustomForm) => form.type === 'income' || form.type === 'expense'
+
 /** Only a building spreadsheet has these; a personal one is never asked for them. */
 const BUILDING_SHEETS = [BUILDING_SHEET, BUILDING_UNITS_SHEET, BUILDING_RESIDENTS_SHEET]
 
-function staticSheetsFor(type: WorkspaceType): readonly string[] {
+export function staticSheetsFor(type: WorkspaceType): readonly string[] {
+  // A parent's view of a child's account downloads the record tabs only, never the private ones.
+  if (type === 'child') return CHILD_VIEW_SHEETS
   // A shared account has only the few tabs its engine needs, never a personal or building one.
   if (type === 'shared') return SHARED_ACCOUNT_SHEETS
   if (type !== 'building') return STATIC_SHEETS
@@ -102,11 +107,16 @@ export function getKnownSheetNames(
   settings: AppSettings = getSettings()!,
   spreadsheetId?: string
 ): string[] {
-  const statics = staticSheetsFor(workspaceTypeOf(spreadsheetId))
+  const type = workspaceTypeOf(spreadsheetId)
+
+  const statics = staticSheetsFor(type)
 
   if (!settings) return [...statics]
 
-  const formSheets = settings.forms.map(form => form.sheetName)
+  // A child's account: only the income / expense record tabs, not this device's other forms.
+  const forms = type === 'child' ? settings.forms.filter(isRecordForm) : settings.forms
+
+  const formSheets = forms.map(form => form.sheetName)
 
   return [...new Set([...formSheets, ...statics])]
 }

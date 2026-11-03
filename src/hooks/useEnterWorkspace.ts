@@ -20,9 +20,9 @@ import { hideBusy, releaseBusyWhenReady, showBusy } from '../stores/busyOverlayS
 import { showError } from '../utils/toast'
 import { toUserMessage } from '../utils/userMessage'
 
-/** What differs between entering a building and entering the shared account. */
+/** What differs between entering a building, the shared account and a child's account. */
 export interface WorkspaceEntry {
-  kind: 'building' | 'shared'
+  kind: 'building' | 'shared' | 'child'
   /** The page that opens: the caller's `tab`, or the workspace's own choice. */
   destination: (requested: Tab | undefined, spreadsheetId: string) => Tab
   /** The busy overlay's text while the sheet opens. */

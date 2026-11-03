@@ -66,7 +66,14 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
   const refresh = useBankSmsStore(state => state.refresh)
   const scanFrom = useBankSmsStore(state => state.scanFrom)
   const templatesApi = useSmsTemplates()
-  const { accounts, ledger, recurring, transfers, reload: loadContext } = useBankSmsContext()
+  const {
+    accounts,
+    ledger,
+    recurring,
+    transfers,
+    loaded: accountsLoaded,
+    reload: loadContext
+  } = useBankSmsContext()
   const [noPair, setNoPair] = useState<ReadonlySet<string>>(new Set())
   const [busyKey, setBusyKey] = useState<string | null>(null)
   // One save/close at a time (the other cards are shown disabled meanwhile), and none for 0.3 s
@@ -212,7 +219,11 @@ export function useBankSmsReview(sinceMs: number, building: BuildingSetupData | 
     /** The building whose units deposits are matched to; null in a personal workspace. */
     building,
     accounts,
+    /** The accounts were read once (there may be none). */
+    accountsLoaded,
     busyKey,
+    /** A «نادیده» is waiting out its undo toast (the SMS is already hidden). */
+    dismissing: undoable.pendingId !== null,
     loading: queueLoading,
     templatesApi,
     refresh,

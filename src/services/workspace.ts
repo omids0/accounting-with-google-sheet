@@ -73,9 +73,21 @@ export function hasWorkspaceType(spreadsheetId: string): boolean {
 export function getWorkspaceType(spreadsheetId: string): WorkspaceType {
   const { store, kinds } = read()
 
-  const type = store[spreadsheetId] ?? kinds[spreadsheetId]
+  // A child entry (device-local, parent's phone) beats whatever the sheet's own marker said.
+  const type =
+    kinds[spreadsheetId] === 'child' ? 'child' : store[spreadsheetId] ?? kinds[spreadsheetId]
 
-  return type === 'building' || type === 'shared' ? type : 'personal'
+  return type === 'building' || type === 'shared' || type === 'child' ? type : 'personal'
+}
+
+/** A child's account opened read-only by a parent (default: the active sheet); see childReadOnly.ts. */
+export function isChildWorkspace(spreadsheetId?: string): boolean {
+  return workspaceTypeOf(spreadsheetId) === 'child'
+}
+
+/** A registered child account, or a sheet this device already knows as one. */
+export function isChildEntry(entry: { id: string; kind?: WorkspaceKind }): boolean {
+  return entry.kind === 'child' || getWorkspaceType(entry.id) === 'child'
 }
 
 /** A registered shared account, or a sheet this device already read the marker of. */
@@ -200,6 +212,7 @@ export function personalSpreadsheet<T extends { id: string; name?: string; kind?
     return (
       entry.kind !== 'building' &&
       entry.kind !== 'shared' &&
+      entry.kind !== 'child' &&
       getWorkspaceType(entry.id) === 'personal' &&
       !name.startsWith('ساختمان ') &&
       !name.startsWith(SHARED_NAME_PREFIX)
@@ -240,6 +253,9 @@ export function workspaceTypeOfRows(rows: readonly (readonly unknown[])[]): Work
  * going offline never turns a known building into a personal sheet.
  */
 export async function syncWorkspaceTypeFromSheet(spreadsheetId: string): Promise<WorkspaceType> {
+  // A child stays a child: the sheet says «personal» and must never downgrade the entry.
+  if (isChildWorkspace(spreadsheetId)) return 'child'
+
   try {
     const { fetchSheetRows } = await import('./sheets')
     const type = workspaceTypeOfRows(await fetchSheetRows(spreadsheetId, PERIOD_SETTINGS_SHEET))

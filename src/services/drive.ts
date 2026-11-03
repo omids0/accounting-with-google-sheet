@@ -8,6 +8,18 @@ export interface DriveSpreadsheetFile {
   id: string
   name: string
   modifiedTime: string
+  /** False for a file another user shares with this one. Missing = not reported (treated as owned). */
+  ownedByMe?: boolean
+  capabilities?: { canEdit?: boolean }
+}
+
+/**
+ * A file someone else owns and this user cannot edit: a child's account shared with a parent as
+ * reader. It is never one of the user's own books, so it must not be registered or offered as one
+ * just because its title says «حسابداری». Only a file Drive explicitly reports as both is one.
+ */
+export function isForeignReadOnlyFile(file: DriveSpreadsheetFile): boolean {
+  return file.ownedByMe === false && file.capabilities?.canEdit === false
 }
 
 export async function driveRequest<T>(url: string): Promise<T> {
@@ -31,7 +43,9 @@ export async function listAccountingSpreadsheetsFromDrive(): Promise<DriveSpread
     "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false and name contains 'حسابداری'"
   )
 
-  const fields = encodeURIComponent('files(id,name,modifiedTime),nextPageToken')
+  const fields = encodeURIComponent(
+    'files(id,name,modifiedTime,ownedByMe,capabilities/canEdit),nextPageToken'
+  )
 
   const results: DriveSpreadsheetFile[] = []
 

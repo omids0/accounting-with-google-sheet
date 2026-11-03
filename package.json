@@ -1,7 +1,7 @@
 {
   "name": "personal-accounting-pwa",
   "private": true,
-  "version": "2.18.0",
+  "version": "2.19.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -61,7 +61,7 @@
     {
       "name": "personal-accounting-pwa (JS)",
       "path": "dist/assets/*.js",
-      "limit": "1300 KB"
+      "limit": "1400 KB"
     },
     {
       "name": "personal-accounting-pwa (CSS)",

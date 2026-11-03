@@ -1,3 +1,4 @@
+import { isChildReadOnly } from './childReadOnly'
 import {
   fetchGridInfo,
   planGridTrim,
@@ -169,6 +170,8 @@ async function applyTrims(spreadsheetId: string, trims: TabTrim[]): Promise<void
 export async function migrateCompactGrids(spreadsheetId: string): Promise<void> {
   if (!spreadsheetId || isMigrated(spreadsheetId) || running.has(spreadsheetId)) return
   if (hasPendingOutbox(spreadsheetId)) return
+  // A child's account is read-only here: it has no app tabs of its own to shrink.
+  if (isChildReadOnly(spreadsheetId)) return
 
   running.add(spreadsheetId)
   try {

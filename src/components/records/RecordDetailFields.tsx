@@ -157,13 +157,13 @@ export default function RecordDetailFields({
             <WriterAvatar email={writerRows.edited.email} withName="plain" always />
           </Row>
         </>
-      ) : (
+      ) : record.createdAt || (shared && record.writer) ? (
         <Row label="ثبت‌کننده">
           {shared && record.writer ? <WriterAvatar email={record.writer} withName="plain" /> : null}
           {shared && record.writer && record.createdAt ? ' · ' : null}
-          {record.createdAt || (!record.writer ? '—' : null)}
+          {record.createdAt}
         </Row>
-      )}
+      ) : null}
     </dl>
   )
 }

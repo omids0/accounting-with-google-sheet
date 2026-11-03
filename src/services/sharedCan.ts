@@ -17,6 +17,8 @@ export function sharedCanFor(
   permission: SharedPermission,
   overrides: Partial<Record<SharedPermission, boolean>> = {}
 ): boolean {
+  // A parent's view of a child's account can do nothing (childReadOnly.ts).
+  if (kind === 'child') return false
   if (kind !== 'shared') return true
 
   return memberHasPermission(
@@ -29,7 +31,11 @@ export function sharedCanFor(
 
 /** Whether the signed-in user may, in `spreadsheetId` (default: the active sheet). */
 export function sharedCan(permission: SharedPermission, spreadsheetId?: string): boolean {
-  return workspaceTypeOf(spreadsheetId) !== 'shared' || can(permission, spreadsheetId)
+  const type = workspaceTypeOf(spreadsheetId)
+
+  if (type === 'child') return false
+
+  return type !== 'shared' || can(permission, spreadsheetId)
 }
 
 /** Every shared write path re-checks right before writing, so a stale screen cannot bypass it. */

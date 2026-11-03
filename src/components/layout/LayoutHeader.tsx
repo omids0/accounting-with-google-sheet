@@ -1,3 +1,4 @@
+import { useIsChildWorkspace } from '../../hooks/useWorkspaceType'
 import { useAppUpdateStore } from '../../stores/appUpdateStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
@@ -52,6 +53,8 @@ export default function LayoutHeader({
   pageEndRef
 }: LayoutHeaderProps) {
   const updateAvailable = useAppUpdateStore(state => !!state.update)
+  // The search opens the personal record pages, which a child's account (read-only) does not have.
+  const searchable = !useIsChildWorkspace()
 
   return (
     <header className={appHeaderClass}>
@@ -89,7 +92,7 @@ export default function LayoutHeader({
         )}
       </div>
       <div ref={toolbarRef} className={appHeaderToolbarClass} />
-      <HeaderSearchChip />
+      {searchable && <HeaderSearchChip />}
       <HeaderAmountsToggle variant="desktop" />
       <div ref={actionsRef} className={appHeaderActionsClass} />
       {/* Shares the end cell with «بازگشت»; pages with a back button do not use it. */}
@@ -97,7 +100,7 @@ export default function LayoutHeader({
         <div className={appHeaderEndClass}>
           <div ref={pageEndRef} className={appHeaderPageEndClass} />
           <HeaderAmountsToggle variant="mobile" />
-          <HeaderSearchButton />
+          {searchable && <HeaderSearchButton />}
         </div>
       )}
       {showHeaderBack && (

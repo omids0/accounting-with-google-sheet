@@ -48,7 +48,9 @@ export const MENU_MORE_LINKS: MenuLinkEntry[] = [
   { tab: 'personal-reminders', icon: 'bell' },
   { tab: 'vehicle-service', icon: 'car', activeTabs: VEHICLE_TABS },
   { tab: 'counterparties', icon: 'counterparties' },
-  { tab: 'buildings-home', icon: 'building' }
+  { tab: 'buildings-home', icon: 'building' },
+  { tab: 'children-home', icon: 'eye' },
+  { tab: 'parents-home', icon: 'contact' }
 ]
 
 /** Android only; closes the «بیشتر» group. */
@@ -105,6 +107,9 @@ export const buildingMenuGroups: BuildingMenuGroup[] = [
 ]
 
 export const BUILDING_RETURN_LABEL = 'برگشت به حساب شخصی'
+
+/** The same row inside a child's account, where it is the parent's own books. */
+export const CHILD_RETURN_LABEL = 'بازگشت به حساب خودم'
 
 export const CALC_MENU_ITEMS: { tab: Tab; activeTabs: Tab[] }[] = [
   { tab: 'loan-calculator', activeTabs: ['loan-calculator'] },

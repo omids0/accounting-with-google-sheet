@@ -24,10 +24,11 @@ export type CurrencyUnit = 'toman' | 'rial' | 'usd' | 'eur'
 export type ThemeMode = 'light' | 'dark' | 'system'
 
 /**
- * What a spreadsheet is for: the manager's own books, one building (round 11) or a shared
- * account («حساب مشترک»).
+ * What a spreadsheet is for: the manager's own books, one building (round 11), a shared
+ * account («حساب مشترک») or a child's personal books opened read-only by a parent (`child`:
+ * device-local, the sheet's own marker row still says personal).
  */
-export type WorkspaceKind = 'personal' | 'building' | 'shared'
+export type WorkspaceKind = 'personal' | 'building' | 'shared' | 'child'
 
 export interface SpreadsheetEntry {
   id: string

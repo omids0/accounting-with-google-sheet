@@ -7,6 +7,7 @@ import {
   SETTINGS_PATH,
   SETTINGS_REMINDERS_PATH
 } from './paths'
+import { CHILD_TABS, FAMILY_TABS } from '../components/layout/childTabs'
 import { SHARED_REPLACED_TABS, SHARED_TABS } from '../components/layout/sharedTabs'
 import { BUILDING_TABS, PERSONAL_ONLY_TABS, type Tab } from '../components/layout/types'
 import type { WorkspaceType } from '../services/workspace'
@@ -15,7 +16,9 @@ import type { WorkspaceType } from '../services/workspace'
 export const WORKSPACE_HOME: Record<WorkspaceType, Tab> = {
   personal: 'dashboard',
   building: 'building-dashboard',
-  shared: 'shared-home'
+  shared: 'shared-home',
+  // A parent's read-only view of a child's account: the month summary.
+  child: 'child-home'
 }
 
 function normalizedPath(pathname: string): string {
@@ -35,7 +38,10 @@ function isPersonalSettingsPath(pathname: string): boolean {
  * Where a page that does not belong to the active workspace goes (round 11), or null when it
  * does: a building sends the personal-only pages to its dashboard, the personal workspace sends
  * the building pages to its own, a shared account sends both to its home, and both of the others
- * send the shared pages to their home. Settings, backup, categories and close-year work in all.
+ * send the shared pages to their home. Settings, backup, categories and close-year work in all
+ * but a child's account, which keeps only its own three pages and «درباره» (read-only, nothing to
+ * set up); the child's pages and the two family pages («فرزندان من» / «والدین من») exist only in
+ * the personal workspace.
  * A shared page of an account this device cannot open (`sharedLost`: the owner removed the user,
  * or the device has no grant) goes to «فضاهای من» instead, where its card explains and helps.
  */
@@ -45,6 +51,8 @@ export function workspaceRedirect(
   sharedLost = false
 ): string | null {
   if (type === 'shared' && isPersonalSettingsPath(pathname)) return SETTINGS_PATH
+  // A child's account has no settings page: a parent only looks (every write is refused anyway).
+  if (type === 'child' && isSettingsPath(pathname)) return getPathForTab(WORKSPACE_HOME.child)
   // Reminder rules and push keys live only in the personal sheet: a building's board reads its tabs.
   if (type === 'building' && isRemindersPath(pathname)) return SETTINGS_PATH
   if (isSettingsPath(pathname)) return null
@@ -54,6 +62,9 @@ export function workspaceRedirect(
   const tab = getTabFromPath(pathname)
   const home = getPathForTab(WORKSPACE_HOME[type])
 
+  if (type === 'child') return CHILD_TABS.includes(tab) || tab === 'about' ? null : home
+  // The child's pages belong to the child kind alone; the family pages to the personal books alone.
+  if (CHILD_TABS.includes(tab) || (type !== 'personal' && FAMILY_TABS.includes(tab))) return home
   if (type === 'shared') {
     const replaced = SHARED_REPLACED_TABS[tab]
 
