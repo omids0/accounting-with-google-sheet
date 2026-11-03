@@ -111,7 +111,7 @@ export default function DataTable<T>({
                   ) : column.sortValue ? (
                     <button
                       type="button"
-                      className={dataTableSortBtnClass}
+                      className={cn(dataTableSortBtnClass, column.numeric && 'flex-row-reverse')}
                       onClick={() => toggleSort(column.id)}
                     >
                       {column.header}

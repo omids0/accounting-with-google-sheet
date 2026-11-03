@@ -1,7 +1,10 @@
 import { cx } from '../../utils/cn'
 
 /** Dashboard: hero, quick actions, then one soft card per block. */
-export const dashboardCalmPageClass = cx('dashboard-page flex flex-col gap-3', '[&_.mb-stack]:mb-0')
+export const dashboardCalmPageClass = cx(
+  'dashboard-page flex flex-col gap-2.5',
+  '[&_.mb-stack]:mb-0'
+)
 
 export const dashboardPeriodRowClass = 'flex min-h-9 items-center justify-between gap-2'
 

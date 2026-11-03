@@ -28,7 +28,7 @@ export const filterModalActionsClass = 'justify-end gap-2'
 export const filterModalClearClass = 'me-auto'
 
 export const activeFilterBarClass = cx(
-  'active-filter-chips mb-[0.4rem] flex flex-wrap items-center gap-2',
+  'active-filter-chips mb-[0.25rem] flex flex-wrap items-center gap-2',
   '[&_[role=listitem]]:list-none'
 )
 

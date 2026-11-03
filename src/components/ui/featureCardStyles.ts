@@ -7,11 +7,11 @@ export const listCardInsetClass = 'p-2'
 export const listPageStackClass = 'flex flex-col gap-3 [&_.list-card]:mb-0'
 
 /** List module pages — filters, card grid, footer stats with consistent vertical rhythm. */
-export const listModulePageClass = cx('flex flex-col gap-3 md:gap-5 [&_.list-card]:mb-0')
+export const listModulePageClass = cx('flex flex-col gap-2 md:gap-5 [&_.list-card]:mb-0')
 
 /** Wraps mapped list cards — responsive multi-column grid on desktop. */
 export const listCardsContainerClass = cx(
-  'flex flex-col gap-2',
+  'flex flex-col gap-1.5',
   // One column until 56rem: a half-width card at a 768px tablet is too narrow for a money row.
   'md:gap-4 min-[56rem]:grid min-[56rem]:grid-cols-2 xl:grid-cols-3 [&_.list-card]:mb-0'
 )
@@ -87,11 +87,11 @@ export const cardHeaderWithEditClass = cx(
 )
 
 export const cardActionButtonsClass = cx(
-  'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-2',
+  'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-0.5',
   'rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.2rem]',
   '[&_.card-action-btn]:h-touch-min [&_.card-action-btn]:w-touch-min [&_.card-action-btn]:rounded-md',
-  '[.card-header-with-edit_&]:m-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
-  '[.wallet-item-card_&]:m-2 [.wallet-item-card_&]:ms-0 [.wallet-item-card_&]:mt-2 [.wallet-item-card_&]:self-start'
+  '[.card-header-with-edit_&]:m-1.5 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-1.5 [.card-header-with-edit_&]:self-start',
+  '[.wallet-item-card_&]:m-1.5 [.wallet-item-card_&]:ms-0 [.wallet-item-card_&]:mt-1.5 [.wallet-item-card_&]:self-start'
 )
 
 export const cardActionBtnClass = cx(
