@@ -6,9 +6,9 @@ import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { useRecordInputs } from '../../hooks/useRecordInputs'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
-import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import NotSignedInState from '../NotSignedInState'
 import PageFilterPanel from '../PageFilterPanel'
 import { DangCardListSkeleton } from '../skeleton'
 import CounterpartyDetailModal from './CounterpartyDetailModal'
@@ -19,7 +19,6 @@ import { useCounterpartiesData } from './useCounterpartiesData'
 import { useCounterpartiesFilters } from './useCounterpartiesFilters'
 import { useCounterpartiesForm } from './useCounterpartiesForm'
 import { useCounterpartyDetail } from './useCounterpartyDetail'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -89,14 +88,7 @@ export default function CounterpartiesPage({ active = true, scope }: Counterpart
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="counterparties" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <NotSignedInState icon="counterparties" />
   }
 
   const isInitialLoading = data.loading && data.items.length === 0

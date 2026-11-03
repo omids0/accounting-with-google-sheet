@@ -4,6 +4,7 @@ import SharedSplitFields from './SharedSplitFields'
 import type { SharedRecords } from './useSharedRecords'
 import { can } from '../../services/buildingRoles'
 import { readCategoryList } from '../../services/categoryManage'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { lockedCategoriesFor, SETTLEMENT_CATEGORY } from '../../utils/protectedCategories'
 import AmountField from '../AmountField'
@@ -120,7 +121,7 @@ export default function SharedAddSheet({
         </span>
         <SegmentedRadio label="نوع ثبت" options={TYPE_OPTIONS} value={type} onChange={changeType} />
       </div>
-      <FormField label="مبلغ (تومان)" required controlWidth="full">
+      <FormField label={`مبلغ (${getCurrencySymbol()})`} required controlWidth="full">
         <AmountField
           label="مبلغ"
           value={amount}

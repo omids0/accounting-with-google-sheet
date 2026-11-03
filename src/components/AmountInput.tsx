@@ -27,6 +27,9 @@ import { cn } from '../utils/cn'
 import { formatPersianNumber, getCurrencySymbol } from '../utils/formatMoney'
 import { numberToPersianWords } from '../utils/numberToWords'
 
+// 16px on touch screens: iOS zooms the page when a smaller input is focused.
+const inputStateClass = 'disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:text-[16px]'
+
 interface AmountInputProps {
   value: string | number
   onChange: (value: number | '') => void
@@ -38,10 +41,19 @@ interface AmountInputProps {
   invalid?: boolean
   'aria-invalid'?: boolean
   'aria-describedby'?: string
+  'aria-required'?: boolean
+  /**
+   * Accessible name. Without it the input is named by its associated `<label>` (an `id` is
+   * given); with neither, it falls back to the unit or «مبلغ». An aria-label would override
+   * the visible label, so it is only set when nothing else names the input.
+   */
+  'aria-label'?: string
   /** When set, shown instead of the currency symbol (e.g. km). */
   unit?: string
   /** Hide Persian amount words (useful for non-money numeric fields). */
   hideWords?: boolean
+  /** Read-only while a save is running. */
+  disabled?: boolean
 }
 
 export default function AmountInput({
@@ -55,8 +67,11 @@ export default function AmountInput({
   invalid = false,
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
+  'aria-required': ariaRequired,
+  'aria-label': ariaLabelProp,
   unit,
-  hideWords = false
+  hideWords = false,
+  disabled = false
 }: AmountInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -76,6 +91,8 @@ export default function AmountInput({
   const [notice, setNotice] = useState<'integer' | 'max' | 'negative' | 'digits' | null>(null)
 
   const noticeId = useId()
+
+  const ariaLabel = ariaLabelProp ?? (id ? undefined : unit ?? 'مبلغ')
 
   const noticeTexts = {
     max: amountMaxMessage(unit ? undefined : suffix),
@@ -176,9 +193,16 @@ export default function AmountInput({
             onBlur={handleBlur}
             dir="ltr"
             placeholder="۰"
-            className={cn(amountFieldInputClass, amountFieldInputCompactClass, 'numeric')}
-            aria-label={unit ? unit : 'مبلغ'}
+            className={cn(
+              amountFieldInputClass,
+              amountFieldInputCompactClass,
+              'numeric',
+              inputStateClass
+            )}
+            disabled={disabled}
+            aria-label={ariaLabel}
             aria-invalid={ariaInvalid}
+            aria-required={ariaRequired}
             aria-describedby={describedBy}
           />
           <span className={cn(amountFieldCurrencyClass, amountFieldCurrencyCompactClass)}>
@@ -203,9 +227,11 @@ export default function AmountInput({
           onBlur={handleBlur}
           dir="ltr"
           placeholder="۰"
-          className={cn(amountFieldInputClass, 'numeric')}
-          aria-label={unit ? unit : 'مبلغ'}
+          className={cn(amountFieldInputClass, 'numeric', inputStateClass)}
+          disabled={disabled}
+          aria-label={ariaLabel}
           aria-invalid={ariaInvalid}
+          aria-required={ariaRequired}
           aria-describedby={describedBy}
         />
         <span className={amountFieldCurrencyClass}>{suffix}</span>

@@ -17,8 +17,8 @@ export const listCardsContainerClass = cx(
 )
 
 export const interactiveCardClass = cx(
-  'transition-[box-shadow,border-color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-  'hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] hover:shadow-[var(--shadow),0_6px_20px_color-mix(in_srgb,var(--color-primary)_12%,transparent)] active:translate-y-0'
+  'transition-[box-shadow,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+  'hover:border-[color-mix(in_srgb,var(--color-primary)_18%,var(--color-border))] hover:shadow-[var(--shadow),0_6px_20px_color-mix(in_srgb,var(--color-primary)_12%,transparent)]'
 )
 
 export function installmentCardClass({
@@ -39,7 +39,7 @@ export function installmentCardClass({
       interactiveCardClass,
       'list-card relative overflow-hidden p-0 [content-visibility:auto] [contain-intrinsic-size:auto_6.5rem]',
       'rounded-[calc(var(--radius)+2px)] transition-[box-shadow,border-color,transform] duration-[var(--duration-slow)] ease-[var(--ease-out)]',
-      'before:absolute before:top-0 before:bottom-0 before:right-0 before:w-[3px] before:rounded-r-[3px]',
+      'before:absolute before:top-0 before:bottom-0 before:start-0 before:w-[3px] before:rounded-s-[3px]',
       'before:[background:linear-gradient(180deg,var(--color-primary-light)_0%,var(--color-primary)_100%)] before:opacity-0 before:transition-opacity before:duration-[var(--duration-fast)] before:ease-[var(--ease-out)] before:content-[""]',
       (expanded || complete) && 'before:opacity-100',
       expanded &&
@@ -59,7 +59,7 @@ export function receivableCompleteCardClass(complete?: boolean) {
 
 export function installmentHeaderClass(expanded?: boolean) {
   return cn(
-    'installment-header flex w-full cursor-pointer items-start justify-between gap-1.5 rounded-sm border-none bg-transparent text-right text-inherit transition-[background] duration-[var(--duration-fast)]',
+    'installment-header flex w-full cursor-pointer items-start justify-between gap-1.5 rounded-sm border-none bg-transparent text-start text-inherit transition-[background] duration-[var(--duration-fast)]',
     listCardInsetClass,
     'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)]',
     '[&>div:first-child]:min-w-0 [&>div:first-child]:flex-1',
@@ -87,7 +87,7 @@ export const cardHeaderWithEditClass = cx(
 )
 
 export const cardActionButtonsClass = cx(
-  'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-[0.2rem]',
+  'card-action-buttons flex shrink-0 flex-col items-center justify-center gap-2',
   'rounded-[calc(var(--radius-sm)-2px)] border border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)] p-[0.2rem]',
   '[&_.card-action-btn]:h-touch-min [&_.card-action-btn]:w-touch-min [&_.card-action-btn]:rounded-md',
   '[.card-header-with-edit_&]:m-2 [.card-header-with-edit_&]:ms-0 [.card-header-with-edit_&]:mt-2 [.card-header-with-edit_&]:self-start',
@@ -221,7 +221,7 @@ export function dangCardClass({
     cn(
       listCardCheckboxShellBase,
       'dang-card cursor-pointer',
-      'before:absolute before:top-0 before:bottom-0 before:right-0 before:w-[3px] before:opacity-55 before:content-[""]',
+      'before:absolute before:top-0 before:bottom-0 before:start-0 before:w-[3px] before:opacity-55 before:content-[""]',
       'before:[background:linear-gradient(180deg,var(--color-expense)_0%,color-mix(in_srgb,var(--color-expense)_55%,var(--color-primary)_100%))]',
       'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)]',
       paid &&
@@ -240,7 +240,7 @@ export const dangCardBodyClass = 'min-w-0 flex-1'
 
 export function dangCardTapAreaClass(expanded?: boolean) {
   return cn(
-    'block w-full cursor-pointer rounded-sm border-none bg-transparent p-0 text-right text-inherit transition-[background] duration-[var(--duration-fast)]',
+    'block w-full cursor-pointer rounded-sm border-none bg-transparent p-0 text-start text-inherit transition-[background] duration-[var(--duration-fast)]',
     'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)]',
     expanded && 'bg-[color-mix(in_srgb,var(--color-accent-soft)_45%,transparent)]'
   )
@@ -248,9 +248,12 @@ export function dangCardTapAreaClass(expanded?: boolean) {
 
 export const dangCardHeaderClass = 'flex items-start justify-between gap-3'
 
-export const dangCardTitleClass = 'text-[0.95rem] font-semibold [.dang-card.paid_&]:text-muted'
+export const dangCardTitleClass =
+  'min-w-0 text-[0.95rem] font-semibold [.dang-card.paid_&]:text-muted'
 
-export const dangCardAmountClass = 'text-[0.9rem] font-bold tabular-nums text-primary-dark'
+export const dangCardAmountClass =
+  // Never shrink-0/nowrap: on a 320px phone a long amount then ran over the card's action buttons.
+  'max-w-[60%] text-end text-[0.9rem] font-bold tabular-nums text-primary-dark'
 
 export const dangCardMetaClass = 'mt-[0.2rem] text-[0.76rem] leading-[1.4] text-muted'
 

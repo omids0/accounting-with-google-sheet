@@ -23,8 +23,8 @@ export default function UpdateBanner() {
   const title = update.versionName ? `نسخه ${update.versionName} آماده است` : 'نسخه جدید آماده است'
 
   const note = update.apkUrl
-    ? 'هر وقت خواستی دانلود و نصبش کن.'
-    : 'دانلود شده؛ هر وقت خواستی به‌روز کن.'
+    ? 'هر وقت خواستید دانلود و نصبش کنید.'
+    : 'دانلود شده؛ هر وقت خواستید به‌روز کنید.'
 
   return (
     <div className={updateBannerClass} role="status" aria-live="polite" data-update-banner>
@@ -41,7 +41,11 @@ export default function UpdateBanner() {
           aria-busy={preparing}
           onClick={() => void apply()}
         >
-          {preparing ? 'در حال پشتیبان…' : installBlocked ? 'باز کردن لینک نصب' : 'به‌روزرسانی'}
+          {preparing
+            ? 'در حال پشتیبان‌گیری…'
+            : installBlocked
+            ? 'باز کردن لینک نصب'
+            : 'به‌روزرسانی'}
         </Button>
         <button type="button" className={nudgeLinkClass} disabled={preparing} onClick={dismiss}>
           بعداً

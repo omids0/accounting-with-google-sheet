@@ -116,7 +116,8 @@ export const appHeaderWithBackClass = cx(
 
 /** Title + compact badge stack; fits inside the 44px header row. */
 export const appHeaderCenterClass = cx(
-  'flex h-full min-w-0 flex-col items-start justify-center gap-[0.15rem] overflow-hidden',
+  // overflow-y stays visible so the sync badge's 44px hit area (after:) is not cut off.
+  'flex h-full min-w-0 flex-col items-start justify-center gap-[0.15rem] overflow-x-clip',
   'xl:flex-none xl:flex-row xl:items-center xl:gap-2.5'
 )
 
@@ -184,8 +185,11 @@ export * from './sidebarMenuStyles'
 type SyncStatus = 'online' | 'syncing' | 'offline' | 'error'
 
 export const syncStatusBadgeClass = cx(
-  'inline-flex max-w-full items-center gap-[0.35rem] rounded-full px-[0.45rem] py-[0.05rem]',
-  'bg-black/12 text-[0.68rem] font-semibold leading-[1.35] text-white ring-1 ring-white/18',
+  'relative inline-flex max-w-full items-center gap-[0.35rem] rounded-full px-[0.45rem] py-[0.05rem]',
+  // Invisible 44px hit area, as in ui/Button.
+  'after:absolute after:left-1/2 after:top-1/2 after:h-full after:w-full after:min-h-touch-min after:min-w-touch-min',
+  'after:-translate-x-1/2 after:-translate-y-1/2 after:content-[""]',
+  'bg-black/12 text-[0.72rem] font-semibold leading-[1.35] text-white ring-1 ring-white/18',
   '[text-shadow:0_1px_2px_rgba(15,23,42,0.2)]'
 )
 

@@ -5,10 +5,10 @@ import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
-import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
 import { SegmentedRadio } from '../form'
+import NotSignedInState from '../NotSignedInState'
 import PageFilterPanel from '../PageFilterPanel'
 import CheckFormModal from './CheckFormModal'
 import CheckList from './CheckList'
@@ -17,7 +17,6 @@ import { useChecksData } from './useChecksData'
 import { useChecksFilters } from './useChecksFilters'
 import { useChecksForm } from './useChecksForm'
 import SettleFlowModals from '../settle/SettleFlowModals'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -106,14 +105,7 @@ export default function ChecksPage({ active = true }: ChecksPageProps) {
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="checks" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <NotSignedInState icon="checks" />
   }
 
   return (

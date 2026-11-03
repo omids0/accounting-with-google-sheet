@@ -8,7 +8,7 @@ import { formFieldError, requiredField, submitValidatedForm } from '../../utils/
 import { getTodayIso } from '../../utils/jalaliDate'
 import { parseNumeric } from '../../utils/parseNumeric'
 import AmountInput from '../AmountInput'
-import { CategorySelect, FormField, FormRow } from '../form'
+import { CategorySelect, CheckboxField, FormField, FormRow } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
@@ -200,10 +200,11 @@ export default function VehiclePeriodicFormModal({
           <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
         </FormField>
 
-        <label className="checkbox-row flex items-center gap-2">
-          <input type="checkbox" {...register('reminderEnabled')} />
-          <span>یادآوری سرویس</span>
-        </label>
+        <CheckboxField
+          checked={watch('reminderEnabled')}
+          onChange={enabled => setValue('reminderEnabled', enabled)}
+          label="یادآوری سرویس"
+        />
 
         {watch('reminderEnabled') ? (
           <FormField label="چند کیلومتر مانده یادآوری شود؟">

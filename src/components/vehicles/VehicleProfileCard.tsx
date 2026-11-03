@@ -1,6 +1,7 @@
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
 import IranPlateBadge, { isEmptyPlate } from './IranPlateBadge'
+import { formatIranPlateLabel } from './iranPlateUtils'
 import type { VehicleProfileWithRow } from './types'
 import {
   vehicleHorizontalCardActionsClass,
@@ -41,7 +42,15 @@ export default function VehicleProfileCard({
           type="button"
           className={cn('installment-header', installmentHeaderClass(), 'wallet-item-header')}
           onClick={() => onOpen(item)}
-          aria-label={`مشاهده جزئیات ${title}`}
+          // The name replaces the content, so plate, mileage and open actions go into it.
+          aria-label={[
+            `مشاهده جزئیات ${title}`,
+            showPlate ? `پلاک ${formatIranPlateLabel(item.plate)}` : '',
+            `کارکرد ${item.mileage.toLocaleString('fa-IR')} کیلومتر`,
+            actionNeededCount > 0 ? `${actionNeededCount.toLocaleString('fa-IR')} اقدام` : ''
+          ]
+            .filter(Boolean)
+            .join('، ')}
         >
           <div className={walletItemInfoClass}>
             <div className={vehicleProfileCardContentClass}>

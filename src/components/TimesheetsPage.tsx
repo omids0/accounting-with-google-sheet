@@ -3,11 +3,11 @@ import ConfirmActionModal from './ConfirmActionModal'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
+import IncrementalCardList from './IncrementalCardList'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { InstallmentCardListSkeleton } from './skeleton'
-import { listCardsContainerClass } from './ui/featureCardStyles'
 import { timesheetsPageClass } from './ui/toolsPageStyles'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useRegisterPageSpeedDial } from '../hooks/usePageSpeedDial'
@@ -84,8 +84,12 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
           onDelete={page.setDeletingItem}
         />
       ) : (
-        <div className={listCardsContainerClass}>
-          {page.filteredItems.map(item => (
+        <IncrementalCardList
+          items={page.filteredItems}
+          getId={item => item.id}
+          resetKey={page.filterChips.map(chip => chip.label).join('|')}
+          unit="تایم‌شیت"
+          renderItem={item => (
             <TimesheetListCard
               key={item.id}
               item={item}
@@ -93,8 +97,8 @@ export default function TimesheetsPage({ active = true }: { active?: boolean }) 
               onEdit={page.openEditForm}
               onDelete={page.setDeletingItem}
             />
-          ))}
-        </div>
+          )}
+        />
       )}
 
       <TimesheetFormModal

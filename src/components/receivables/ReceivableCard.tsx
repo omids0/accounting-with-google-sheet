@@ -93,6 +93,7 @@ export default function ReceivableCard({
             type="button"
             className={cn('installment-header', installmentHeaderClass(expanded))}
             onClick={() => onToggleExpand(expanded)}
+            aria-expanded={expanded}
           >
             <div>
               <div className={listCardTitleClass}>{displayTitle}</div>
@@ -101,14 +102,15 @@ export default function ReceivableCard({
                 {showDebtorInSubtitle && <span>{item.debtor} · </span>}
                 {item.category && <span>{item.category} · </span>}
                 <span className={listCardAmountPillClass}>
-                  <MoneyText amount={item.amount} />
+                  {/* Inside a button: the mask must not be a second button. */}
+                  <MoneyText amount={item.amount} revealable={false} />
                 </span>
                 {complete ? (
                   ' · تسویه شده'
                 ) : (
                   <>
                     {' · مانده: '}
-                    <MoneyText amount={remaining} />
+                    <MoneyText amount={remaining} revealable={false} />
                   </>
                 )}
               </div>

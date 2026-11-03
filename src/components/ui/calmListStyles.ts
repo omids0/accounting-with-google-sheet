@@ -27,11 +27,11 @@ export const calmRowMainClass = 'min-w-0 flex-1'
 
 export const calmRowTitleClass = 'block truncate text-[0.82rem] font-semibold text-text'
 
-export const calmRowSubClass = 'mt-0.5 block truncate text-[0.7rem] text-muted'
+export const calmRowSubClass = 'mt-0.5 block truncate text-[0.72rem] text-muted'
 
 /** A sub line that carries amounts (budget line): wraps instead of ellipsizing. */
 export const calmRowSubAmountClass =
-  'mt-0.5 block text-[0.7rem] text-muted [overflow-wrap:anywhere]'
+  'mt-0.5 block text-[0.72rem] text-muted [overflow-wrap:anywhere]'
 
 export const calmRowSubDangerClass = 'text-danger'
 
@@ -42,11 +42,11 @@ export const calmRowEndClass =
   'shrink-0 whitespace-nowrap font-numeric text-[0.8rem] font-bold tabular-nums text-text'
 
 export const calmDayBadgeClass = cn(
-  'flex h-9 w-9 shrink-0 flex-col items-center justify-center rounded-[10px] leading-[1.15]',
+  'flex h-9 min-w-[2.75rem] shrink-0 flex-col items-center justify-center rounded-[10px] leading-[1.15]',
   'bg-[color-mix(in_srgb,var(--color-text)_7%,transparent)] text-[0.76rem] font-bold text-text'
 )
 
-export const calmDayBadgeMonthClass = 'text-[0.58rem] font-medium'
+export const calmDayBadgeMonthClass = 'text-[0.68rem] font-medium'
 
 /** Red toward the text color: darker on light, lighter on dark, ≥ 4.5:1 on the danger tint. */
 export const calmDayBadgeDangerClass =
@@ -60,7 +60,7 @@ export const calmBarClass =
 
 export const calmDotClass = 'h-2.5 w-2.5 shrink-0 rounded-full'
 
-export const calmNoteClass = 'm-0 mt-1 px-0.5 text-[0.7rem] leading-relaxed text-muted'
+export const calmNoteClass = 'm-0 mt-1 px-0.5 text-[0.72rem] leading-relaxed text-muted'
 
 export const calmEmptyClass = 'm-0 py-3 text-center text-[0.76rem] text-muted'
 
@@ -81,7 +81,7 @@ export const calmRowButtonClass = cx(
 export const calmRowHeadClass = 'flex min-w-0 items-baseline gap-1.5'
 
 /** «↑ ۳۰٪ از شهریور» next to a category name. */
-export const calmCompareClass = 'shrink-0 whitespace-nowrap text-[0.68rem] font-semibold'
+export const calmCompareClass = 'shrink-0 whitespace-nowrap text-[0.72rem] font-semibold'
 
 export const calmCompareToneClass = {
   bad: 'text-[color-mix(in_srgb,var(--color-danger)_80%,var(--color-text))]',

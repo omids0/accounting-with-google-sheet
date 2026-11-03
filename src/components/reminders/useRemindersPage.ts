@@ -32,6 +32,8 @@ export function useRemindersPage() {
   const [savingKind, setSavingKind] = useState<ReminderKind | null>(null)
   const [rules, setRules] = useState<RulesByKind>(() => toRulesByKind(DEFAULT_RULES))
   const [hasVehicle, setHasVehicle] = useState(false)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [reloadTick, setReloadTick] = useState(0)
   const spreadsheetId = getSettings()?.spreadsheetId ?? ''
   const permission = useReminderPermission(spreadsheetId)
 
@@ -39,6 +41,7 @@ export function useRemindersPage() {
     let cancelled = false
 
     async function load() {
+      setLoadFailed(false)
       if (!spreadsheetId || !isTokenValid()) {
         setLoading(false)
 
@@ -55,7 +58,10 @@ export function useRemindersPage() {
         setRules(toRulesByKind(fetched))
         setHasVehicle(vehicle)
       } catch (err) {
-        if (!cancelled) showError(toUserMessage(err, 'خطا در بارگذاری یادآوری‌ها'))
+        if (!cancelled) {
+          setLoadFailed(true)
+          showError(toUserMessage(err, 'خطا در بارگذاری یادآوری‌ها'))
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -66,7 +72,12 @@ export function useRemindersPage() {
     return () => {
       cancelled = true
     }
-  }, [spreadsheetId])
+  }, [spreadsheetId, reloadTick])
+
+  const reload = () => {
+    setLoading(true)
+    setReloadTick(tick => tick + 1)
+  }
 
   const persist = async (next: ReminderRule, previous: ReminderRule) => {
     setRules(current => ({ ...current, [next.kind]: next }))
@@ -118,6 +129,8 @@ export function useRemindersPage() {
 
   return {
     loading,
+    loadFailed,
+    reload,
     spreadsheetId,
     rules,
     savingKind,

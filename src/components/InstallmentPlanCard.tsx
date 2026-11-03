@@ -167,6 +167,7 @@ function InstallmentPlanCard({
             type="button"
             className={cn('installment-header', installmentHeaderClass(expanded))}
             onClick={handleToggleExpand}
+            aria-expanded={expanded}
           >
             <div>
               <div className={listCardTitleClass}>{plan.title}</div>
@@ -184,7 +185,12 @@ function InstallmentPlanCard({
                     موعد پرداخت: {formatIsoDatePersian(dueDate)}
                   </span>
                   {dueAmount !== null ? (
-                    <MoneyDisplay amount={dueAmount} size="record" tone="primary" />
+                    <MoneyDisplay
+                      amount={dueAmount}
+                      size="record"
+                      tone="primary"
+                      revealable={false}
+                    />
                   ) : null}
                 </div>
               ) : null}
@@ -242,11 +248,11 @@ function InstallmentPlanCard({
         <div className={installmentPaymentsClass}>
           <div className={installmentAmountSummaryClass} aria-label={`خلاصه مبلغ ${plan.title}`}>
             <div className={installmentAmountRowClass}>
-              <span className={installmentAmountSummaryLabelClass}>کل قابل واریز</span>
+              <span className={installmentAmountSummaryLabelClass}>کل قابل پرداخت</span>
               <MoneyDisplay amount={totalAmount} size="record" />
             </div>
             <div className={installmentAmountRowClass}>
-              <span className={installmentAmountSummaryLabelClass}>واریز شده</span>
+              <span className={installmentAmountSummaryLabelClass}>پرداخت شده</span>
               <MoneyDisplay amount={paidAmount} size="record" tone="positive" />
             </div>
             <div className={installmentAmountRowClass}>

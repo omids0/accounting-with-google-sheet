@@ -6,6 +6,9 @@ export const emptyTextClass = 'py-4 text-center text-[0.85rem] text-muted'
 export const emptyStateClass =
   'px-[0.65rem] py-6 text-center text-muted animate-[fadeInUp_0.45s_var(--ease-page)_both]'
 
+/** The headline of an empty state: the fact («هنوز چکی ثبت نشده»), above the description. */
+export const emptyStateMessageClass = 'mb-1 text-base font-semibold leading-[1.6] text-text'
+
 export const emptyStateDescriptionClass =
   'mx-auto mb-2 max-w-[320px] text-[0.8rem] leading-[1.9] text-muted'
 
@@ -64,18 +67,18 @@ const moneyDisplaySizeClass: Record<MoneyDisplaySize, string> = {
   stat: cn(
     'flex max-w-full min-w-0 flex-col items-center gap-[0.12rem]',
     '[&_.money-display-value]:max-w-full [&_.money-display-value]:text-center [&_.money-display-value]:[overflow-wrap:anywhere] [&_.money-display-value]:text-[clamp(0.88rem,3.2vw,1.05rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:leading-[1.15] [&_.money-display-value]:tracking-[0.015em]',
-    '[&_.money-display-unit]:text-[0.62rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:text-muted'
+    '[&_.money-display-unit]:text-[0.72rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:leading-none [&_.money-display-unit]:text-muted'
   ),
   'stat-wide': cn(
     'inline-flex flex-shrink-0 items-baseline gap-1 whitespace-nowrap',
     '[&_.money-display-value]:text-[clamp(0.92rem,3.2vw,1.08rem)] [&_.money-display-value]:font-extrabold [&_.money-display-value]:tracking-[0.015em]',
-    '[&_.money-display-unit]:text-[0.66rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-75'
+    '[&_.money-display-unit]:text-[0.72rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-75'
   ),
   record: cn(
     'inline-flex flex-shrink-0 items-baseline gap-[0.12rem] whitespace-nowrap leading-[1.2]',
-    '[&_.money-display-sign]:text-[0.68rem] [&_.money-display-sign]:font-semibold [&_.money-display-sign]:opacity-85',
+    '[&_.money-display-sign]:text-[0.72rem] [&_.money-display-sign]:font-semibold [&_.money-display-sign]:opacity-85',
     '[&_.money-display-value]:text-[0.76rem] [&_.money-display-value]:font-semibold [&_.money-display-value]:tracking-[0.01em]',
-    '[&_.money-display-unit]:text-[0.64rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-80'
+    '[&_.money-display-unit]:text-[0.72rem] [&_.money-display-unit]:font-semibold [&_.money-display-unit]:opacity-80'
   )
 }
 
@@ -125,7 +128,7 @@ export const recordItemActionsClass = 'm-0 self-center'
 
 export const treasuryTxItemClass = 'relative'
 
-export const treasuryTxEditClass = 'absolute left-1 top-1 [&_.card-action-buttons]:m-0'
+export const treasuryTxEditClass = 'absolute end-1 top-1 [&_.card-action-buttons]:m-0'
 
 export const appToasterClass = 'z-[10000]'
 

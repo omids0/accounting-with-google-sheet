@@ -71,26 +71,36 @@
   --sidebar-width: 17rem;
   --rail-width: 4rem;
   --nav-width: 0px;
+  /* Space a bottom-anchored toast leaves for the mobile bottom navigation (none on ≥ 768px). */
+  --bottom-nav-clearance: calc(4.75rem + var(--safe-bottom));
   --desktop-header-height: 3rem;
   --content-max-width: 75rem;
+  /* White text rides these gradients, so the light end stops at #0e7c73 (5.06:1);
+     the old #14b8a6 / #2dd4bf stops gave 2.5:1 / 1.9:1. */
+  --brand-gradient-end: #0e7c73;
   --header-bg: linear-gradient(
     135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-light) 50%,
-    #2dd4bf 100%
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 50%,
+    var(--brand-gradient-end) 100%
   );
   --header-shadow: 0 4px 24px color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
   --header-border: rgba(255, 255, 255, 0.12);
   /* White-text hero cards (dashboard «دارایی قابل اتکا», menu profile) */
-  --hero-bg: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #2dd4bf 100%);
+  --hero-bg: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary) 50%,
+    var(--brand-gradient-end) 100%
+  );
   /* Filled buttons: white text must stay readable (≥4.5:1) in both themes. */
-  --btn-primary-bg: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));
+  --btn-primary-bg: linear-gradient(135deg, var(--color-primary), var(--brand-gradient-end));
   --btn-primary-bg-hover: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
   --nav-fab-bg: linear-gradient(
     145deg,
     var(--color-primary-dark) 0%,
     var(--color-primary) 45%,
-    var(--color-primary-light) 100%
+    var(--brand-gradient-end) 100%
   );
   --nav-fab-bg-active: linear-gradient(
     145deg,
@@ -121,6 +131,7 @@
   :root {
     --space-page: var(--space-page-desktop);
     --nav-width: var(--rail-width);
+    --bottom-nav-clearance: 0px;
   }
 }
 

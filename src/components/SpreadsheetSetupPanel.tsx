@@ -106,7 +106,7 @@ export default function SpreadsheetSetupPanel({
     : `${SPREADSHEET_TITLE_PREFIX}…`
 
   return (
-    <div className={loginPageClass}>
+    <main className={loginPageClass}>
       <div className={cn(loginCardClass, animateInClass)}>
         <div className={loginLogoClass}>
           <span className={loginLogoIconClass}>
@@ -226,7 +226,7 @@ export default function SpreadsheetSetupPanel({
           </>
         )}
       </div>
-    </div>
+    </main>
   )
 }
 

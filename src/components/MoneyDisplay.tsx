@@ -25,13 +25,16 @@ export default function MoneyDisplay({
   size = 'stat',
   tone = 'default',
   signed = false,
-  className = ''
+  className = '',
+  revealable
 }: {
   amount: number
   size?: MoneyDisplaySize
   tone?: MoneyDisplayTone
   signed?: boolean
   className?: string
+  /** `false` inside a button or link: the mask must not be a second interactive element. */
+  revealable?: boolean
 }) {
   const displayAmount = signed ? Math.abs(amount) : amount
   const { number, symbol } = formatMoneyParts(displayAmount)
@@ -58,7 +61,7 @@ export default function MoneyDisplay({
   )
 
   return (
-    <MaskedAmount size={size} className={rootClass} mask={mask}>
+    <MaskedAmount size={size} className={rootClass} mask={mask} revealable={revealable}>
       <span className={rootClass} dir="rtl" aria-label={formatMoney(amount)}>
         {/*
           Only the digits (with their sign) are left-to-right; the block itself stays

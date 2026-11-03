@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 import AmountInput from './AmountInput'
 import { spinnerClass } from './ui/displayStyles'
 import {
@@ -31,6 +33,8 @@ export default function CardInlineAmountEdit({
   hint,
   className
 }: CardInlineAmountEditProps) {
+  const inputId = useId()
+
   const handleSubmit = () => {
     onBlur?.()
     onClose?.()
@@ -39,19 +43,27 @@ export default function CardInlineAmountEdit({
   return (
     <div className={cn(cardInlineEditClass, className)}>
       <div className={cardInlineEditFieldClass}>
-        <label className={cardInlineEditLabelClass}>{label}</label>
+        <label htmlFor={inputId} className={cardInlineEditLabelClass}>
+          {label}
+        </label>
         <AmountInput
+          id={inputId}
           compact
           value={value}
           onChange={onChange}
           onBlur={onBlur}
           onSubmit={onClose ? handleSubmit : undefined}
           submitDisabled={saving}
+          disabled={saving}
         />
         {hint ? <p className={formHintClass}>{hint}</p> : null}
       </div>
       {saving ? (
-        <span className={cn(spinnerClass, cardInlineEditSpinnerClass)} aria-label="در حال ذخیره" />
+        <span
+          role="status"
+          className={cn(spinnerClass, cardInlineEditSpinnerClass)}
+          aria-label="در حال ذخیره"
+        />
       ) : null}
     </div>
   )

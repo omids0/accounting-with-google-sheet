@@ -11,7 +11,7 @@ import {
 } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { CategorySelect, FormField, FormRow, FormSelect } from '../form'
+import { CategorySelect, CheckboxField, FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import type { PersonalReminderFormState, PersonalReminderWithRow } from './types'
@@ -184,10 +184,11 @@ export default function PersonalReminderFormModal({
         />
       </FormRow>
 
-      <label className="checkbox-row flex items-center gap-2">
-        <input type="checkbox" {...register('enabled')} />
-        <span>فعال</span>
-      </label>
+      <CheckboxField
+        checked={watch('enabled')}
+        onChange={enabled => setValue('enabled', enabled)}
+        label="فعال"
+      />
     </FormModal>
   )
 }

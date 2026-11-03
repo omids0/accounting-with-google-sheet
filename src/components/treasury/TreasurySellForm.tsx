@@ -6,6 +6,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { resolveVaultAsset } from '../../services/treasuryCatalog'
 import type { VaultAssetType } from '../../types'
 import { focusFirstInvalidField } from '../../utils/focusInvalidField'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { showError } from '../../utils/toast'
 import AmountInput from '../AmountInput'
@@ -101,7 +102,7 @@ export default function TreasurySellForm({
         />
       </FormField>
       <FormField
-        label={`قیمت هر ${unit} (تومان)`}
+        label={`قیمت هر ${unit} (${getCurrencySymbol()})`}
         style={{ marginBottom: '0.75rem' }}
         error={errors.unitPrice}
       >

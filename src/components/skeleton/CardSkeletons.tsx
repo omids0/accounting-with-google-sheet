@@ -219,17 +219,26 @@ export function WalletAccountCardSkeleton() {
   )
 }
 
-export function DangCardSkeleton({ actions = 2, metaLines = 2 }: DangCardSkeletonShape) {
+export function DangCardSkeleton({
+  actions = 2,
+  metaLines = 2,
+  checkbox = true,
+  amount = true,
+  plate = false
+}: DangCardSkeletonShape) {
   return (
     <div className={dangCardClass({ className: skeletonCardClass })} aria-hidden="true">
       <div className={cardHeaderWithEditClass}>
         <div className={dangCardContentRowClass}>
-          <Skeleton variant="rect" className={dangCheckboxClass} />
+          {checkbox ? <Skeleton variant="rect" className={dangCheckboxClass} /> : null}
           <div className={dangCardBodyClass}>
             <div className={dangCardHeaderClass}>
               <SkeletonText className={dangCardTitleClass} width="6rem" />
-              <SkeletonText className={dangCardAmountClass} width="5rem" />
+              {amount ? <SkeletonText className={dangCardAmountClass} width="5rem" /> : null}
             </div>
+            {plate ? (
+              <Skeleton variant="rect" width="7.5rem" height="2.4rem" className="mt-2" />
+            ) : null}
             {Array.from({ length: metaLines }, (_, index) => (
               <SkeletonText
                 key={index}

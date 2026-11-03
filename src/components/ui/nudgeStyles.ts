@@ -4,8 +4,11 @@ import { cx } from '../../utils/cn'
 export const nudgeStackClass = 'flex w-[min(92vw,24rem)] flex-col gap-2'
 
 /** Matches the success toast it replaces. */
-export const nudgeSavedClass =
-  'rounded-[var(--radius-sm)] border border-[#bbf7d0] bg-[#f0fdf4] px-4 py-3 text-center text-[0.85rem] text-success'
+export const nudgeSavedClass = cx(
+  'rounded-[var(--radius-sm)] border border-[var(--color-success-border)] px-4 py-3 text-center text-[0.85rem] text-success',
+  // The dark tint is translucent: lay it over the surface so the toast stays opaque (as AppToaster does).
+  '[background:linear-gradient(var(--color-success-bg),var(--color-success-bg)),var(--color-surface)]'
+)
 
 export const nudgeCardClass = cx(
   'rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-2.5 text-[0.8rem] leading-relaxed text-text',

@@ -4,8 +4,8 @@ import { cx } from '../../utils/cn'
 export const undoToastClass = cx(
   'relative flex w-[min(92vw,24rem)] items-center justify-between gap-3 overflow-hidden rounded-[var(--radius-sm)]',
   'bg-[#1c1b19] py-1 pe-1 ps-4 text-[0.86rem] text-[#efece6] shadow-[0_8px_28px_rgba(0,0,0,0.35)] ring-1 ring-white/10',
-  // Clears the mobile bottom navigation; desktop has none.
-  'mb-[calc(4.75rem+var(--safe-bottom))] md:mb-0',
+  // Clears the mobile bottom navigation; desktop has none (theme.css).
+  'mb-[var(--bottom-nav-clearance)]',
   'animate-[fadeInUp_var(--duration-normal)_var(--ease-out)] motion-reduce:animate-none'
 )
 

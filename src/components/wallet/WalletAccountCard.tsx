@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react'
 
+import { useIsAmountsHidden } from '../../hooks/useAmountsHidden'
+import { maskedText } from '../../utils/amountMask'
 import { cn } from '../../utils/cn'
+import { formatMoney } from '../../utils/formatMoney'
 import { AccordionCollapse } from '../AccordionCollapse'
 import CardDeleteButton from '../CardDeleteButton'
 import CardEditButton from '../CardEditButton'
@@ -50,6 +53,8 @@ export default function WalletAccountCard({
 }: WalletAccountCardProps) {
   const displayBalance = balance === '' ? account.balance : Number(balance)
 
+  const amountsHidden = useIsAmountsHidden()
+
   return (
     <div
       className={cn(
@@ -70,7 +75,11 @@ export default function WalletAccountCard({
               onOpen()
             }
           }}
-          aria-label={`گردش حساب ${account.title}`}
+          // The name replaces the card's content, so the balance goes into it (masked when hidden).
+          aria-label={`گردش حساب ${account.title}، موجودی ${maskedText(
+            amountsHidden,
+            formatMoney(displayBalance)
+          )}`}
         >
           <WalletAccountCardVisual account={account} displayBalance={displayBalance} />
         </div>
@@ -88,7 +97,7 @@ export default function WalletAccountCard({
             expanded={expanded}
             className={expanded ? 'card-action-btn--expanded' : undefined}
             onClick={() => onToggleExpand()}
-            label={expanded ? 'بستن جزئیات' : 'نمایش جزئیات حساب'}
+            label={expanded ? 'بستن ویرایش موجودی' : 'ویرایش موجودی'}
           />
         </div>
       </div>

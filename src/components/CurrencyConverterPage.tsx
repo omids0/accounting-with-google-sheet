@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import AppIcon from './AppIcon'
 import { FormField, FormSelect } from './form'
+import Alert from './ui/Alert'
 import Button from './ui/Button'
 import {
   currencyConverterEmptyCardClass,
@@ -78,8 +79,11 @@ export default function CurrencyConverterPage() {
 
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
 
+  const [ratesError, setRatesError] = useState('')
+
   const loadRates = useCallback(async () => {
     setLoading(true)
+    setRatesError('')
     try {
       const nextRates = await fetchTgjuExchangeRates()
 
@@ -93,6 +97,7 @@ export default function CurrencyConverterPage() {
     } catch (err) {
       const msg = toUserMessage(err, 'خطا در دریافت نرخ ارز')
 
+      setRatesError(msg)
       showError(msg)
     } finally {
       setLoading(false)
@@ -127,6 +132,8 @@ export default function CurrencyConverterPage() {
   const emptyMessage =
     loading && !rates
       ? 'در حال دریافت نرخ ارز...'
+      : ratesError && !rates
+      ? 'نرخ ارز دریافت نشد؛ پس از «تلاش دوباره» نتیجه تبدیل نمایش داده می‌شود.'
       : amountError
       ? 'برای دیدن نتیجه، مبلغی بزرگ‌تر از صفر وارد کنید.'
       : missingRate && amount !== ''
@@ -204,30 +211,50 @@ export default function CurrencyConverterPage() {
             inputMode="decimal"
             value={formatDecimalAmountInput(amount)}
             onChange={e => setAmount(parseDecimalInput(e.target.value))}
-            placeholder="مثلاً ۱۰۰"
+            placeholder="۱۰۰"
             dir="ltr"
           />
         </FormField>
 
+        {ratesError && (
+          <Alert variant="error" className="flex flex-wrap items-center justify-between gap-2">
+            <span>{ratesError}</span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={loadRates}
+              disabled={loading}
+            >
+              تلاش دوباره
+            </Button>
+          </Alert>
+        )}
+
         {rates && crossRate > 0 && (
-          <p className={currencyConverterRateLineClass} dir="ltr">
+          <p className={currencyConverterRateLineClass}>
             ۱ {getExchangeCurrencyLabel(fromCurrency)} ={' '}
-            {formatCurrencyAmount(crossRate, toCurrency, displayOptions)}
+            <bdi>{formatCurrencyAmount(crossRate, toCurrency, displayOptions)}</bdi>
           </p>
         )}
 
         {lastUpdated && (
-          <p className={currencyConverterUpdatedAtClass}>آخرین بروزرسانی نرخ: {lastUpdated}</p>
+          <p className={currencyConverterUpdatedAtClass}>
+            آخرین بروزرسانی نرخ: <bdi dir="ltr">{lastUpdated}</bdi>
+          </p>
         )}
       </Card>
 
       {hasValidInput ? (
-        <Card className={cn(dashboardHeroCardClass, currencyConverterResultCardClass)}>
+        <Card
+          className={cn(dashboardHeroCardClass, currencyConverterResultCardClass)}
+          aria-live="polite"
+        >
           <div className={dashboardHeroLabelClass}>
             معادل {getExchangeCurrencyLabel(toCurrency)}
           </div>
-          <div className={currencyConverterResultValueClass} dir="ltr">
-            {formatCurrencyAmount(roundedConverted, toCurrency, displayOptions)}
+          <div className={currencyConverterResultValueClass}>
+            <bdi>{formatCurrencyAmount(roundedConverted, toCurrency, displayOptions)}</bdi>
           </div>
           {(toCurrency === 'irr' || toCurrency === 'toman') && displayConverted.amount > 0 && (
             <p className={dashboardHeroHintClass}>

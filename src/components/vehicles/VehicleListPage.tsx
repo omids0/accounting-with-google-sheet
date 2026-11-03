@@ -120,7 +120,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton table />
+        <DangCardListSkeleton table checkbox={false} amount={false} plate metaLines={1} />
       ) : data.items.length === 0 ? (
         <EmptyState
           icon="car"

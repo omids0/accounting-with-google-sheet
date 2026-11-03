@@ -5,9 +5,9 @@ import { useHighlightParam } from '../../hooks/useHighlightParam'
 import { useRegisterPageSpeedDial } from '../../hooks/usePageSpeedDial'
 import { isConfigured } from '../../services/settings'
 import ActiveFilterChips from '../ActiveFilterChips'
-import AppIcon from '../AppIcon'
 import ConfirmActionModal from '../ConfirmActionModal'
 import FilterModal from '../FilterModal'
+import NotSignedInState from '../NotSignedInState'
 import PageFilterPanel from '../PageFilterPanel'
 import DangFormModal from './DangFormModal'
 import DangList, { type DangEmptyCopy } from './DangList'
@@ -16,7 +16,6 @@ import { useDangFilters } from './useDangFilters'
 import { useDangForm } from './useDangForm'
 import { useDangItems } from './useDangItems'
 import SettleFlowModals from '../settle/SettleFlowModals'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -126,14 +125,7 @@ export default function DangPage({
   useRegisterPageSpeedDial(isConfigured() ? pageSpeedDialConfig : null, active)
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="debt" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <NotSignedInState icon="debt" />
   }
 
   return (

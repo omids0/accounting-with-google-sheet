@@ -7,6 +7,7 @@ import Button from './ui/Button'
 import { animateInClass } from './ui/layoutStyles'
 import {
   loginCardClass,
+  loginFullWidthActionClass,
   loginLogoClass,
   loginLogoIconClass,
   loginLogoTitleClass,
@@ -32,8 +33,6 @@ interface SharedAccessLostScreenProps {
   /** The app has an open sheet again. */
   onDone: () => void | Promise<void>
 }
-
-const buttonStyle = { width: '100%', marginTop: '0.75rem' } as const
 
 /**
  * The start screen when the open sheet is the shared account and this device cannot read it (the
@@ -75,7 +74,7 @@ export default function SharedAccessLostScreen({
   }
 
   return (
-    <div className={loginPageClass}>
+    <main className={loginPageClass}>
       <div className={cn(loginCardClass, animateInClass)}>
         <div className={loginLogoClass}>
           <span className={loginLogoIconClass}>
@@ -90,7 +89,7 @@ export default function SharedAccessLostScreen({
             loading={opening}
             disabled={busy || opening}
             onClick={() => void openWithGoogle()}
-            style={buttonStyle}
+            className={loginFullWidthActionClass}
           >
             {SHARED_ACTION_LABELS.reconnect}
           </Button>
@@ -102,7 +101,7 @@ export default function SharedAccessLostScreen({
           onClick={() =>
             void run(() => activateSpreadsheet(personal.id), 'باز کردن دفتر شخصی ناموفق بود')
           }
-          style={buttonStyle}
+          className={loginFullWidthActionClass}
         >
           رفتن به دفتر شخصی
         </Button>
@@ -110,11 +109,11 @@ export default function SharedAccessLostScreen({
           variant="secondary"
           disabled={busy || opening}
           onClick={() => void forget()}
-          style={buttonStyle}
+          className={loginFullWidthActionClass}
         >
           {SHARED_ACTION_LABELS.forget}
         </Button>
       </div>
-    </div>
+    </main>
   )
 }

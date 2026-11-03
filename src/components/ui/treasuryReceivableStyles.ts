@@ -30,7 +30,7 @@ export const receivablePaymentFormClass =
   'rounded-form border border-[var(--form-input-border)] bg-[var(--form-input-bg)] p-3 shadow-[var(--form-input-shadow)]'
 
 export const receivableTotalCardClass = cx(
-  'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
+  'p-4 text-center transition-[box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:shadow-[var(--shadow)]',
   '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
 
@@ -86,9 +86,12 @@ export const treasuryTxInteractiveClass = cx(
   'relative -mx-3 rounded-sm px-3 py-[0.65rem] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_55%,transparent)]'
 )
 
-/** «قیمت دستی · ۱۲ مهر ✎» line on a manually priced holding. */
+/**
+ * «قیمت دستی · ۱۲ مهر ✎» line on a manually priced holding. The edit button keeps its 44 px size;
+ * the negative margin makes it take only 28 px of the line, so the line stays compact.
+ */
 export const treasuryManualPriceClass =
-  'mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.75rem] text-muted [&_.card-action-btn]:h-7 [&_.card-action-btn]:w-7'
+  'mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.75rem] text-muted [&_.card-action-btn]:-my-2'
 
 export const treasuryStaleHintClass =
   'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-[0.7rem] font-semibold text-warning'
