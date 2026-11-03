@@ -6,6 +6,7 @@ import {
 } from '../../services/vehicleTransactions'
 import type { VehicleTransactionItem } from '../../types/vehicles'
 import CategoryBarChart from '../charts/CategoryBarChart'
+import IncrementalCardList from '../IncrementalCardList'
 import MoneyText from '../MoneyText'
 
 type VehicleTransactionsSectionProps = {
@@ -33,11 +34,16 @@ export default function VehicleTransactionsSection({
         <CategoryBarChart title="تفکیک هزینه‌ها" data={breakdown} tone="expense" />
       ) : null}
 
-      <div className={vehicleHorizontalCardsContainerClass}>
-        {transactions.map(item => (
+      <IncrementalCardList
+        items={transactions}
+        getId={item => item.id}
+        resetKey=""
+        unit="تراکنش"
+        className={vehicleHorizontalCardsContainerClass}
+        renderItem={item => (
           <VehicleTransactionCard key={item.id} item={item} onDelete={onDelete} />
-        ))}
-      </div>
+        )}
+      />
     </div>
   )
 }

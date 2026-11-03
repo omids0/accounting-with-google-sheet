@@ -93,6 +93,9 @@ function FloatingSpeedDial({ actions, ariaLabel }: PageSpeedDialProps) {
             role="menu"
             aria-label={ariaLabel}
             tabIndex={-1}
+            // Closed: out of the a11y tree and unfocusable (React 18 has no `inert` prop).
+            aria-hidden={open ? undefined : true}
+            {...(open ? {} : { inert: '' })}
             onKeyDown={event => {
               if (event.key === 'Tab') handleClose()
               else moveFocusWithArrows(event, menuItems(), { axis: 'vertical' })

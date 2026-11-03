@@ -4,6 +4,8 @@ import AppIcon from './AppIcon'
 import EmptyState from './EmptyState'
 import HelpHint from './HelpHint'
 import { HELP_HINTS } from './helpHints'
+import LoadErrorState from './LoadErrorState'
+import NotSignedInState from './NotSignedInState'
 import OpeningBalanceCard, {
   type OpeningBalanceEditState
 } from './openingBalances/OpeningBalanceCard'
@@ -21,6 +23,7 @@ import { refreshOpeningBalances } from '../services/openingBalanceRefresh'
 import { getAnchorMonthKey } from '../services/periodSettings'
 import { getSettings, isConfigured } from '../services/settings'
 import { requireAuth, requireSpreadsheetId } from '../utils/authGuard'
+import { cn } from '../utils/cn'
 import { formatJalaliMonthLabel } from '../utils/dateRange'
 import { handleSheetError } from '../utils/sheetError'
 import { showError, showSuccess } from '../utils/toast'
@@ -37,6 +40,9 @@ export default function OpeningBalancePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const [loading, setLoading] = useState(false)
+
+  // 'pending' until the first load settles, so an empty list is not shown before it.
+  const [loadStatus, setLoadStatus] = useState<'pending' | 'ok' | 'error'>('pending')
 
   const [savingId, setSavingId] = useState('')
 
@@ -56,7 +62,11 @@ export default function OpeningBalancePage() {
     const settings = getSettings()
 
     if (!settings?.spreadsheetId) return
-    if (!requireAuth()) return
+    if (!requireAuth()) {
+      setLoadStatus('error')
+
+      return
+    }
 
     setLoading(true)
     try {
@@ -68,7 +78,9 @@ export default function OpeningBalancePage() {
       setAnchorMonthKey(anchor)
       setItems(data)
       syncEdits(data.filter(item => isEditableMonth(item.monthKey, anchor)))
+      setLoadStatus('ok')
     } catch (err) {
+      setLoadStatus('error')
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری موجودی اول دوره' })) return
     } finally {
       setLoading(false)
@@ -126,19 +138,19 @@ export default function OpeningBalancePage() {
   }
 
   if (!isConfigured()) {
-    return <EmptyState icon="wallet" message="ابتدا با گوگل وارد شوید" />
+    return <NotSignedInState icon="wallet" />
   }
 
   return (
     <div className={listModulePageClass}>
-      <div className={cardHeaderRowClass} style={{ marginBottom: '0.75rem' }}>
-        <h2 style={{ fontSize: '0.95rem', fontWeight: 600 }}>
-          موجودی اول دوره
+      <div className={cn(cardHeaderRowClass, 'mb-3')}>
+        <div className="flex items-center">
+          <h2 className="text-[0.95rem] font-semibold">موجودی اول دوره</h2>
           <HelpHint
             {...HELP_HINTS.openingBalance}
             actions={HELP_HINTS.openingBalance.actions.slice(1)}
           />
-        </h2>
+        </div>
         <Button
           variant="secondary"
           size="sm"
@@ -160,8 +172,10 @@ export default function OpeningBalancePage() {
           : 'ماه شروع محاسبه هنوز مشخص نشده؛ یک بار داشبورد یا کیف پول را باز کن تا مشخص شود. تا آن موقع این فهرست فقط خواندنی است.'}
       </p>
 
-      {loading && items.length === 0 ? (
+      {items.length === 0 && (loading || loadStatus === 'pending') ? (
         <InstallmentCardListSkeleton />
+      ) : items.length === 0 && loadStatus === 'error' ? (
+        <LoadErrorState icon="wallet" onRetry={loadItems} />
       ) : items.length === 0 ? (
         <EmptyState
           icon="wallet"

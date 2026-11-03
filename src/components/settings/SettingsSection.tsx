@@ -44,7 +44,8 @@ export default function SettingsSection({
           className={accordionCardTriggerClass}
           onClick={() => setExpanded(value => !value)}
           aria-expanded={expanded}
-          aria-controls={panelId}
+          // The panel is unmounted while collapsed, so it can only be referenced while open.
+          aria-controls={expanded ? panelId : undefined}
         >
           <span className={settingsSectionIconClass(expanded)} aria-hidden="true">
             <AppIcon name={icon} size={20} />

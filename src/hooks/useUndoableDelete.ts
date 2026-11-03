@@ -4,6 +4,7 @@ import { useLocation } from 'react-router'
 import { dismissUndoToast, showUndoToast } from '../components/UndoToast'
 import { haptic } from '../utils/haptics'
 import { handleSheetError } from '../utils/sheetError'
+import { startUndoWindow } from '../utils/undoWindow'
 
 export const UNDO_WINDOW_MS = 5000
 
@@ -26,7 +27,7 @@ export interface UndoableDelete {
   message?: string
 }
 
-type Pending = UndoableDelete & { timer: ReturnType<typeof setTimeout>; toastId: string }
+type Pending = UndoableDelete & { cancelTimer: () => void; toastId: string }
 
 /**
  * Delete now, write later: the row disappears at once and a toast offers
@@ -45,7 +46,7 @@ export function useUndoableDelete() {
     if (!pending) return
 
     pendingRef.current = null
-    clearTimeout(pending.timer)
+    pending.cancelTimer()
     dismissUndoToast(pending.toastId)
     try {
       // Nothing before this call awaits: the commit starts inside the event that closes the page.
@@ -65,7 +66,7 @@ export function useUndoableDelete() {
     if (!pending) return
 
     pendingRef.current = null
-    clearTimeout(pending.timer)
+    pending.cancelTimer()
     dismissUndoToast(pending.toastId)
     setPendingId(null)
     pending.restore?.()
@@ -81,10 +82,13 @@ export function useUndoableDelete() {
       await flush()
       entry.optimisticRemove?.()
       haptic('medium')
+      // The toast first: its id is what pauses the window while the user hovers or presses it.
+      const toastId = showUndoToast(entry.label, UNDO_WINDOW_MS, undo, entry.message)
+
       pendingRef.current = {
         ...entry,
-        timer: setTimeout(() => void flush(), UNDO_WINDOW_MS),
-        toastId: showUndoToast(entry.label, UNDO_WINDOW_MS, undo, entry.message)
+        cancelTimer: startUndoWindow(toastId, UNDO_WINDOW_MS, () => void flush()),
+        toastId
       }
       setPendingId(entry.id)
     },

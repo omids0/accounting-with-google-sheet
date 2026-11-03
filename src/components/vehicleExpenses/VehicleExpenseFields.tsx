@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import VehicleSelect from './VehicleSelect'
 import { getVehicleExpenseCategories } from '../../services/vehicleExpenseCategories'
 import type { VehicleProfile } from '../../types/vehicles'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { LOCKED_VEHICLE_EXPENSE_TYPES } from '../../utils/protectedCategories'
 import {
   calculateFuelLiters,
@@ -81,7 +82,7 @@ export default function VehicleExpenseFields({
       {isFuel ? (
         <>
           <FormField
-            label="نرخ هر لیتر (تومان)"
+            label={`نرخ هر لیتر (${getCurrencySymbol()})`}
             required
             controlWidth="full"
             error={errors.fuelPricePerLiter}

@@ -81,7 +81,8 @@ export default function DangCard({
               <div className={dangCardHeaderClass}>
                 <span className={dangCardTitleClass}>{item.title}</span>
                 <span className={dangCardAmountClass}>
-                  <MoneyText amount={displayAmount} />
+                  {/* Inside a button: the mask must not be a second button. */}
+                  <MoneyText amount={displayAmount} revealable={false} />
                 </span>
               </div>
               <div className={dangCardMetaClass}>
@@ -143,7 +144,7 @@ export default function DangCard({
                 event.stopPropagation()
                 onExpand(expanded ? null : item.id)
               }}
-              label={expanded ? 'بستن جزئیات' : 'ویرایش مبلغ بدهی'}
+              label={expanded ? 'بستن ویرایش مبلغ بدهی' : 'ویرایش مبلغ بدهی'}
             />
           )}
         </div>

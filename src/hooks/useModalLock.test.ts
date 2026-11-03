@@ -135,6 +135,25 @@ describe('modal Escape and focus', () => {
     expect(document.activeElement?.getAttribute('aria-label')).toBe('نام')
   })
 
+  it('does not focus a text field on a touch screen (the keyboard would make the sheet jump)', () => {
+    const original = window.matchMedia
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(pointer: coarse)'
+    })) as typeof window.matchMedia
+
+    try {
+      renderNested()
+
+      const dialogs = document.body.querySelectorAll('[role="dialog"]')
+      const inner = dialogs[dialogs.length - 1]
+
+      expect(document.activeElement?.tagName).not.toBe('INPUT')
+      expect(inner.contains(document.activeElement)).toBe(true)
+    } finally {
+      window.matchMedia = original
+    }
+  })
+
   it('gives each modal its own title id', () => {
     renderNested()
 

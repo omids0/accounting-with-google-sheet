@@ -18,6 +18,8 @@ import {
 } from '../ui/chartStyles'
 import {
   dashboardHeroCompareClass,
+  dashboardHeroDotClass,
+  dashboardHeroGlowClass,
   dashboardHeroStripClass,
   dashboardHeroStripItemClass,
   dashboardHeroStripValueClass
@@ -52,10 +54,19 @@ export default function DashboardHero({
   className
 }: DashboardHeroProps) {
   const strip = [
-    { label: `درآمد ${periodNoun}`, value: formatSignedNumber(totalIncome, { showPlus: true }) },
-    { label: `هزینه ${periodNoun}`, value: formatSignedNumber(-totalExpense) },
+    {
+      label: `درآمد ${periodNoun}`,
+      tone: 'income' as const,
+      value: formatSignedNumber(totalIncome, { showPlus: true })
+    },
+    {
+      label: `هزینه ${periodNoun}`,
+      tone: 'expense' as const,
+      value: formatSignedNumber(-totalExpense)
+    },
     {
       label: 'خالص',
+      tone: 'net' as const,
       value: formatSignedNumber(totalIncome - totalExpense, { showPlus: true })
     }
   ]
@@ -67,7 +78,11 @@ export default function DashboardHero({
     : null
 
   return (
-    <Card className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass, className)}>
+    <Card
+      className={cn(dashboardHeroCardClass, dashboardHeroCardAnimatedClass, 'isolate', className)}
+    >
+      <span aria-hidden="true" className={dashboardHeroGlowClass.top} />
+      <span aria-hidden="true" className={dashboardHeroGlowClass.bottom} />
       <div className={dashboardHeroHeaderClass}>
         <div className={dashboardHeroLabelClass}>
           {asOfLabel ? `دارایی قابل اتکا · ${asOfLabel}` : 'دارایی قابل اتکا'}
@@ -82,7 +97,10 @@ export default function DashboardHero({
       <dl className={dashboardHeroStripClass}>
         {strip.map(item => (
           <div key={item.label} className={dashboardHeroStripItemClass}>
-            <dt>{item.label}</dt>
+            <dt className="flex items-center gap-1">
+              <span aria-hidden="true" className={dashboardHeroDotClass[item.tone]} />
+              {item.label}
+            </dt>
             <dd className={dashboardHeroStripValueClass}>
               <MaskedAmount>{item.value}</MaskedAmount>
             </dd>

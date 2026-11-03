@@ -35,8 +35,13 @@ export const formControlInvalidClass = cx(
   'focus-within:!border-danger shadow-[0_0_0_3px_var(--color-danger-bg)]'
 )
 
-/** Fixed single-line control height so inputs, pickers, and selects align in form rows. */
-export const formControlSizeClass = 'h-touch-min px-3.5 text-[0.95rem] leading-[1.4] md:px-3'
+/**
+ * Fixed single-line control height so inputs, pickers, and selects align in form rows. On touch
+ * screens the text is 16px: iOS Safari zooms the page on focusing anything smaller. The height is
+ * fixed, so the larger text moves nothing.
+ */
+export const formControlSizeClass =
+  'h-touch-min px-3.5 text-[0.95rem] leading-[1.4] pointer-coarse:text-[16px] md:px-3'
 
 export function formControlClassName(className?: string) {
   return cn(

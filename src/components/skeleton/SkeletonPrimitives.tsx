@@ -24,6 +24,12 @@ export function SkeletonText({ className, width }: { className?: string; width: 
 export interface DangCardSkeletonShape {
   actions?: number
   metaLines?: number
+  /** False for cards without the leading checkbox (vehicle profile). Default true. */
+  checkbox?: boolean
+  /** False for cards without an amount beside the title. Default true. */
+  amount?: boolean
+  /** Adds a plate-badge-sized block under the title (vehicle profile). */
+  plate?: boolean
 }
 
 /** Placeholder in the exact box of a real card action button (edit, delete…). */

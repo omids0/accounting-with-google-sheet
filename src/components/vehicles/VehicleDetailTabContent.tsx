@@ -11,6 +11,7 @@ import type {
   VehicleTransactionItem
 } from '../../types/vehicles'
 import EmptyState from '../EmptyState'
+import IncrementalCardList from '../IncrementalCardList'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 
@@ -103,8 +104,12 @@ export default function VehicleDetailTabContent({
 
   if (isActiveTab) {
     return (
-      <div className={vehicleHorizontalCardsContainerClass}>
-        {(listItems as VehicleActiveListItem[]).map(item => (
+      <IncrementalCardList
+        items={listItems as VehicleActiveListItem[]}
+        getId={item => item.id}
+        resetKey={detailTab}
+        className={vehicleHorizontalCardsContainerClass}
+        renderItem={item => (
           <VehicleActiveItemCard
             key={item.id}
             item={item}
@@ -113,18 +118,22 @@ export default function VehicleDetailTabContent({
             onEdit={item.kind === 'periodic' ? onPeriodicEdit : onDeadlineEdit}
             onDelete={onDeleteActive}
           />
-        ))}
-      </div>
+        )}
+      />
     )
   }
 
   if (isHistoryTab) {
     return (
-      <div className={vehicleHorizontalCardsContainerClass}>
-        {(listItems as HistoryWithRow[]).map(item => (
+      <IncrementalCardList
+        items={listItems as HistoryWithRow[]}
+        getId={item => item.id}
+        resetKey={detailTab}
+        className={vehicleHorizontalCardsContainerClass}
+        renderItem={item => (
           <VehicleHistoryCard key={item.id} item={item} onDelete={onDeleteHistory} />
-        ))}
-      </div>
+        )}
+      />
     )
   }
 

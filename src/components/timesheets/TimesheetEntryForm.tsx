@@ -36,7 +36,6 @@ export default function TimesheetEntryForm({
           value={form.title}
           onChange={e => onFormChange({ title: e.target.value })}
           placeholder="مثلاً: جلسه با مشتری"
-          autoFocus
         />
       </FormField>
 

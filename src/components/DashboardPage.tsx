@@ -1,4 +1,4 @@
-import EmptyState from './EmptyState'
+import NotSignedInState from './NotSignedInState'
 import { DashboardSkeleton } from './skeleton'
 import SpeedDialIcon from './SpeedDialIcon'
 import {
@@ -82,7 +82,7 @@ export default function DashboardPage({ active = true }: { active?: boolean }) {
   useBusyOverlayRelease(!dashboard.loading || !!dashboard.data)
 
   if (!isConfigured()) {
-    return <EmptyState icon="dashboard" message="ابتدا با گوگل وارد شوید" />
+    return <NotSignedInState icon="dashboard" />
   }
 
   if (dashboard.loading && !dashboard.data) {

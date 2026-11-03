@@ -10,6 +10,8 @@ export default function AppToaster() {
     <Toaster
       position="top-center"
       containerClassName={appToasterClass}
+      // Below the notch / status bar (a bare top: 16px sits under it on iOS).
+      containerStyle={{ top: 'calc(var(--safe-top) + 8px)' }}
       toastOptions={{
         duration: 3500,
         // Screen readers announce «ذخیره شد» politely; a failed save interrupts.
@@ -34,6 +36,8 @@ export default function AppToaster() {
           }
         },
         error: {
+          // A failure is read, not glanced at: it stays longer than «ذخیره شد».
+          duration: 6000,
           ariaProps: { role: 'alert', 'aria-live': 'assertive' },
           style: {
             background: tint('var(--color-danger-bg)'),

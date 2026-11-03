@@ -6,7 +6,7 @@ import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formFieldError, requiredField, submitValidatedForm } from '../../utils/formValidation'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountInput from '../AmountInput'
-import { CategorySelect, FormField, FormRow, FormSelect } from '../form'
+import { CategorySelect, CheckboxField, FormField, FormRow, FormSelect } from '../form'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import { DAYS_BEFORE_OPTIONS } from '../reminders/reminderConstants'
@@ -140,10 +140,11 @@ export default function VehicleDeadlineFormModal({
         <textarea {...register('notes')} rows={2} placeholder="توضیحات اختیاری" />
       </FormField>
 
-      <label className="checkbox-row flex items-center gap-2">
-        <input type="checkbox" {...register('reminderEnabled')} />
-        <span>یادآوری موعد</span>
-      </label>
+      <CheckboxField
+        checked={watch('reminderEnabled')}
+        onChange={enabled => setValue('reminderEnabled', enabled)}
+        label="یادآوری موعد"
+      />
 
       {watch('reminderEnabled') ? (
         <FormSelect

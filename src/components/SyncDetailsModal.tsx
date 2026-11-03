@@ -81,7 +81,7 @@ function FailedWriteItem({
           کپی جزئیات
         </Button>
         <Button type="button" size="sm" variant="danger" onClick={onDismiss}>
-          حذف
+          حذف این مورد
         </Button>
       </div>
     </li>
@@ -106,6 +106,8 @@ export default function SyncDetailsModal({
   const [sending, setSending] = useState(false)
 
   const [confirmingDismissAll, setConfirmingDismissAll] = useState(false)
+
+  const [dismissingId, setDismissingId] = useState<string | null>(null)
 
   const items = useMemo(
     () => (open && spreadsheetId ? getFailedWriteSummaries(spreadsheetId) : []),
@@ -141,6 +143,14 @@ export default function SyncDetailsModal({
     showInfo('عملیات ناموفق حذف شد؛ اپ نسخهٔ شیت را نگه می‌دارد.')
   }
 
+  const dismissOne = () => {
+    const id = dismissingId
+
+    setDismissingId(null)
+    if (id) act(sheetId => dismissFailedWrite(sheetId, id))
+    showInfo('این عملیات ناموفق حذف شد؛ اپ نسخهٔ شیت را نگه می‌دارد.')
+  }
+
   return (
     <>
       <FormModal
@@ -167,7 +177,7 @@ export default function SyncDetailsModal({
           {conflicts > 0 && (
             <div className={syncDetailsActionsClass}>
               <p className={confirmDeleteMessageClass}>
-                یک رکورد را تو و نفر دیگری هم‌زمان عوض کرده‌اید.
+                یک رکورد را شما و نفر دیگری هم‌زمان عوض کرده‌اید.
               </p>
               <Button
                 type="button"
@@ -195,7 +205,7 @@ export default function SyncDetailsModal({
                     item={item}
                     onRetry={() => act(id => retryFailedWrite(id, item.id))}
                     onCopy={() => void copy(formatFailedWriteDetails(item), 'جزئیات کپی شد')}
-                    onDismiss={() => act(id => dismissFailedWrite(id, item.id))}
+                    onDismiss={() => setDismissingId(item.id)}
                   />
                 ))}
               </ul>
@@ -236,6 +246,17 @@ export default function SyncDetailsModal({
         cancelLabel="انصراف"
         onClose={() => setConfirmingDismissAll(false)}
         onConfirm={dismissAll}
+        tone="danger"
+      />
+      <ConfirmActionModal
+        open={dismissingId !== null}
+        title="حذف این مورد"
+        message="این عملیات که به شیت نرسید از صف کنار گذاشته می‌شود و دیگر فرستاده نمی‌شود. داده‌های شیت دست نمی‌خورد و اپ نسخهٔ شیت را نشان می‌دهد. ادامه بدهیم؟"
+        confirmLabel="حذف کن"
+        cancelLabel="انصراف"
+        tone="danger"
+        onClose={() => setDismissingId(null)}
+        onConfirm={dismissOne}
       />
     </>
   )

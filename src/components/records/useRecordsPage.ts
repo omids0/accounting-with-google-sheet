@@ -35,6 +35,8 @@ export function useRecordsPage(
   const [activeFormId, setActiveFormId] = useState('')
   const [rawRecords, setRecords] = useState<StoredRecord[]>([])
   const [loading, setLoading] = useState(false)
+  // 'pending' until the first load settles: an empty list is only "no records" once loaded.
+  const [loadStatus, setLoadStatus] = useState<'pending' | 'ok' | 'error'>('pending')
 
   const activeForm = activeFormId === 'all' ? undefined : forms.find(f => f.id === activeFormId)
   const isAllForms = activeFormId === 'all'
@@ -44,7 +46,11 @@ export function useRecordsPage(
 
     if (!settings?.spreadsheetId) return
 
-    if (!requireAuth()) return
+    if (!requireAuth()) {
+      setLoadStatus('error')
+
+      return
+    }
 
     setLoading(true)
     try {
@@ -58,7 +64,11 @@ export function useRecordsPage(
           ? refreshedSettings.forms
           : refreshedSettings.forms.filter(f => f.id === activeFormId)
 
-      if (!formsToLoad.length) return
+      if (!formsToLoad.length) {
+        setLoadStatus('ok')
+
+        return
+      }
 
       const batches = await Promise.all(
         formsToLoad.map(async form => {
@@ -69,7 +79,9 @@ export function useRecordsPage(
       )
 
       setRecords(sortRecords(batches.flat(), refreshedSettings.forms))
+      setLoadStatus('ok')
     } catch (err) {
+      setLoadStatus('error')
       if (handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری' })) return
     } finally {
       setLoading(false)
@@ -98,6 +110,7 @@ export function useRecordsPage(
 
     if (!settings) return
     setForms(settings.forms)
+    if (!settings.forms.length) setLoadStatus('ok')
     if (initialFormType) {
       const form = settings.forms.find(f => f.type === initialFormType)
 
@@ -224,6 +237,8 @@ export function useRecordsPage(
     activeFormId,
     records,
     loading,
+    loaded: loadStatus === 'ok',
+    loadFailed: loadStatus === 'error',
     isAllForms,
     loadRecords,
     showCategoryFilter,

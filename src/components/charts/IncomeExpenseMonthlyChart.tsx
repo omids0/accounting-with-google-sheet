@@ -23,9 +23,16 @@ export interface MonthlyChartLabels {
   net: string
   /** CSS color of the second bar and its legend dot. */
   secondColor?: string
+  /** Shown when the year has no activity. */
+  empty?: string
 }
 
-const DEFAULT_LABELS: MonthlyChartLabels = { first: 'درآمد', second: 'هزینه', net: 'خالص ماه' }
+const DEFAULT_LABELS: MonthlyChartLabels = {
+  first: 'درآمد',
+  second: 'هزینه',
+  net: 'خالص ماه',
+  empty: 'داده‌ای برای این سال ثبت نشده'
+}
 
 interface IncomeExpenseMonthlyChartProps {
   data: MonthlyFlow[]
@@ -51,7 +58,7 @@ const barClass =
   'h-full rounded-full origin-right transition-transform duration-700 ease-out motion-reduce:transition-none'
 
 const valueClass =
-  'w-[6.5rem] shrink-0 whitespace-nowrap text-left font-numeric text-[0.7rem] font-semibold tabular-nums text-muted'
+  'w-[6.5rem] shrink-0 whitespace-nowrap text-start font-numeric text-[0.72rem] font-semibold tabular-nums text-muted'
 
 /**
  * Income and expense per month as a list: two thin bars per month growing from
@@ -94,7 +101,7 @@ function IncomeExpenseMonthlyChart({
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       {header}
       {months.length === 0 ? (
-        <p className={emptyTextClass}>داده‌ای برای این سال ثبت نشده</p>
+        <p className={emptyTextClass}>{labels.empty ?? DEFAULT_LABELS.empty}</p>
       ) : (
         <>
           <ul className={listClass}>
@@ -105,10 +112,8 @@ function IncomeExpenseMonthlyChart({
                 <li key={item.label}>
                   <div className={monthHeadClass}>
                     <span className={monthNameClass}>{item.label.split(' ')[0] ?? item.label}</span>
-                    <span
-                      className={cn(netClass, net >= 0 ? 'text-success' : 'text-danger')}
-                      title={labels.net}
-                    >
+                    <span className={cn(netClass, net >= 0 ? 'text-success' : 'text-danger')}>
+                      <span className="me-1 font-normal text-muted">{labels.net}</span>
                       <MoneyText amount={net} signed="plus" />
                     </span>
                   </div>
@@ -116,12 +121,14 @@ function IncomeExpenseMonthlyChart({
                     <div className={barRowClass}>
                       {bar(item.income, 'var(--color-income)')}
                       <span className={valueClass}>
+                        <span className="sr-only">{labels.first}: </span>
                         <MoneyText amount={item.income} />
                       </span>
                     </div>
                     <div className={barRowClass}>
                       {bar(item.expense, labels.secondColor ?? 'var(--color-expense)')}
                       <span className={valueClass}>
+                        <span className="sr-only">{labels.second}: </span>
                         <MoneyText amount={item.expense} />
                       </span>
                     </div>

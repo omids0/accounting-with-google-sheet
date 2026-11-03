@@ -64,7 +64,7 @@ export default function ActiveFilterChips({
         aria-label={hasChips ? `${filterLabel} (${chips.length} فعال)` : filterLabel}
         aria-haspopup="dialog"
       >
-        <AppIcon name="filter" size={16} aria-hidden />
+        <AppIcon name="filter" size={16} />
         <span className={activeFilterTriggerLabelClass}>{filterLabel}</span>
         {hasChips && (
           <span className={activeFilterTriggerDotClass} aria-hidden="true">

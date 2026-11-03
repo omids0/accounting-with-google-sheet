@@ -15,6 +15,7 @@ import {
 } from './vehicleCardStyles'
 import type { MonthlyFuelStats } from '../../types/vehicles'
 import { formatJalaliMonthLabel } from '../../utils/dateRange'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import MoneyText from '../MoneyText'
 import Card from '../ui/Card'
@@ -39,12 +40,14 @@ function FuelPriceBreakdown({ month }: { month: MonthlyFuelStats }) {
             <div className="text-[0.72rem] font-semibold text-expense/80">نرخ هر لیتر</div>
             <div className={fuelPriceCardRateClass} dir="ltr">
               {row.price.toLocaleString('fa-IR')}
-              <span className="ms-1 text-[0.72rem] font-medium text-muted">تومان/L</span>
+              <span className="ms-1 text-[0.72rem] font-medium text-muted">
+                {getCurrencySymbol()}
+              </span>
             </div>
             <div className={fuelPriceCardMetaRowClass}>
               <span className="text-muted">حجم</span>
-              <span className="font-semibold" dir="ltr">
-                {row.liters.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} L
+              <span className="font-semibold">
+                {row.liters.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} لیتر
               </span>
             </div>
             <div className={fuelPriceCardMetaRowClass}>

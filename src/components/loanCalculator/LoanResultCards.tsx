@@ -43,7 +43,10 @@ export default function LoanResultCards({ method, principal, result }: LoanResul
 
   return (
     <>
-      <Card className={cn(dashboardHeroCardClass, loanCalculatorResultCardClass)}>
+      <Card
+        className={cn(dashboardHeroCardClass, loanCalculatorResultCardClass)}
+        aria-live="polite"
+      >
         <span className={loanMethodBadgeClass}>{METHOD_BADGE[method]}</span>
         <div className={dashboardHeroLabelClass}>قسط ماهانه تقریبی</div>
         <MoneyDisplay amount={monthly} size="hero" tone="hero" />
@@ -52,7 +55,7 @@ export default function LoanResultCards({ method, principal, result }: LoanResul
         </p>
       </Card>
 
-      <Card>
+      <Card aria-live="polite">
         <CardTitle className="mb-3">خلاصه بازپرداخت</CardTitle>
         <div className={loanCalculatorSummaryGridClass}>
           <div className={loanCalculatorSummaryItemClass}>

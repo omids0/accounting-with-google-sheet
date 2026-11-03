@@ -1,4 +1,5 @@
 import type { VehicleTransactionItem } from '../../types/vehicles'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { formatIsoDatePersian } from '../../utils/jalaliDate'
 import { isFuelExpenseType } from '../../utils/vehicleExpenseUtils'
 import CardDeleteButton from '../CardDeleteButton'
@@ -36,7 +37,7 @@ export default function VehicleTransactionCard({ item, onDelete }: VehicleTransa
           <div className={dangCardBodyClass}>
             <div className="flex flex-wrap items-center gap-2">
               <span className={listCardTitleClass}>{item.title}</span>
-              <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[0.68rem] text-muted">
+              <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[0.68rem] text-text">
                 {SOURCE_LABELS[item.source]}
               </span>
               {item.amount > 0 ? (
@@ -49,10 +50,12 @@ export default function VehicleTransactionCard({ item, onDelete }: VehicleTransa
               {item.date ? formatIsoDatePersian(item.date) : '—'}
               {item.mileage ? ` · ${item.mileage.toLocaleString('fa-IR')} کیلومتر` : ''}
               {isFuel && item.fuelLiters
-                ? ` · ${item.fuelLiters.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} L`
+                ? ` · ${item.fuelLiters.toLocaleString('fa-IR', { maximumFractionDigits: 2 })} لیتر`
                 : ''}
               {isFuel && item.fuelPricePerLiter
-                ? ` · ${item.fuelPricePerLiter.toLocaleString('fa-IR')} تومان/L`
+                ? ` · ${item.fuelPricePerLiter.toLocaleString(
+                    'fa-IR'
+                  )} ${getCurrencySymbol()} برای هر لیتر`
                 : ''}
             </div>
           </div>

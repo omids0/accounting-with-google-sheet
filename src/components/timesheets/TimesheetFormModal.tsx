@@ -66,7 +66,6 @@ export default function TimesheetFormModal({
           className={formControlClassName()}
           {...register('title')}
           placeholder="مثلاً: پروژه الف"
-          autoFocus
         />
       </FormField>
 

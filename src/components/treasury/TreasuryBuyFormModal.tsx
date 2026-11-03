@@ -14,6 +14,7 @@ import QuantityInput from './QuantityInput'
 import { tradeFormErrors, type TradeFormErrors } from './tradeErrors'
 import TreasuryAssetPicker, { defaultAssetForClass, emptyNewAsset } from './TreasuryAssetPicker'
 import { NEW_ASSET_OPTION, type TransactionWithRow, type VaultFormState } from './types'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 
 type TreasuryBuyFormModalProps = {
   open: boolean
@@ -153,7 +154,11 @@ export default function TreasuryBuyFormModal({
           />
         </FormField>
 
-        <FormField label={`قیمت هر ${unit} (تومان)`} required error={errors.unitPrice}>
+        <FormField
+          label={`قیمت هر ${unit} (${getCurrencySymbol()})`}
+          required
+          error={errors.unitPrice}
+        >
           <AmountInput
             value={watch('unitPrice')}
             onChange={val => {

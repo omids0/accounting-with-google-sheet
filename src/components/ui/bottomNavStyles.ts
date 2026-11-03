@@ -18,15 +18,15 @@ export const bottomNavCenterClass =
   'relative z-[2] flex items-end justify-center self-end px-0.5 min-[380px]:px-1'
 
 export const bottomNavTabLabelClass =
-  // No truncation: on 320px phones a cut label («کیف پ…») is worse than a smaller one.
-  'max-w-full whitespace-nowrap text-[0.6rem] leading-tight tracking-[-0.01em] min-[360px]:text-[0.68rem] min-[380px]:text-[0.72rem]'
+  // 0.72rem from 360px up. Below that, three tabs share ~40px each and «صندوقچه» (45px at 0.72rem)
+  // ran into its neighbour, so it drops to 0.62rem. Two-word labels («کیف پول») wrap instead.
+  'max-w-full text-center text-[0.62rem] leading-tight tracking-[-0.01em] min-[360px]:text-[0.72rem]'
 
 export function bottomNavTabBtnClass(active?: boolean) {
   return cn(
     'relative flex min-h-touch-min min-w-0 max-w-[4.25rem] flex-1 flex-col items-center justify-center gap-0.5 px-0 py-1.5 min-[360px]:px-0.5',
     'min-[380px]:max-w-[4.75rem] min-[380px]:gap-1 min-[380px]:px-1 min-[380px]:py-2',
-    'touch-manipulation text-[0.68rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
-    'min-[380px]:text-[0.72rem]',
+    'touch-manipulation text-[0.72rem] font-semibold text-muted transition-[color,transform] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
     'rounded-xl active:enabled:scale-[0.94] motion-reduce:active:scale-100',
     active &&
       cn(
@@ -68,6 +68,5 @@ export const bottomNavDashboardIconClass = cx(
 )
 
 export const bottomNavDashboardLabelClass = cx(
-  'text-[0.68rem] font-bold tracking-[-0.01em] text-on-primary [text-shadow:0_1px_2px_rgba(15,23,42,0.25)]',
-  'min-[380px]:text-[0.72rem]'
+  'text-[0.72rem] font-bold tracking-[-0.01em] text-on-primary [text-shadow:0_1px_2px_rgba(15,23,42,0.25)]'
 )

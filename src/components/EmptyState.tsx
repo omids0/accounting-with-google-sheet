@@ -5,7 +5,8 @@ import Button from './ui/Button'
 import {
   emptyStateClass,
   emptyStateDescriptionClass,
-  emptyStateIconClass
+  emptyStateIconClass,
+  emptyStateMessageClass
 } from './ui/displayStyles'
 import { cn } from '../utils/cn'
 
@@ -34,8 +35,8 @@ export default function EmptyState({
       <div className={emptyStateIconClass}>
         <AppIcon name={icon} />
       </div>
+      <p className={emptyStateMessageClass}>{message}</p>
       {description ? <p className={emptyStateDescriptionClass}>{description}</p> : null}
-      <p>{message}</p>
       {action || secondaryAction ? (
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           {secondaryAction ? (

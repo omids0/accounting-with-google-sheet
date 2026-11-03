@@ -1,7 +1,8 @@
 import { cn, cx } from '../../utils/cn'
 
 export const unlockPageClass = cx(
-  'relative flex min-h-dvh items-center justify-center overflow-hidden p-4 min-[380px]:p-5',
+  'relative flex min-h-dvh items-center justify-center overflow-hidden px-4 pb-[max(1rem,var(--safe-bottom))] pt-[max(1rem,var(--safe-top))]',
+  'min-[380px]:px-5 min-[380px]:pb-[max(1.25rem,var(--safe-bottom))] min-[380px]:pt-[max(1.25rem,var(--safe-top))]',
   '[background:radial-gradient(ellipse_120%_80%_at_50%_-20%,color-mix(in_srgb,var(--color-primary)_18%,transparent),transparent_55%),linear-gradient(165deg,var(--color-bg)_0%,color-mix(in_srgb,var(--color-accent-soft)_70%,var(--color-bg))_45%,color-mix(in_srgb,var(--color-accent-mid)_55%,var(--color-bg))_100%)]'
 )
 

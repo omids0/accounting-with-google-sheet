@@ -15,6 +15,8 @@ export function appMenuDrawerClass(variant: AppMenuVariant) {
     variant === 'drawer'
       ? cn(
           'fixed bottom-0 right-0 top-0 z-[41] w-[min(19rem,88vw)] border-s',
+          // The app column is capped at 480px and centered below 768px: dock to its edge, not the screen's.
+          'max-md:right-[max(0px,calc((100vw-480px)/2))]',
           'shadow-[-10px_0_40px_color-mix(in_srgb,var(--color-primary)_14%,rgba(15,23,42,0.22))]',
           'animate-[app-menu-slide-in_var(--duration-normal)_var(--ease-out)]'
         )
@@ -79,11 +81,7 @@ export function appMenuItemClass(active?: boolean, variant?: 'default' | 'parent
       ? 'min-h-[2.5rem] px-3 py-1.5 text-[0.86rem]'
       : 'min-h-[2.5rem] px-3 py-1.5 text-[0.92rem]',
     active &&
-      cn(
-        'text-primary-dark',
-        'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)]',
-        'shadow-[inset_-3px_0_0_var(--color-primary)]'
-      ),
+      cn('text-primary-dark', 'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)]'),
     !active && 'hover:bg-accent-soft active:scale-[0.99]'
   )
 }
@@ -101,7 +99,7 @@ export const appMenuReturnClass = cn(
 )
 
 export function appMenuItemIconClass(active?: boolean) {
-  // Bare icon, no box: the row's tint and inset line carry the active state.
+  // Bare icon, no box: the row's tint and colour carry the active state.
   return cn(
     'flex h-6 w-6 flex-shrink-0 items-center justify-center text-primary-dark',
     'transition-colors duration-[var(--duration-fast)] ease-[var(--ease-out)]',

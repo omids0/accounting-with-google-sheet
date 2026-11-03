@@ -1,7 +1,8 @@
 import { cx } from '../../utils/cn'
 
 export const loginPageClass = cx(
-  'login-page flex min-h-dvh items-center justify-center p-6',
+  // Safe-area aware like the onboarding page: the card never sits under the notch or home bar.
+  'login-page flex min-h-dvh items-center justify-center px-6 pb-[max(1.5rem,var(--safe-bottom))] pt-[max(1.5rem,var(--safe-top))]',
   // Static: looping background-position repainted the whole screen every frame.
   '[background:linear-gradient(160deg,var(--color-bg)_0%,var(--color-accent-soft)_50%,var(--color-accent-mid)_100%)]'
 )
@@ -12,6 +13,9 @@ export const loginCardClass = cx(
 )
 
 export const loginLogoClass = 'mb-6 text-center'
+
+/** A full-width action under the card's alert (shared account that cannot be opened). */
+export const loginFullWidthActionClass = 'mt-3 w-full'
 
 export const loginLogoIconClass = cx(
   'mx-auto mb-[0.85rem] inline-flex h-[3.75rem] w-[3.75rem] items-center justify-center rounded-2xl text-primary',

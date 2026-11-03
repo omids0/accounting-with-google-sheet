@@ -11,17 +11,18 @@ export function dataTableWrapClass(bare?: boolean) {
 export const dataTableClass = 'w-full border-collapse text-[0.82rem] text-text'
 
 export const dataTableHeadCellClass = cx(
-  'whitespace-nowrap border-b border-border px-3 py-2.5 text-start text-[0.72rem] font-bold text-muted'
+  'whitespace-nowrap border-b border-border px-3 py-2.5 text-center text-[0.72rem] font-bold text-muted'
 )
 
 export const dataTableSortBtnClass = cx(
-  'inline-flex cursor-pointer items-center gap-1 rounded-md border-none bg-transparent p-0 font-[inherit] text-[inherit]',
+  // `relative`: the sort arrow hangs outside the title so it never shifts the centring.
+  'relative inline-flex cursor-pointer items-center rounded-md border-none bg-transparent p-0 font-[inherit] text-[inherit]',
   'hover:text-text'
 )
 
 export function dataTableSortIconClass(direction?: 'asc' | 'desc') {
   return cn(
-    'inline-flex transition-transform duration-[var(--duration-fast)]',
+    'absolute start-full top-1/2 ms-1 inline-flex -translate-y-1/2 transition-transform duration-[var(--duration-fast)]',
     !direction && 'opacity-0',
     direction === 'asc' && 'rotate-180'
   )
@@ -35,10 +36,10 @@ export function dataTableRowClass(muted?: boolean) {
   )
 }
 
-export const dataTableCellClass = 'px-3 py-2.5 align-middle'
+export const dataTableCellClass = 'px-3 py-2.5 text-center align-middle'
 
 export const dataTableNumericClass =
-  'whitespace-nowrap text-end font-numeric font-bold tabular-nums'
+  'whitespace-nowrap text-center font-numeric font-bold tabular-nums'
 
 export const dataTableActionsCellClass = 'w-px whitespace-nowrap px-2 py-1.5 align-middle'
 

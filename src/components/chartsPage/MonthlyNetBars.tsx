@@ -33,8 +33,16 @@ export default function MonthlyNetBars({ flow }: { flow: MonthlyFlow[] }) {
   const heights = netBarHeights(flow)
   const zero = heights[0]?.zero ?? 0
 
+  // 12 months do not fit a phone at a readable size: each column keeps a minimum width and the
+  // row scrolls sideways instead of truncating the month names. It is focusable so keyboard users
+  // can scroll it (axe: scrollable-region-focusable).
   return (
-    <ul className="m-0 flex list-none items-stretch justify-between gap-1.5 p-0">
+    <ul
+      className="m-0 flex list-none items-stretch justify-between gap-1.5 overflow-x-auto p-0 pb-1"
+      // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+      tabIndex={0}
+      aria-label="خالص ماهانه"
+    >
       {flow.map((item, index) => {
         const { up, down } = heights[index]
         const month = item.label.split(' ')[0] ?? item.label
@@ -43,12 +51,12 @@ export default function MonthlyNetBars({ flow }: { flow: MonthlyFlow[] }) {
         return (
           <li
             key={item.monthKey}
-            className="flex min-w-0 flex-1 flex-col items-center"
+            className="flex min-w-[3.25rem] flex-1 flex-col items-center"
             title={`${month}: ${netText}`}
           >
             <span className="sr-only">{`${month}: ${netText}`}</span>
             <span
-              className="font-numeric text-[0.6rem] leading-4 text-muted tabular-nums"
+              className="font-numeric text-[0.72rem] leading-4 text-muted tabular-nums"
               aria-hidden="true"
             >
               {/* Hidden mode: bars only; the empty label keeps the row height. */}
@@ -74,7 +82,7 @@ export default function MonthlyNetBars({ flow }: { flow: MonthlyFlow[] }) {
                 style={{ height: down }}
               />
             </span>
-            <span className="mt-1 truncate text-[0.66rem] text-muted" aria-hidden="true">
+            <span className="mt-1 whitespace-nowrap text-[0.72rem] text-muted" aria-hidden="true">
               {month}
             </span>
           </li>

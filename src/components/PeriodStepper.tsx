@@ -1,8 +1,10 @@
 import AppIcon from './AppIcon'
 import { cx } from '../utils/cn'
 
+/** 36 px circle that answers taps in a 44 x 44 px box (an invisible ::after, so layouts stay). */
 const stepButtonClass = cx(
-  'inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-[1rem] text-text',
+  'relative inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-border bg-surface text-[1rem] text-text',
+  'after:absolute after:left-1/2 after:top-1/2 after:size-touch-min after:-translate-x-1/2 after:-translate-y-1/2 after:content-[""]',
   'disabled:cursor-default disabled:opacity-40'
 )
 
