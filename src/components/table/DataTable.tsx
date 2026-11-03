@@ -101,7 +101,7 @@ export default function DataTable<T>({
                 <th
                   key={column.id}
                   scope="col"
-                  className={cn(dataTableHeadCellClass, column.numeric && 'text-end')}
+                  className={dataTableHeadCellClass}
                   aria-sort={
                     direction ? (direction === 'asc' ? 'ascending' : 'descending') : undefined
                   }
@@ -111,7 +111,7 @@ export default function DataTable<T>({
                   ) : column.sortValue ? (
                     <button
                       type="button"
-                      className={cn(dataTableSortBtnClass, column.numeric && 'flex-row-reverse')}
+                      className={dataTableSortBtnClass}
                       onClick={() => toggleSort(column.id)}
                     >
                       {column.header}
