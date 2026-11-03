@@ -19,7 +19,12 @@ final class BankSmsNotifier {
     /** Opened through the App plugin's appUrlOpen event; the web app routes it to /bank-sms. */
     static final String OPEN_URL = "com.omids0.accounting://bank-sms";
 
+    /** Opens the quick-entry sheet for one SMS (its id is appended); an old app build opens the page. */
+    static final String QUICK_URL_PREFIX = "com.omids0.accounting://bank-sms/quick?id=";
+
     private static final int NOTIFICATION_ID = 7301;
+    /** 7302 belongs to BankSmsDailyCheck. */
+    private static final int QUICK_REQUEST_CODE = 7303;
 
     private BankSmsNotifier() {}
 
@@ -37,16 +42,15 @@ final class BankSmsNotifier {
 
         ensureChannel(context);
 
-        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(OPEN_URL));
-
-        open.setClass(context, MainActivity.class);
-        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-
-        if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
-
-        PendingIntent pending = PendingIntent.getActivity(context, NOTIFICATION_ID, open, flags);
+        // The newest SMS in the review range: the «ثبت سریع» action opens its sheet. With a single
+        // SMS waiting the notification itself does the same; with more it opens the full page.
+        String quickId = BankSmsStore.newestPendingInRangeId(context);
+        String quickUrl = quickId == null ? null : QUICK_URL_PREFIX + Uri.encode(quickId);
+        PendingIntent pending = openIntent(
+            context,
+            NOTIFICATION_ID,
+            count == 1 && quickUrl != null ? quickUrl : OPEN_URL
+        );
         String text = count == 1
             ? "یک پیامک بانکی در انتظار بررسی است"
             : count + " پیامک بانکی در انتظار بررسی است";
@@ -59,11 +63,29 @@ final class BankSmsNotifier {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
+        if (quickUrl != null) {
+            builder.addAction(smallIcon(context), "ثبت سریع", openIntent(context, QUICK_REQUEST_CODE, quickUrl));
+        }
+
         try {
             manager.notify(NOTIFICATION_ID, builder.build());
         } catch (SecurityException ignored) {
             // POST_NOTIFICATIONS was revoked; the queue still shows the SMS in the app.
         }
+    }
+
+    /** Opens the app on `url` (appUrlOpen while running; the launch URL on a cold start). */
+    private static PendingIntent openIntent(Context context, int requestCode, String url) {
+        Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+
+        open.setClass(context, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+
+        if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
+
+        return PendingIntent.getActivity(context, requestCode, open, flags);
     }
 
     static void cancel(Context context) {

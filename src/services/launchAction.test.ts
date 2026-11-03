@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildSharedSmsState, parseLaunchUrl, readSharedSmsText } from './launchAction'
+import {
+  buildSharedSmsState,
+  launchTarget,
+  parseLaunchUrl,
+  readSharedSmsText
+} from './launchAction'
 
 describe('parseLaunchUrl', () => {
   it('reads the web shortcut query', () => {
@@ -16,6 +21,22 @@ describe('parseLaunchUrl', () => {
     })
     expect(parseLaunchUrl('com.omids0.accounting://entry')).toEqual({ kind: 'entry' })
     expect(parseLaunchUrl('com.omids0.accounting://bank-sms')).toEqual({ kind: 'sms' })
+  })
+
+  it('reads the notification quick action, and keeps the old URL opening the page', () => {
+    const id = 'a'.repeat(64)
+
+    expect(parseLaunchUrl(`com.omids0.accounting://bank-sms/quick?id=${id}`)).toEqual({
+      kind: 'smsQuick',
+      id
+    })
+    // An older APK, or a quick URL without a usable id, still opens «پیامک‌های بانکی».
+    expect(parseLaunchUrl('com.omids0.accounting://bank-sms')).toEqual({ kind: 'sms' })
+    expect(parseLaunchUrl('com.omids0.accounting://bank-sms/quick')).toEqual({ kind: 'sms' })
+    expect(parseLaunchUrl('com.omids0.accounting://bank-sms/quick?id=')).toEqual({ kind: 'sms' })
+    expect(parseLaunchUrl('com.omids0.accounting://bank-sms/quick?id=../x')).toEqual({
+      kind: 'sms'
+    })
   })
 
   it('reads the home-screen widget body as «open the dashboard»', () => {
@@ -37,6 +58,15 @@ describe('parseLaunchUrl', () => {
     expect(parseLaunchUrl('?action=toString')).toBeNull()
     expect(parseLaunchUrl('?type=expense')).toBeNull()
     expect(parseLaunchUrl('https://example.com/entry?x=1')).toBeNull()
+  })
+})
+
+describe('launchTarget for the quick SMS action', () => {
+  it('lands on the SMS page (or the shared home) when no sheet can open', () => {
+    const action = { kind: 'smsQuick', id: 'ab' } as const
+
+    expect(launchTarget(action, 'building')).toEqual({ tab: 'bank-sms' })
+    expect(launchTarget(action, 'shared')).toEqual({ tab: 'shared-home' })
   })
 })
 

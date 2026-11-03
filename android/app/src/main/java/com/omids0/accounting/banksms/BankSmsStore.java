@@ -113,6 +113,30 @@ final class BankSmsStore {
         return count;
     }
 
+    /** Id of the newest pending SMS inside the review range (what the quick-entry action opens), or null. */
+    static synchronized String newestPendingInRangeId(Context context) {
+        long since = rangeStart(viewDays(context), System.currentTimeMillis());
+        JSONArray items = pending(context);
+        String newestId = null;
+        long newestAt = Long.MIN_VALUE;
+
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.optJSONObject(i);
+
+            if (item == null) continue;
+
+            long receivedAt = item.optLong("receivedAt", 0L);
+            String id = item.optString("id", "");
+
+            if (!id.isEmpty() && receivedAt >= since && receivedAt >= newestAt) {
+                newestAt = receivedAt;
+                newestId = id;
+            }
+        }
+
+        return newestId;
+    }
+
     private static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
