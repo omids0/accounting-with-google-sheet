@@ -50,7 +50,7 @@ const donutCenterValueFitClass =
   'max-w-[92px] whitespace-nowrap text-[0.74rem] leading-tight [direction:ltr] [unicode-bidi:isolate]'
 
 /** A long amount that still fits whole, one step smaller. */
-const donutCenterValueSmallClass = 'text-[0.62rem]'
+const donutCenterValueSmallClass = 'text-[0.72rem]'
 
 function CategoryDonutChart({
   title,
@@ -77,6 +77,21 @@ function CategoryDonutChart({
 
   if (!slices.length) return null
 
+  // The ring is a picture: say the total, and the shares too when the page has no legend of its own.
+  const chartSummary = [
+    `${title ?? 'نمودار دایره‌ای'}: ${centerLabel} ${maskText(
+      `${center.full} ${getCurrencySymbol()}`
+    )}`,
+    ...(showLegend
+      ? []
+      : slices.map(
+          slice =>
+            `${slice.name} ${formatPersianPercent(
+              total > 0 ? Math.round((slice.total / total) * 100) : 0
+            )}`
+        ))
+  ].join('، ')
+
   return (
     <div className={cn(chartCardClass, 'chart-card--animated', className)}>
       {title ? <h3 className={chartTitleClass}>{title}</h3> : null}
@@ -85,7 +100,7 @@ function CategoryDonutChart({
           className={cn(categoryDonutLayoutClass, !showLegend && '@min-[28rem]:grid-cols-1')}
           dir="ltr"
         >
-          <div className={categoryDonutChartWrapClass}>
+          <div className={categoryDonutChartWrapClass} role="img" aria-label={chartSummary}>
             <ResponsiveContainer width="100%" height={168}>
               <PieChart>
                 <Pie

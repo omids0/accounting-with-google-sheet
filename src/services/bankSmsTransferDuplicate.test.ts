@@ -4,6 +4,8 @@ import { BANK_SMS_FIXTURES, fixtureAccount } from './bankSmsFixtures'
 import { guessTemplate } from './bankSmsGuess'
 import type { BankSmsItem } from './bankSmsNative'
 import { buildReviewItems, reviewSms, type LedgerEntry } from './bankSmsQueue'
+import { smsTransferId } from './bankSmsTransferRows'
+import type { Transfer } from './transfersModel'
 import type { SmsTemplate } from '../types'
 
 const [MELLAT_DEBIT, , , , , TEJARAT_CREDIT] = BANK_SMS_FIXTURES
@@ -121,5 +123,81 @@ describe('the next identical transfer after a pair closed as recorded (NEW2)', (
 
     if (item.kind !== 'transfer') throw new Error('expected a transfer pair')
     expect(item.duplicateLegs).toEqual({ debit: null, credit: null })
+  })
+})
+
+describe('an own-account transfer pair whose transfer is already in «انتقال‌ها»', () => {
+  const manual = (patch: Partial<Transfer> = {}): Transfer => ({
+    id: 't1',
+    createdAt: '',
+    date: '2026-10-07',
+    fromAccountId: 'mellat',
+    toAccountId: 'tejarat',
+    amount: 1_000_000,
+    note: '',
+    createdBy: '',
+    ...patch
+  })
+  const withTransfers = (transfers: Transfer[]) => {
+    const [item] = buildReviewItems(pair(), [], new Set(), undefined, undefined, transfers)
+
+    if (item.kind !== 'transfer') throw new Error('expected a transfer pair')
+
+    return item
+  }
+
+  it('flags both legs with the transfer, so «قبلاً ثبت شده» closes the pair', () => {
+    const item = withTransfers([manual()])
+
+    expect(item.duplicateLegs.debit).toMatchObject({
+      id: 't1',
+      type: 'expense',
+      accountId: 'mellat'
+    })
+    expect(item.duplicateLegs.credit).toMatchObject({
+      id: 't1',
+      type: 'income',
+      accountId: 'tejarat'
+    })
+  })
+
+  it('accepts a transfer a day away, not two', () => {
+    expect(withTransfers([manual({ date: '2026-10-08' })]).duplicateLegs.debit).not.toBeNull()
+    expect(withTransfers([manual({ date: '2026-10-09' })]).duplicateLegs.debit).toBeNull()
+  })
+
+  it('ignores a transfer of another amount, direction or account', () => {
+    const item = withTransfers([
+      manual({ id: 'a', amount: 999_999 }),
+      manual({ id: 'b', fromAccountId: 'tejarat', toAccountId: 'mellat' }),
+      manual({ id: 'c', toAccountId: 'other' })
+    ])
+
+    expect(item.duplicateLegs).toEqual({ debit: null, credit: null })
+  })
+
+  it('knows the transfer made from this very pair, whatever its date', () => {
+    const own = manual({ id: smsTransferId('d', 'c'), date: '2026-01-01' })
+
+    expect(withTransfers([own]).duplicateLegs.debit?.id).toBe(own.id)
+  })
+
+  it('a transfer is used once: the next pair of the same amount is a normal pair again', () => {
+    const reviewed = reviewSms(
+      [
+        sms('d', debit),
+        sms('c', TEJARAT_CREDIT.next, BASE + 60_000),
+        sms('d2', debit, BASE + 3_600_000),
+        sms('c2', TEJARAT_CREDIT.next, BASE + 3_660_000)
+      ],
+      templates,
+      accounts,
+      'rial'
+    )
+    const pairs = buildReviewItems(reviewed, [], new Set(), undefined, undefined, [manual()])
+
+    expect(
+      pairs.map(item => (item.kind === 'transfer' ? item.duplicateLegs.debit?.id ?? null : 'x'))
+    ).toEqual(['t1', null])
   })
 })

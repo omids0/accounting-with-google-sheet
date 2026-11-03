@@ -63,7 +63,7 @@ export default function DateCalculatorPage() {
         </FormField>
       </Card>
 
-      <Card className={dateCalculatorConversionsCardClass}>
+      <Card className={dateCalculatorConversionsCardClass} aria-live="polite">
         <div className={dateCalculatorConversionsHeadClass}>معادل در سایر تقویم‌ها</div>
         <ul className={dateCalculatorConversionListClass}>
           {resultCalendars.map(calendar => {

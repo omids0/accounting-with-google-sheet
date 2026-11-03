@@ -1,3 +1,4 @@
+import { formatMoneyParts } from '../utils/formatMoney'
 import { formatAmountWords } from '../utils/insightText'
 import { toPersianDigits } from '../utils/normalizeDigits'
 
@@ -12,6 +13,7 @@ export type ActivityAction =
   | 'reconcile'
   | 'recurring'
   | 'goal'
+  | 'revert'
 
 export type ActivityModule =
   | 'records'
@@ -37,7 +39,8 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
   category: 'دسته',
   reconcile: 'تطبیق',
   recurring: 'تکرار',
-  goal: 'هدف'
+  goal: 'هدف',
+  revert: 'بازگردانی'
 }
 
 /** Filter chips and the desktop table name the module in Persian. */
@@ -63,11 +66,23 @@ export interface ActivitySummaryExtra {
   /** Category actions: what happened, and the new name of a rename. */
   kind?: 'add' | 'rename' | 'merge' | 'delete'
   to?: string
+  /** A record edit that changed its amount: «از X به Y تومان». */
+  change?: { from: number; to: number }
+  /** A «بازگردانی شد» line: what was reverted, an edit or a delete. */
+  reverted?: 'update' | 'delete'
 }
 
 const quoted = (title: string) => `«${title.trim() || '—'}»`
 
 const countOf = (count: number) => toPersianDigits(String(count))
+
+/** «از ۸۰۰٬۰۰۰ به ۸۵۰٬۰۰۰ تومان». */
+function amountChange({ from, to }: { from: number; to: number }): string {
+  const was = formatMoneyParts(from)
+  const now = formatMoneyParts(to)
+
+  return `از ${was.number} به ${now.number} ${now.symbol}`
+}
 
 function categorySummary(title: string, extra: ActivitySummaryExtra): string {
   if (extra.kind === 'rename')
@@ -97,7 +112,9 @@ export function summaryFor(
     case 'create':
       return many ? `${countOf(extra.count ?? 0)} مورد را ثبت کرد` : `${quoted(title)} را ثبت کرد`
     case 'update':
-      return `${quoted(title)} را ویرایش کرد`
+      return extra.change
+        ? `${quoted(title)} را ${amountChange(extra.change)} ویرایش کرد`
+        : `${quoted(title)} را ویرایش کرد`
     case 'delete':
       return many ? `${countOf(extra.count ?? 0)} مورد را حذف کرد` : `${quoted(title)} را حذف کرد`
     case 'pay':
@@ -120,6 +137,8 @@ export function summaryFor(
       return (extra.amount ?? 0) < 0
         ? `${formatAmountWords(extra.amount ?? 0)} از هدف ${quoted(title)} برداشت`
         : `${formatAmountWords(extra.amount ?? 0)} به هدف ${quoted(title)} واریز کرد`
+    case 'revert':
+      return `${extra.reverted === 'delete' ? 'حذف' : 'ویرایش'} ${quoted(title)} را بازگرداند`
     default:
       return title
   }
@@ -132,5 +151,5 @@ export function recordActivityTitle(values: Record<string, unknown>): string {
 
 /** «من … زدم»: the signed-in person's own lines read in first person. */
 export function firstPersonSummary(summary: string): string {
-  return /(کرد|زد|داد|برداشت|گذاشت)$/.test(summary) ? `${summary}م` : summary
+  return /(کرد|زد|داد|برداشت|گذاشت|گرداند)$/.test(summary) ? `${summary}م` : summary
 }

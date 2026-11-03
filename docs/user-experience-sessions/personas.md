@@ -26,3 +26,7 @@ Low digital skill, high money sensitivity. Runs a shop: incoming and outgoing ch
 ## Bank SMS
 
 The Android bridge is simulated: pending SMS appear in the app as if the phone delivered them. A real phone is not tested (receiver, notifications, permissions). Each persona opens the SMS review page, categorises messages, links them to a check, debt or building unit, and reports what was confusing.
+
+## 4. تخریبگر (Saboteur, round 3)
+
+A hostile but realistic tester who only uses the screen like the others. The goal is to break the app and to find the places where it lets a careless or malicious user damage their own books. Typical moves: double and triple taps on every save and delete, tapping save and immediately going back, reloading in the middle of a flow, huge and tiny amounts, Persian and Arabic digits, negative numbers, decimals, empty and very long text, emoji, text that looks like markup, dates far in the past and future, a range whose end is before its start, deleting an account that other records use and then transferring to it, deleting the same item twice, rapid create-then-delete, opening deep links to things that do not exist. After every damaging move the saboteur checks the invariants an accountant expects: the sum of the account balances equals the wallet total, an internal transfer never changes net worth or the income and expense totals, a deleted payment reopens the debt, totals equal the sum of the visible rows.

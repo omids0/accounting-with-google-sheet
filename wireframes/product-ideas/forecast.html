@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پیش‌بینی و تقویم نقدینگی</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- prettier-ignore -->
+    <style>
+.chart{width:100%;height:auto;display:block}
+.chart .dz{fill:var(--warn-soft)}
+.chart .nz{fill:var(--danger-soft)}
+.chart polyline{fill:none;stroke:var(--primary);stroke-width:2}
+.chart circle{fill:var(--danger)}
+.axis{display:flex;justify-content:space-between}
+input[type=range]{width:100%;accent-color:var(--primary)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal b{font-size:.7rem;color:var(--muted)}
+.d{position:relative;font:inherit;font-size:.78rem;border:0;border-radius:6px;padding:16px 0 6px;cursor:pointer}
+.d.g{background:var(--success-soft);color:var(--success)}
+.d.o{background:var(--warn-soft);color:var(--warn)}
+.d.r{background:var(--danger-soft);color:var(--danger)}
+.d.sel{outline:2px solid var(--text)}
+.d[data-m]::before{content:attr(data-m);position:absolute;top:1px;inset-inline:0;font-size:.7rem}
+.d.e::after{content:'';position:absolute;bottom:3px;inset-inline-start:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}
+.seg{white-space:nowrap;flex:none}
+.seg button{font:inherit;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 8px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--primary);color:var(--on-primary)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:4px}
+</style>
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
+      </span>
+    </div>
+    <main class="page">
+      <h1>پیش‌بینی و تقویم نقدینگی</h1>
+      <p class="lead">
+        اپ می‌گوید «الان چقدر داری»، ولی نمی‌گوید «تا حقوق بعدی کفاف می‌دهد یا نه». هر چهار کاربر
+        آزمایشی همین را خواستند (اولویت ۱). امروز: ۶ آبان ۱۴۰۵. پیش‌بینی از «ملی» و «نقدی» شروع
+        می‌شود (۶۴٬۵۸۱٬۲۵۰ تومان)، نه از مجموع داشبورد (۱۳۵٬۷۳۱٬۲۵۰)؛ دلیلش در کارت ایدهٔ الف نوشته
+        شده.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)"
+          >بخش تازهٔ پیشنهادی (خط‌چین بنفش)</span
+        >
+        <span class="chip warn">همهٔ اعداد این صفحه نمونه و تخمین‌اند</span>
+        <a href="forecast-2.html"
+          >ایده‌های «می‌توانم بخرم؟» و «پول لازم ۵ هفتهٔ آینده» در صفحهٔ دوم ←</a
+        >
+      </p>
+      <div class="tabs">
+        <button data-idea="idea-a">الف) تا آخر ماه چقدر می‌ماند؟</button>
+        <button data-idea="idea-b">ب) تقویم سررسید ۳۰/۶۰ روزه</button>
+      </div>
+
+      <section class="idea" id="idea-a">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>داشبورد</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>موجودی حساب‌ها</h3>
+                <div class="num">مجموع ۱۳۵٬۷۳۱٬۲۵۰ تومان</div>
+                <small>ملی، ملت و نقدی</small>
+              </div>
+              <div class="card">
+                <h3>سررسیدهای نزدیک</h3>
+                <div class="row"><span>قسط لپ‌تاپ</span><span class="muted">۱۰ آبان</span></div>
+                <div class="row"><span>قسط وام</span><span class="muted">۱۲ آبان</span></div>
+              </div>
+              <div class="card">
+                <h3>آخرین تراکنش‌ها</h3>
+                <small>خرید روزانه، قبض و حقوق</small>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده</div>
+            <div class="app-bar"><span>داشبورد</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>موجودی حساب‌ها</h3>
+                <div class="num">مجموع ۱۳۵٬۷۳۱٬۲۵۰ تومان</div>
+                <small>ملی، ملت و نقدی</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ الف">
+                <h3>تا آخر آبان چقدر می‌ماند؟ <span class="chip warn">برآورد</span></h3>
+                <div class="card" style="padding: 6px 8px">
+                  <small
+                    >حساب‌های حساب‌شده: ملی ۶۴٬۱۷۱٬۲۵۰ + نقدی ۴۱۰٬۰۰۰ = <b>۶۴٬۵۸۱٬۲۵۰</b>. «ملت»
+                    ۷۱٬۱۵۰٬۰۰۰ پس‌انداز است و داخل پیش‌بینی نیست؛ مجموع هر سه ۱۳۵٬۷۳۱٬۲۵۰
+                    است.</small
+                  >
+                </div>
+                <div class="num pos" id="endTxt">حدود ۵٬۸۰۰٬۰۰۰ تومان</div>
+                <span class="est">برآورد، نه موجودی واقعی</span>
+                <small id="minTxt">پایین‌ترین روز: ۲۴ آبان؛ ۳٬۸۰۰٬۰۰۰ تومان</small>
+                <svg
+                  class="chart"
+                  viewBox="0 0 300 100"
+                  role="img"
+                  aria-label="نمودار برآورد مانده از امروز (راست) تا آخر آبان (چپ)"
+                >
+                  <rect class="dz" x="0" y="80.3" width="300" height="6.6" />
+                  <rect class="nz" x="0" y="86.8" width="300" height="13.2" />
+                  <text x="2" y="78" fill="currentColor">۵ میلیون</text>
+                  <text x="2" y="98" fill="currentColor">۰</text>
+                  <text x="2" y="11" fill="currentColor">۶۶ میلیون</text>
+                  <polyline id="line" points="" />
+                  <circle id="minDot" r="4" cx="75" cy="84" />
+                </svg>
+                <div class="axis muted"><small>امروز (۶ آبان)</small><small>آخر آبان</small></div>
+                <small
+                  ><span class="sw" style="background: var(--warn-soft)"></span>کمتر از ۵٬۰۰۰٬۰۰۰
+                  (حاشیهٔ امن)</small
+                >
+                <small
+                  ><span class="sw" style="background: var(--danger-soft)"></span>منفی (کم
+                  می‌آوری)</small
+                >
+                <label class="muted"
+                  >اگر خرج روزانه این‌قدر باشد: <b id="dOut">۱٬۰۰۰٬۰۰۰</b> تومان
+                  <small class="muted">(میانگین ۳ ماه قبل: ۱٬۰۰۰٬۰۰۰)</small>
+                  <input type="range" id="spend" min="0" max="1500000" step="50000" value="1000000"
+                /></label>
+                <button class="btn ghost" data-demo="toggle" data-target="assume">
+                  فرض‌های این تخمین
+                </button>
+                <ul id="assume" hidden class="muted">
+                  <li>حقوق ۶۵٬۰۰۰٬۰۰۰ در ۱ آذر می‌رسد.</li>
+                  <li>
+                    خرج روزانه برابر میانگین ۳ ماه قبل است: ۱٬۰۰۰٬۰۰۰ در روز، حدود ۳۰ میلیون در ماه
+                    (خرج روزانهٔ بودجه ۲۲٬۰۰۰٬۰۰۰ + ماشین ۴٬۰۰۰٬۰۰۰ + مدرسه و متفرقه).
+                  </li>
+                  <li>اقساط، چک‌ها، قبض‌ها و تکرارها سر تاریخشان پرداخت می‌شوند.</li>
+                  <li>
+                    حساب «ملت» (۷۱٬۱۵۰٬۰۰۰) پس‌انداز حساب شده و داخل نیست؛ اجارهٔ خانه از ملی پرداخت
+                    می‌شود.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ الف: کارت «تا آخر ماه چقدر می‌ماند؟»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              موجودی امروز گول‌زنک است: ۶۴٬۵۸۱٬۲۵۰ داری، اما دو چک پرداختی و دو قسط در راه است و
+              پایین‌ترین مانده‌ات (برآورد) ۳٬۸۰۰٬۰۰۰ می‌شود، یعنی کمتر از حاشیهٔ امن ۵٬۰۰۰٬۰۰۰.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              زیر کارت موجودی، مانده امروز + حقوق + اقساط + چک‌ها + قبض‌ها + تکرارها − میانگین خرج
+              روزانهٔ ماه‌های قبل. پایین‌ترین روز و نمودار با ناحیهٔ خطر نشان داده می‌شود؛ نوار
+              کشویی «اگر خرج روزانه این‌قدر باشد» را امتحان کن.
+            </dd>
+            <dt>چرا</dt>
+            <dd>جواب «این هفته می‌توانم خرج کنم؟» بدون ماشین‌حساب و پیش از رسیدن بحران.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>داشبورد، زیر کارت موجودی؛ فرض‌ها زیر کارت قابل‌باز شدن است.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: چک‌ها، اقساط و وام‌ها، آیتم‌های تکرارشونده، یادآورها و تراکنش‌های ماه‌های قبل
+              (پیامک بانکی هم همان‌جا ثبت می‌شود). تازه: فقط موتور پیش‌بینی؛ یک تابع خالص در
+              سرویس‌ها و بدون ستون جدید در شیت.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              پیش‌بینی ممکن است غلط باشد (خرج غیرعادی، چک برگشتی). همیشه برچسب «تخمین» و فهرست
+              فرض‌ها دیده شود. ماه اول که تاریخچه نیست، فقط سررسیدها شمرده شوند.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <section class="idea" id="idea-b">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">امروز</div>
+            <div class="app-bar"><span>یادآورها</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>این ماه</h3>
+                <div class="row"><span>قسط لپ‌تاپ</span><b>۳٬۱۰۰٬۰۰۰</b></div>
+                <div class="row"><span>قسط وام</span><b>۴٬۳۵۰٬۰۰۰</b></div>
+                <div class="row"><span>قبض برق</span><b>۸۰۰٬۰۰۰</b></div>
+                <div class="row"><span>چک آقای احمدی</span><b>۲۲٬۰۰۰٬۰۰۰</b></div>
+              </div>
+              <small class="muted">فقط فهرست است؛ معلوم نیست پول همان روز کافی هست یا نه.</small>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">با ایده</div>
+            <div class="app-bar"><span>تقویم سررسید</span><span>☰</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ب">
+                <div class="row">
+                  <h3>پول کافی هست؟ <span class="chip warn">برآورد</span></h3>
+                  <span class="seg"
+                    ><button data-n="30" class="on">سی روز</button>
+                    <button data-n="60">شصت روز</button></span
+                  >
+                </div>
+                <div class="cal" id="cal"></div>
+                <small
+                  ><span class="sw" style="background: var(--success)"></span>کافی
+                  <span class="sw" style="background: var(--warn)"></span>کمتر از ۵٬۰۰۰٬۰۰۰
+                  <span class="sw" style="background: var(--danger)"></span>کسری</small
+                >
+              </div>
+              <div class="card new" data-idea="ایدهٔ ب" id="dayList"></div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ب: تقویم سررسید ۳۰/۶۰ روزه</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>
+              یادآورها فهرستی‌اند. «۲۴ آبان» از «۱۰ آبان» بدتر است چون پول نیست، اما فهرست این را
+              نمی‌گوید.
+            </dd>
+            <dt>ایده</dt>
+            <dd>
+              هر روز یک خانه: سبز (مانده کافی)، نارنجی (کمتر از حاشیهٔ امن ۵٬۰۰۰٬۰۰۰) و قرمز (منفی).
+              نقطهٔ پایین خانه یعنی آن روز سررسید دارد. روی روز بزن تا چک، قسط، قبض و تکرار همان روز
+              را ببینی؛ کلید ۳۰/۶۰ روز بازه را عوض می‌کند.
+            </dd>
+            <dt>چرا</dt>
+            <dd>
+              «کجای ماه خطر دارد» را یک‌نگاه نشان می‌دهد و برای اقساط بلندمدت (۶۰ روز) جا دارد.
+            </dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip warn">متوسط</span> (همان موتور ایدهٔ الف + یک نمای تقویم)</dd>
+            <dt>کجای اپ</dt>
+            <dd>صفحهٔ یادآورها: یک کلید «فهرست / تقویم»؛ و لینک از کارت ایدهٔ الف.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              موجود: همهٔ سررسیدها. تازه: مانده روزبه‌روز از موتور پیش‌بینی؛ حاشیهٔ امن یک تنظیم
+              ساده است.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              رنگ نارنجی یا قرمز نباید ترسناک شود؛ متن «تخمین» و فرض‌ها همان‌جا. ۶۰ روز دقتش کمتر
+              است.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script src="forecast.js"></script>
+  </body>
+</html>

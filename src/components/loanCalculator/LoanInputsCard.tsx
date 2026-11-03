@@ -96,7 +96,7 @@ export default function LoanInputsCard({
         }
       >
         {/* Same shell as AmountInput: the number first, its unit chip at the end (left in RTL). */}
-        <div
+        <label
           className={cn(
             amountFieldInputWrapClass,
             errors.annualRate && amountFieldInputWrapInvalidClass
@@ -116,7 +116,7 @@ export default function LoanInputsCard({
           <span className={amountFieldCurrencyClass} aria-hidden="true">
             ٪
           </span>
-        </div>
+        </label>
       </FormField>
 
       <FormField

@@ -1,6 +1,7 @@
 import { parseCreatedAtMs } from './recordDuplicates'
 import { TRANSFERS_HEADERS } from './sheetHeaders'
 import { TRANSFERS_SHEET } from './sheetNames'
+import type { LedgerEntry } from './walletLedger'
 import type { WalletAccount } from '../types'
 import { formatMoney } from '../utils/formatMoney'
 import { formatIsoDatePersian } from '../utils/jalaliDate'
@@ -110,6 +111,55 @@ export function transferIsReversible(transfer: Transfer, accounts: WalletAccount
   const has = (id: string) => accounts.some(account => account.id === id)
 
   return has(transfer.fromAccountId) && has(transfer.toAccountId)
+}
+
+/** How many of a transfer's two balance moves are in the books: 0 (a phantom), 1 (half-done) or 2. */
+export type TransferLegState = 0 | 1 | 2
+
+export interface TransferLegInfo {
+  state: TransferLegState
+  /** Accounts whose balance the transfer still moves (net of its «لغو …» reversals). */
+  movedAccountIds: string[]
+}
+
+const isLegOf = (transfer: Transfer, entry: LedgerEntry): boolean =>
+  entry.source === 'transfer' &&
+  entry.recordId === transfer.id &&
+  (entry.accountId === transfer.fromAccountId || entry.accountId === transfer.toAccountId)
+
+/**
+ * The net balance effect of the transfer on each of its two accounts, from the «گردش حساب» rows of
+ * source `transfer` with the transfer's id: the moves and any earlier «لغو …» reversals together, so
+ * a reversal already made is never made twice. Rows that left the balance alone (`applied` false)
+ * and accounts whose net is 0 are left out.
+ */
+export function transferLedgerNet(transfer: Transfer, ledger: LedgerEntry[]): Map<string, number> {
+  const net = new Map<string, number>()
+
+  for (const entry of ledger) {
+    if (!entry.applied || !isLegOf(transfer, entry)) continue
+    net.set(entry.accountId, roundMoney((net.get(entry.accountId) ?? 0) + entry.delta))
+  }
+  for (const [accountId, value] of net) if (value === 0) net.delete(accountId)
+
+  return net
+}
+
+/**
+ * Which balance moves of the transfer exist. A move recorded as «بدون اثر» (a newer SMS «مانده»
+ * already held it) counts as done. Fewer than 2 means the save was cut off (a closed page): the row
+ * exists but the money did not move on one or both sides.
+ */
+export function transferLegInfo(transfer: Transfer, ledger: LedgerEntry[]): TransferLegInfo {
+  const movedAccountIds = [...transferLedgerNet(transfer, ledger).keys()]
+  const settled = ledger.filter(entry => !entry.applied && isLegOf(transfer, entry))
+  const accounts = new Set([...movedAccountIds, ...settled.map(entry => entry.accountId)])
+
+  return { state: accounts.size as TransferLegState, movedAccountIds }
+}
+
+export function transferLegState(transfer: Transfer, ledger: LedgerEntry[]): TransferLegState {
+  return transferLegInfo(transfer, ledger).state
 }
 
 /** The activity-feed line of a transfer: «انتقال X از «A» به «B» را ثبت کرد / حذف کرد». */

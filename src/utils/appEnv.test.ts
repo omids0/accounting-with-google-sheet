@@ -64,4 +64,16 @@ describe('appEnv', () => {
     expect(env.IS_DEV_ENV).toBe(true)
     expect(env.APP_VERSION_LABEL).toBe(`${version}-dev`)
   })
+
+  it('adds the CI build number to the version of a develop APK, never to production', async () => {
+    stub('dev', false)
+    vi.stubEnv('VITE_BUILD_NUMBER', '312')
+
+    expect((await loadAppEnv()).APP_VERSION_LABEL).toBe(`${version}-dev.312`)
+
+    stub('', false)
+    vi.stubEnv('VITE_BUILD_NUMBER', '312')
+
+    expect((await loadAppEnv()).APP_VERSION_LABEL).toBe(version)
+  })
 })

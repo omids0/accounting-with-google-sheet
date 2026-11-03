@@ -6,6 +6,22 @@ const TGJU_FETCH_TIMEOUT_MS = 4_000
 
 const TGJU_CACHE_TTL_MS = 5 * 60 * 1000
 
+/** After a failed quotes fetch tgju is left alone this long; it doubles per repeated failure. */
+const TGJU_COOLDOWN_BASE_MS = 60_000
+
+const TGJU_COOLDOWN_MAX_MS = 5 * 60 * 1000
+
+/** The one message for any failed price lookup: not an offline-sync text, and no raw network error. */
+export const TGJU_PRICE_FAILED_MESSAGE =
+  'قیمت لحظه‌ای دریافت نشد؛ ارزش دارایی‌های بدون قیمت دستی حساب نشده'
+
+export class TgjuPriceError extends Error {
+  constructor() {
+    super(TGJU_PRICE_FAILED_MESSAGE)
+    this.name = 'TgjuPriceError'
+  }
+}
+
 /** tgju quotes rial; non-numeric or non-positive values read as 0 (unavailable), never NaN. */
 function parseTgjuRialRate(raw: string | undefined): number {
   const rial = parseNumericStrict(raw)
@@ -80,6 +96,19 @@ let exchangeRatesCache: Record<ExchangeCurrencyCode, ExchangeRateQuote> | null =
 let exchangeRatesCacheAt = 0
 
 let quotesFetchInFlight: Promise<TgjuCurrent> | null = null
+
+let quotesFailures = 0
+
+let quotesFailedAt = 0
+
+/** True while a recent failure keeps the quotes fetch from touching the network (see `force`). */
+export function isTgjuCoolingDown(): boolean {
+  if (quotesFailures === 0) return false
+
+  const wait = Math.min(TGJU_COOLDOWN_MAX_MS, TGJU_COOLDOWN_BASE_MS * 2 ** (quotesFailures - 1))
+
+  return Date.now() - quotesFailedAt < wait
+}
 
 let exchangeRatesFetchInFlight: Promise<Record<ExchangeCurrencyCode, ExchangeRateQuote>> | null =
   null
@@ -201,14 +230,31 @@ export async function fetchTgjuExchangeRates(): Promise<
   }
 }
 
-async function fetchTgjuQuotes(): Promise<TgjuCurrent> {
+async function fetchTgjuQuotes(force: boolean): Promise<TgjuCurrent> {
   if (isCacheFresh(quotesCacheAt) && quotesCache) return quotesCache
 
   if (quotesFetchInFlight) return quotesFetchInFlight
 
-  quotesFetchInFlight = (async () => {
-    const current = await fetchTgjuCurrent()
+  // Cooling down after a failure: serve the last quotes (stale) or fail without a request.
+  if (!force && isTgjuCoolingDown()) {
+    if (quotesCache) return quotesCache
 
+    throw new TgjuPriceError()
+  }
+
+  quotesFetchInFlight = (async () => {
+    let current: TgjuCurrent
+
+    try {
+      current = await fetchTgjuCurrent()
+    } catch {
+      quotesFailures += 1
+      quotesFailedAt = Date.now()
+
+      throw new TgjuPriceError()
+    }
+
+    quotesFailures = 0
     eurTomanCache = parseTgjuPrice(current[TGJU_EUR_KEY]?.p)
     quotesCache = current
     quotesCacheAt = Date.now()
@@ -223,9 +269,23 @@ async function fetchTgjuQuotes(): Promise<TgjuCurrent> {
   }
 }
 
-/** Toman prices for every catalog asset priced by tgju (`keys`: asset id → tgju key). */
+/**
+ * Toman prices for every catalog asset priced by tgju (`keys`: asset id → tgju key). A failure
+ * (rejected, timed out, not OK) throws `TgjuPriceError` and starts a cooldown with no further
+ * requests; `force` (the user's own refresh) ignores the cooldown, and a success ends it.
+ */
 export async function fetchTgjuPrices(
-  keys: Record<string, string>
+  keys: Record<string, string>,
+  { force = false }: { force?: boolean } = {}
 ): Promise<Record<string, number>> {
-  return pricesFromQuotes(await fetchTgjuQuotes(), keys)
+  return pricesFromQuotes(await fetchTgjuQuotes(force), keys)
+}
+
+/** Tests only: forget quotes and failures. */
+export function resetTgjuQuotesState(): void {
+  quotesCache = null
+  quotesCacheAt = 0
+  quotesFailures = 0
+  quotesFailedAt = 0
+  quotesFetchInFlight = null
 }

@@ -1,4 +1,4 @@
-import { balanceAdjustNotice } from './bankSmsBalance'
+import { appliedState, balanceAdjustNotice, transferBalanceNotice } from './bankSmsBalance'
 import { smsRecordDate } from './bankSmsDate'
 import { getBankSmsPrefs, learnSmsRef, updateBankSmsPrefs } from './bankSmsPrefs'
 import { nextAccountBalance, setsAbsoluteBalance, type ConfirmableSms } from './bankSmsQueue'
@@ -76,4 +76,41 @@ export async function applyBalance(
       recordId: note.recordId
     })
   ])
+}
+
+/**
+ * An SMS that was settled by a transfer (not by `applyBalance`): the balance state still moves on,
+ * so an older SMS with a «مانده» confirmed later cannot set the balance back over the transfer.
+ * The anchor stays: the transfer moved the balance by the amount, it did not adopt the «مانده».
+ */
+export function markSmsApplied(entry: ConfirmableSms): void {
+  learnSmsRef(entry.result.ref, entry.result.accountId)
+
+  const { balanceStates } = getBankSmsPrefs()
+  const accountId = entry.result.accountId
+
+  updateBankSmsPrefs({
+    balanceStates: {
+      ...balanceStates,
+      [accountId]: appliedState(balanceStates[accountId] ?? {}, entry.sms.receivedAt)
+    }
+  })
+}
+
+/**
+ * After a transfer confirmed from SMS moved the balances by the amount: tells the user when an
+ * account's new balance is not the «مانده» its SMS shows (the balance is not set to it).
+ */
+export async function noticeTransferBalances(
+  spreadsheetId: string,
+  entries: ConfirmableSms[]
+): Promise<void> {
+  const accounts = await fetchWalletAccounts(spreadsheetId)
+
+  for (const entry of entries) {
+    const account = accounts.find(item => item.id === entry.result.accountId)
+    const notice = account && transferBalanceNotice(account.title, account.balance, entry.balance)
+
+    if (notice) showInfo(notice, 7000)
+  }
 }

@@ -75,7 +75,7 @@ export const currencyConverterSelectRowClass = cx(
 )
 
 export const currencyConverterSwapBtnClass = cx(
-  'mb-4 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary',
+  'mb-4 flex h-touch-min w-touch-min flex-shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary',
   'transition-[background,transform] duration-[var(--duration-fast)]',
   'hover:[background:color-mix(in_srgb,var(--color-primary)_14%,transparent)] hover:scale-[1.04]',
   'max-[520px]:mx-auto max-[520px]:mb-2 max-[520px]:rotate-90 max-[520px]:hover:rotate-90 max-[520px]:hover:scale-[1.04]'

@@ -122,4 +122,35 @@ describe('flushOutbox', () => {
     expect(executeOutboxOperation.mock.calls[0][2]).toMatchObject({ isRetry: false })
     expect(executeOutboxOperation.mock.calls[1][2]).toMatchObject({ isRetry: true })
   })
+  it('does not send a write that a newer write of the same row replaced mid-flush', async () => {
+    const update = (id: string, balance: string, sheetName = 'w'): OutboxOperation => ({
+      type: 'update',
+      sheetName,
+      rowNumber: 2,
+      row: [id, balance],
+      expectedRow: [id, '0']
+    })
+    const { flushOutbox, queueOutboxWrite } = await import('./sheetSyncOutbox')
+
+    // The queue is listed as [other tab, account row v1]; while the first is on its way the
+    // account row is written again, which replaces v1 in the queue.
+    addOutboxEntry(SHEET_ID, update('x', '1', 'other'))
+    addOutboxEntry(SHEET_ID, update('a', '10'))
+    executeOutboxOperation.mockImplementation(async (_id: string, operation: OutboxOperation) => {
+      if (operation.type === 'update' && operation.sheetName === 'other') {
+        queueOutboxWrite(SHEET_ID, update('a', '20'))
+      }
+
+      return operation.sheetName
+    })
+
+    await flushOutbox(SHEET_ID)
+
+    const sent = executeOutboxOperation.mock.calls.map(([, operation]) =>
+      (operation as { row: string[] }).row.join(':')
+    )
+
+    expect(sent).toEqual(['x:1', 'a:20'])
+    expect(getOutboxEntries(SHEET_ID)).toHaveLength(0)
+  })
 })

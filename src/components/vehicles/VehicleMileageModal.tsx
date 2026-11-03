@@ -1,15 +1,14 @@
-import { useMemo, useState, type FormEvent } from 'react'
+import { useMemo, type FormEvent } from 'react'
 import { useForm } from 'react-hook-form'
 
 import type { VehicleMileageFormState } from './types'
 import { useModalFormReset } from '../../hooks/useModalFormReset'
 import { formFieldError, submitValidatedForm } from '../../utils/formValidation'
 import { parseNumeric } from '../../utils/parseNumeric'
-import ConfirmActionModal from '../ConfirmActionModal'
 import { FormField } from '../form'
 import FormModal from '../FormModal'
 import MileageInput from './MileageInput'
-import { isLargeMileageDrop, largeMileageDropMessage } from './utils'
+import { useMileageDropConfirm } from './useMileageDropConfirm'
 
 type VehicleMileageModalProps = {
   open: boolean
@@ -46,21 +45,12 @@ export default function VehicleMileageModal({
 
   useModalFormReset(reset, initialValues, { active: open, resetKey: String(currentMileage) })
 
-  // A typo like «۱۰۰» for «۱۴۰۲۲۰» is saved as a correction, so a big fall asks first.
-  const [pendingDrop, setPendingDrop] = useState<VehicleMileageFormState | null>(null)
+  const { submit, confirmModal } = useMileageDropConfirm(currentMileage, onSubmit)
 
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
     return submitValidatedForm(
       handleSubmit,
-      values => {
-        if (isLargeMileageDrop(currentMileage, parseNumeric(values.mileage))) {
-          setPendingDrop(values)
-
-          return
-        }
-
-        return onSubmit(values)
-      },
+      values => submit(values, parseNumeric(values.mileage)),
       event
     )
   }
@@ -92,24 +82,7 @@ export default function VehicleMileageModal({
         </FormField>
       </FormModal>
 
-      <ConfirmActionModal
-        open={pendingDrop !== null}
-        title="کارکرد کمتر از قبل"
-        message={
-          pendingDrop
-            ? largeMileageDropMessage(currentMileage, parseNumeric(pendingDrop.mileage))
-            : ''
-        }
-        confirmLabel="ثبت همین عدد"
-        cancelLabel="اصلاح عدد"
-        onClose={() => setPendingDrop(null)}
-        onConfirm={() => {
-          const values = pendingDrop
-
-          setPendingDrop(null)
-          if (values) void onSubmit(values)
-        }}
-      />
+      {confirmModal}
     </>
   )
 }

@@ -6,6 +6,7 @@ import { fetchRecords } from '../../services/sheets'
 import { haptic } from '../../utils/haptics'
 import { getTodayIso } from '../../utils/jalaliDate'
 import { handleSheetError } from '../../utils/sheetError'
+import { startUndoWindow } from '../../utils/undoWindow'
 import { deleteStoredRecord } from '../records/recordsMutations'
 import { enrichRecord } from '../records/recordsUtils'
 import { dismissUndoToast, showUndoToast } from '../UndoToast'
@@ -73,5 +74,5 @@ export async function runRecurringAutoPost(spreadsheetId: string): Promise<void>
   )
 
   haptic('light')
-  setTimeout(close, UNDO_WINDOW_MS)
+  startUndoWindow(toastId, UNDO_WINDOW_MS, close)
 }

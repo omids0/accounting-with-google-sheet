@@ -23,3 +23,11 @@ export function clearInaccessibleSpreadsheet(): void {
 
 export const SPREADSHEET_NO_ACCESS_MESSAGE =
   'این شیت پیدا نشد یا اپ اجازهٔ باز کردنش را ندارد. اپ فقط به شیت‌هایی دسترسی دارد که خودش ساخته یا شما با «باز کردن شیت با گوگل» انتخاب کرده‌اید.'
+
+/** Thrown when a sheet cannot be opened here (a removed share, or no Picker grant on this device). */
+export class SpreadsheetNoAccessError extends Error {
+  constructor() {
+    super(SPREADSHEET_NO_ACCESS_MESSAGE)
+    this.name = 'SpreadsheetNoAccessError'
+  }
+}

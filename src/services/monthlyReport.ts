@@ -3,6 +3,7 @@ import type { ChartsRecords } from './chartsData'
 import { filterByDateRange, sumByCategory } from './dashboardAggregation'
 import { monthHighlights, type MonthHighlights } from './monthlyReportHighlights'
 import type { NetWorthSnapshot } from './netWorth'
+import { netWorthAtMonthEnd, type NetWorthBasis } from './netWorthMonthEnd'
 import { isRecurringBorn } from './recurring'
 import type { CategoryBudget, Check, InstallmentPlan } from '../types'
 import {
@@ -33,9 +34,11 @@ export interface MonthlyReportData {
   budgets: MonthlyReportBudget[]
   installments: { paid: number; due: number }
   checksCleared: number
-  /** End-of-month «دارایی قابل اتکا» (Task B snapshot); null when unknown. */
+  /** End-of-month «دارایی قابل اتکا»: the snapshot, else rebuilt from records, else today's. */
   netWorth: number | null
-  /** Change from the previous month's snapshot; null without both values. */
+  /** Where `netWorth` comes from; null when it is unknown. */
+  netWorthBasis: NetWorthBasis | null
+  /** Change from the previous month-end; null without both values or when `netWorth` is today's. */
   netWorthChange: number | null
   recurringPosted: number
   /** Where the month's spending went by counterparty and item; both empty when unknown. */
@@ -48,8 +51,10 @@ export interface MonthlyReportInput {
   installmentPlans: InstallmentPlan[]
   checks: Check[]
   snapshots: NetWorthSnapshot[]
-  /** Today's value: stands in for the month just ended before its snapshot is written. */
+  /** Today's value: the last resort, flagged, for the month just ended when nothing else exists. */
   todayNetWorth?: number | null
+  /** Month-end value rebuilt from records for a month without a snapshot (`monthEndNetWorthReader`). */
+  rebuildNetWorth?: ((monthKey: string) => number | null) | null
   /** The month before today's (the one the first-of-month card announces). */
   lastMonthKey?: string
 }
@@ -97,10 +102,6 @@ export function checksClearedIn(checks: Check[], range: DateRange): number {
     .length
 }
 
-function snapshotValue(snapshots: NetWorthSnapshot[], monthKey: string): number | null {
-  return snapshots.find(item => item.monthKey === monthKey)?.netWorth ?? null
-}
-
 /** Income, expense, budgets, counts and net worth of one Jalali month. */
 export function buildMonthlyReport(monthKey: string, input: MonthlyReportInput): MonthlyReportData {
   const range = getJalaliMonthRange(monthKey) ?? { start: '', end: '' }
@@ -127,9 +128,18 @@ export function buildMonthlyReport(monthKey: string, input: MonthlyReportInput):
     })
     .sort((a, b) => b.ratio - a.ratio)
 
-  const fallback = monthKey === input.lastMonthKey ? input.todayNetWorth ?? null : null
-  const netWorth = snapshotValue(input.snapshots, monthKey) ?? fallback
-  const previous = snapshotValue(input.snapshots, previousJalaliMonthKey(monthKey))
+  const source = {
+    snapshots: input.snapshots,
+    rebuild: input.rebuildNetWorth,
+    todayNetWorth: input.todayNetWorth,
+    lastMonthKey: input.lastMonthKey
+  }
+  const netWorth = netWorthAtMonthEnd(monthKey, source)
+  // Today's value is no month-end, so it is never the base of a change either.
+  const previous = netWorthAtMonthEnd(previousJalaliMonthKey(monthKey), {
+    ...source,
+    todayNetWorth: null
+  })
 
   return {
     monthKey,
@@ -139,12 +149,28 @@ export function buildMonthlyReport(monthKey: string, input: MonthlyReportInput):
     budgets,
     installments: installmentsDueIn(input.installmentPlans, range),
     checksCleared: checksClearedIn(input.checks, range),
-    netWorth,
-    netWorthChange: netWorth != null && previous != null ? netWorth - previous : null,
+    netWorth: netWorth?.value ?? null,
+    netWorthBasis: netWorth?.basis ?? null,
+    netWorthChange:
+      netWorth && netWorth.basis !== 'today' && previous ? netWorth.value - previous.value : null,
     recurringPosted: [...income, ...expense].filter(record => isRecurringBorn(record.values))
       .length,
     highlights: monthHighlights(expense)
   }
+}
+
+/**
+ * Says where the net-worth figure comes from when it is not a stored snapshot: «تا پایان مهر ۱۴۰۵
+ * (محاسبه‌شده)» for the rebuild from records, «ارزش امروز» when only today's value exists.
+ */
+export function monthlyReportNetWorthNote(
+  report: Pick<MonthlyReportData, 'monthKey' | 'netWorthBasis'>
+): string | null {
+  if (report.netWorthBasis === 'rebuilt') {
+    return `تا پایان ${formatJalaliMonthLabel(report.monthKey)} (محاسبه‌شده)`
+  }
+
+  return report.netWorthBasis === 'today' ? 'ارزش امروز' : null
 }
 
 /** «حساب کتاب · مهر ۱۴۰۵» */

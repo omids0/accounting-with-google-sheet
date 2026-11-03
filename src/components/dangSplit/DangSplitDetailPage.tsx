@@ -13,11 +13,10 @@ import { useDangSplitExpenseActions } from './useDangSplitExpenseActions'
 import { useDangSplitPersonActions } from './useDangSplitPersonActions'
 import { useUndoableDelete } from '../../hooks/useUndoableDelete'
 import { isConfigured } from '../../services/settings'
-import AppIcon from '../AppIcon'
+import NotSignedInState from '../NotSignedInState'
 import { DangCardListSkeleton } from '../skeleton'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import Card from '../ui/Card'
-import { emptyStateClass, emptyStateIconClass } from '../ui/displayStyles'
 import { listModulePageClass } from '../ui/featureCardStyles'
 
 export default function DangSplitDetailPage({
@@ -72,14 +71,7 @@ export default function DangSplitDetailPage({
   )
 
   if (!isConfigured()) {
-    return (
-      <div className={emptyStateClass}>
-        <div className={emptyStateIconClass}>
-          <AppIcon name="calculator" />
-        </div>
-        <p>ابتدا با گوگل وارد شوید</p>
-      </div>
-    )
+    return <NotSignedInState icon="calculator" />
   }
 
   return (

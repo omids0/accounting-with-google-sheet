@@ -28,7 +28,7 @@ export const filterModalActionsClass = 'justify-end gap-2'
 export const filterModalClearClass = 'me-auto'
 
 export const activeFilterBarClass = cx(
-  'active-filter-chips mb-[0.7rem] flex flex-wrap items-center gap-2',
+  'active-filter-chips mb-[0.25rem] flex flex-wrap items-center gap-2',
   '[&_[role=listitem]]:list-none'
 )
 
@@ -43,7 +43,7 @@ export const activeFilterTriggerClass = (active?: boolean) =>
 export const activeFilterTriggerLabelClass = 'leading-none'
 
 export const activeFilterTriggerDotClass = cx(
-  'inline-flex h-[1.15rem] min-w-[1.15rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.62rem] font-extrabold leading-none text-on-primary'
+  'inline-flex h-[1.25rem] min-w-[1.25rem] items-center justify-center rounded-full bg-primary px-[0.3rem] text-[0.72rem] font-extrabold leading-none text-on-primary'
 )
 
 export const activeFilterClearAllClass = cn(
@@ -55,7 +55,8 @@ export const activeFilterChipsClass = activeFilterBarClass
 
 export function activeFilterChipClass(kind: FilterChipKind = 'other') {
   return cn(
-    'active-filter-chip inline-flex max-w-full items-center gap-[0.1rem] rounded-full border py-[0.15rem] pe-[0.35rem] ps-[0.15rem] text-[0.78rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
+    // The gap keeps the remove button's 44 px tap box off the edit button beside it.
+    'active-filter-chip inline-flex max-w-full items-center gap-[0.65rem] rounded-full border py-[0.15rem] pe-[0.35rem] ps-[0.15rem] text-[0.78rem] font-semibold leading-[1.2] text-primary-dark shadow-[0_1px_4px_rgba(15,23,42,0.05)]',
     '[background:linear-gradient(145deg,color-mix(in_srgb,var(--color-primary)_7%,var(--color-surface))_0%,var(--color-surface)_100%)]',
     kind === 'sort' &&
       'border-[color-mix(in_srgb,var(--color-primary)_28%,var(--color-border))] [background:linear-gradient(145deg,color-mix(in_srgb,var(--color-accent-soft)_80%,var(--color-surface))_0%,var(--color-surface)_100%)]',
@@ -84,24 +85,27 @@ export function activeFilterChipMainClass(clickable?: boolean) {
   )
 }
 
+/** 24 px circle inside a compact chip; an invisible ::after widens the tap to 44 x 44 px. */
 export const activeFilterChipRemoveClass = cx(
-  'active-filter-chip__remove flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'active-filter-chip__remove relative flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-full border-0 bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-primary transition-[background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'after:absolute after:left-1/2 after:top-1/2 after:size-touch-min after:-translate-x-1/2 after:-translate-y-1/2 after:content-[""]',
   'hover:bg-[color-mix(in_srgb,var(--color-primary)_22%,transparent)]'
 )
 
 export const pageSearchClass = 'page-search relative min-w-0 max-w-[220px] flex-1 overflow-hidden'
 
 export const pageSearchIconClass =
-  'pointer-events-none absolute left-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
+  'pointer-events-none absolute end-[0.7rem] top-1/2 flex -translate-y-1/2 items-center justify-center text-muted opacity-70'
 
 export const pageSearchClearClass = cx(
-  'absolute left-[0.7rem] top-1/2 z-[1] flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 leading-none text-muted',
+  // Full field height and 44 px wide, flush with the end edge, so the tap needs no aim.
+  'absolute inset-y-0 end-0 z-[1] flex w-touch-min cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 leading-none text-muted',
   'transition-[color,opacity] duration-[var(--duration-fast)] hover:text-text active:opacity-70'
 )
 
 export const pageSearchInputClass = cx(
-  'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] py-2 pl-[2.1rem] pr-[0.85rem] font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background] duration-[var(--duration-normal)]',
-  'placeholder:text-muted placeholder:opacity-75',
+  'page-search-input w-full rounded-full border-[1.5px] border-border bg-[var(--form-input-bg)] min-h-touch-min py-2 pe-[2.75rem] ps-[0.85rem] font-[inherit] text-[0.82rem] text-text shadow-[var(--form-input-shadow)] transition-[border-color,box-shadow,background] duration-[var(--duration-normal)]',
+  'placeholder:text-muted',
   'focus:border-primary-light focus:bg-surface focus:shadow-[var(--form-input-focus-shadow)]',
   '[&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden'
 )

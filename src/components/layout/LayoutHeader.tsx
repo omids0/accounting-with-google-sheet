@@ -78,7 +78,7 @@ export default function LayoutHeader({
       </div>
       <div className={cn(appHeaderCenterClass, headerGridCenterClass)} data-header-center>
         <DevEnvBadge>
-          <h1 className={appHeaderTitleClass} data-header-title>
+          <h1 className={appHeaderTitleClass} data-header-title title={headerTitle}>
             {headerTitle}
           </h1>
         </DevEnvBadge>

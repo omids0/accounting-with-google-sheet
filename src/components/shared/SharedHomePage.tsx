@@ -15,6 +15,7 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { suggestSettlement } from '../../services/sharedSettlement'
 import { getTodayIso } from '../../utils/jalaliDate'
 import EmptyState from '../EmptyState'
+import SettingsActivityCard from '../settings/SettingsActivityCard'
 import { DashboardSkeleton } from '../skeleton'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
@@ -54,7 +55,7 @@ export default function SharedHomePage() {
   return (
     <div className={sharedPageClass}>
       {shared.role === 'viewer' ? <SharedViewerBanner /> : null}
-      <SharedNoticeSlot />
+      <SharedNoticeSlot inform />
 
       {shared.pair && shared.balance ? (
         <SharedBalanceCard
@@ -110,6 +111,8 @@ export default function SharedHomePage() {
           <p className={sharedMutedClass}>هنوز ثبتی نیست.</p>
         )}
       </Card>
+
+      <SettingsActivityCard />
 
       {sheets.overlays}
     </div>

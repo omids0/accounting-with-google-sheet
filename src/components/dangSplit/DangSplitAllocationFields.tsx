@@ -14,7 +14,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import ConfirmActionModal from '../ConfirmActionModal'
 import TransactionTypeSegment from '../TransactionTypeSegment'
 import Button from '../ui/Button'
-import { formControlClassName } from '../ui/formStyles'
+import { formControlClassName, formErrorClass } from '../ui/formStyles'
 
 const MODE_OPTIONS = [
   { id: 'equal', label: 'سهم مساوی' },
@@ -63,7 +63,13 @@ export default function DangSplitAllocationFields({
       {draft.mode === 'manual' ? (
         <p className={dangSplitSectionTitleClass}>
           درصد هر کس را که می‌خواهی دستی بزن؛ بقیه به تناسب ضریبشان باقی درصد را پر می‌کنند. مجموع
-          درصدهای دستی: {draft.manualTotal.toLocaleString('fa-IR')}٪
+          درصدهای دستی: {(Math.round(draft.manualTotal * 100) / 100).toLocaleString('fa-IR')}٪
+        </p>
+      ) : null}
+
+      {draft.percentError ? (
+        <p className={formErrorClass} role="alert">
+          {draft.percentError}
         </p>
       ) : null}
 
@@ -93,7 +99,7 @@ export default function DangSplitAllocationFields({
                     type="number"
                     min="0"
                     max="100"
-                    step="1"
+                    step="any"
                     className={formControlClassName(dangSplitPercentInputClass)}
                     value={draft.manualPercents[person.id] ?? ''}
                     onChange={event =>
@@ -108,6 +114,7 @@ export default function DangSplitAllocationFields({
 
                 {selected ? (
                   <span className={dangSplitStatValueClass}>
+                    {draft.percentError ? 'سهم نسبی: ' : ''}
                     {formatMoney(draft.shares.get(person.id) ?? 0)}
                   </span>
                 ) : (

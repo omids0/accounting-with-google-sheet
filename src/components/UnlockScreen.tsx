@@ -153,7 +153,7 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
   const message = lockoutMessage || error || recovery.error
 
   return (
-    <div className={unlockPageClass}>
+    <main className={unlockPageClass}>
       <div className={unlockBackdropOrbPrimaryClass} aria-hidden="true" />
       <div className={unlockBackdropOrbAccentClass} aria-hidden="true" />
 
@@ -253,6 +253,6 @@ export default function UnlockScreen({ onUnlock }: UnlockScreenProps) {
       </div>
 
       <ConfirmActionModal {...recovery.modalProps} />
-    </div>
+    </main>
   )
 }

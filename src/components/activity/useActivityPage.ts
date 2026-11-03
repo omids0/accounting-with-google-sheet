@@ -104,6 +104,7 @@ export function useActivityPage() {
 
   return {
     info,
+    entries,
     loading,
     sheetName: ACTIVITY_LOG_SHEET,
     total: filtered.length,

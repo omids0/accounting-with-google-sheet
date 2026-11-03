@@ -38,6 +38,14 @@ dumpSms('sms-employee.json', employee.sms)
 dumpSms('sms-merchant.json', merchant.sms)
 dumpSms('sms-merchant-building.json', building.sms)
 
+// Role of each SMS in the «مانده» chain (recorded / pending / pending-off / redelivery); check.mjs reads it.
+const chain = { mother, employee, 'merchant-manager': merchant, 'merchant-building': building }
+const chainBody = Object.entries(chain)
+  .map(([name, x]) => `  ${JSON.stringify(name)}: [\n${x.meta.map(m => `    ${JSON.stringify(m)}`).join(',\n')}\n  ]`)
+  .join(',\n')
+
+writeFileSync(here('sms-balance-chain.json'), `{\n${chainBody}\n}\n`)
+
 // ---- init scripts for `qa-shoot.mjs --init`: they only edit localStorage, after the runner's seed.
 const SPREADSHEET_ID = 'mock-spreadsheet-perf-test' // e2e/helpers/mockAppSeed.json
 
@@ -67,6 +75,18 @@ function initScript(data, { building = false } = {}) {
   settings.dangCategories = ${JSON.stringify(g.dang)}
   settings.receivableCategories = ${JSON.stringify(g.receivable)}
 ${
+  building
+    ? ''
+    : `  // Personal modules have no on/off switch: vehicles, timesheets, dang-split, the vault, goals and reminders
+  // are always in the menu of a personal workbook and show what their tabs hold. Only their category
+  // lists are copied up front, like the ones above.
+  settings.personalReminderCategories = ${JSON.stringify(g.personalReminder)}
+  settings.vehiclePeriodicCategories = ${JSON.stringify(g.vehiclePeriodic)}
+  settings.vehicleDeadlineCategories = ${JSON.stringify(g.vehicleDeadline)}
+  settings.vehicleMechanicCategories = ${JSON.stringify(g.vehicleMechanic)}
+  settings.vehicleExpenseCategories = ${JSON.stringify(g.vehicleExpense)}
+`
+}${
   building
     ? `
   // A building is its own spreadsheet: mark the mock one as a building (the tab «تنظیمات دوره»

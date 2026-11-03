@@ -24,7 +24,6 @@ import {
   sharedOffIntro,
   withBalanceWarning
 } from '../components/shared/memberCopy'
-import { sharedBalanceWarning } from '../components/shared/sharedViewModel'
 
 const user = vi.hoisted(() => ({ email: 'partner@x.com' }))
 
@@ -258,23 +257,6 @@ describe('loadSharedNet', () => {
     // The partner left (role row gone): the rows still name them, the balance stays.
     remote.members = [OWNER]
     expect(await loadSharedNet('s1')).toEqual({ 'owner@x.com': 1100, 'partner@x.com': -1100 })
-  })
-})
-
-describe('sharedBalanceWarning', () => {
-  const names = { 'mina@x.com': 'مینا' }
-
-  it('says who owes whom and how much while the balance is open', () => {
-    const net = { 'me@x.com': 3_140_000, 'mina@x.com': -3_140_000 }
-
-    expect(sharedBalanceWarning(net, 'me@x.com', names)).toBe(
-      'مینا ۳٬۱۴۰٬۰۰۰ تومان به شما بدهکار است.'
-    )
-    expect(sharedBalanceWarning(net, 'mina@x.com', {})).toBe('شما ۳٬۱۴۰٬۰۰۰ تومان به me بدهکارید.')
-  })
-
-  it('is null when the account is settled', () => {
-    expect(sharedBalanceWarning({ 'me@x.com': 0, 'mina@x.com': 0 }, 'me@x.com', names)).toBeNull()
   })
 })
 

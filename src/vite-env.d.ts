@@ -17,6 +17,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_DOWNLOAD_URL?: string
   /** `dev` on builds from the develop branch; unset in production. */
   readonly VITE_APP_ENV?: string
+  /** CI run number of a develop APK build; empty everywhere else. */
+  readonly VITE_BUILD_NUMBER?: string
 }
 
 interface ImportMeta {

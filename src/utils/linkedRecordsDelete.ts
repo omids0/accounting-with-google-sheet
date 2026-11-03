@@ -34,19 +34,22 @@ export function linkedRecordsCheckboxLabel(count: number): string {
 /** What the item's payments make: an instalment or a debt only spends, a receivable only earns. */
 export type LinkedRecordKind = 'income' | 'expense' | 'either'
 
-const KIND_NOUNS: Record<LinkedRecordKind, { one: string; many: string }> = {
-  income: { one: 'درآمد', many: 'درآمدهای' },
-  expense: { one: 'هزینهٔ', many: 'هزینه‌های' },
-  either: { one: 'رکورد مالی', many: 'رکوردهای مالی' }
+const KIND_NOUNS: Record<LinkedRecordKind, { one: string; many: string; total: string }> = {
+  income: { one: 'درآمد', many: 'درآمدهای', total: 'درآمد ماه' },
+  expense: { one: 'هزینهٔ', many: 'هزینه‌های', total: 'هزینه ماه' },
+  either: { one: 'رکورد مالی', many: 'رکوردهای مالی', total: 'درآمد و هزینه ماه' }
 }
 
-/** One short line: what stays, and how to take it along. */
+/**
+ * One short line: with the box off the records stay, and they still count in the month's
+ * total, so the user knows what unticked really means.
+ */
 export function linkedRecordsStayLine(count: number, kind: LinkedRecordKind): string {
   const noun = KIND_NOUNS[kind]
 
   return count === 1
-    ? `${noun.one} ساخته‌شده از پرداخت می‌ماند، مگر گزینهٔ زیر را بزنی.`
-    : `${noun.many} ساخته‌شده از پرداخت‌ها می‌مانند، مگر گزینهٔ زیر را بزنی.`
+    ? `اگر تیک نزنید، ${noun.one} پرداخت در رکوردها می‌ماند و در جمع «${noun.total}» حساب می‌شود.`
+    : `اگر تیک نزنید، ${noun.many} پرداخت‌ها در رکوردها می‌مانند و در جمع «${noun.total}» حساب می‌شوند.`
 }
 
 /**

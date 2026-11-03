@@ -11,7 +11,9 @@ import {
   type SmsCoverage,
   type SplitTarget
 } from './bankSmsSplit'
+import { transferLegRecords, transferOfSmsPair } from './bankSmsTransferRows'
 import { matchesDuplicate, type LedgerEntry } from './recordDuplicates'
+import type { Transfer } from './transfersModel'
 import type { SmsMatchResult } from '../types'
 import type { BankSmsItem } from './bankSmsNative'
 import { toIsoDate } from '../utils/jalaliDate'
@@ -171,16 +173,19 @@ function withoutStaleCoverage(coverage: SmsCoverage, ledger: LedgerEntry[]): Map
 /**
  * Pairs own-account transfers, flags probable duplicates, keeps time order.
  * `noPair` = SMS ids the user split from a suggested transfer; `linked` = the records that are
- * debt/receivable payments, `coverage` = how much of each SMS already covered.
+ * debt/receivable payments, `coverage` = how much of each SMS already covered, `transfers` = rows
+ * of «انتقال‌ها» (a hand-made one of the same accounts and amount is the pair's record).
  */
 export function buildReviewItems(
   entries: ReviewedSms[],
   ledger: LedgerEntry[],
   noPair: ReadonlySet<string> = new Set(),
   linked: LinkedRecords = NO_LINKED,
-  coverage: SmsCoverage = NO_COVERAGE
+  coverage: SmsCoverage = NO_COVERAGE,
+  transfers: readonly Transfer[] = []
 ): BankSmsReviewItem[] {
   const paired = new Set<string>()
+  const takenTransfers = new Set<string>() // transfers an earlier pair of this list matched
   const items: BankSmsReviewItem[] = []
   // One-to-one: a record (or a part of it) is what ONE card stands for. `covered` is the stored
   // coverage plus what the earlier cards of this list took, exact matches and parts alike.
@@ -255,10 +260,14 @@ export function buildReviewItems(
             record => record.accountId === leg.result.accountId
           )
         )
-      const duplicateLegs = { debit: legRecord(debit), credit: legRecord(credit) }
+      const manual = transferOfSmsPair(debit, credit, transfers, takenTransfers)
+      const duplicateLegs = manual
+        ? transferLegRecords(manual)
+        : { debit: legRecord(debit), credit: legRecord(credit) }
 
-      consume(duplicateLegs.debit, debit.amount)
-      consume(duplicateLegs.credit, credit.amount)
+      if (manual) takenTransfers.add(manual.id)
+      consume(manual ? null : duplicateLegs.debit, debit.amount)
+      consume(manual ? null : duplicateLegs.credit, credit.amount)
       paired.add(entry.sms.id)
       paired.add(partner.sms.id)
       items.push({

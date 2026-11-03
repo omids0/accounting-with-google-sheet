@@ -51,6 +51,9 @@ export const loadAssetsLiabilitiesReportPage: PageLoader = () =>
 export const loadCashFlowReportPage: PageLoader = () =>
   import('../components/reports/CashFlowReportPage')
 
+export const loadCashForecastPage: PageLoader = () =>
+  import('../components/forecast/CashForecastPage')
+
 export const loadDueDatesReportPage: PageLoader = () =>
   import('../components/reports/DueDatesReportPage')
 
@@ -120,6 +123,9 @@ export const loadWalletReconcilePage: PageLoader = () =>
 
 export const loadWalletTracePage: PageLoader = () =>
   import('../components/wallet/trace/WalletTracePage')
+
+export const loadWalletIntegrityPage: PageLoader = () =>
+  import('../components/wallet/integrity/WalletIntegrityPage')
 
 export const loadWalletTransfersPage: PageLoader = () =>
   import('../components/wallet/transfers/WalletTransfersPage')
@@ -201,6 +207,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'wallet-account-detail': loadWalletAccountDetailPage,
   'wallet-reconcile': loadWalletReconcilePage,
   'wallet-trace': loadWalletTracePage,
+  'wallet-integrity': loadWalletIntegrityPage,
   'wallet-transfers': loadWalletTransfersPage,
   'bank-sms': loadBankSmsPage,
   search: loadSearchPage,
@@ -221,6 +228,7 @@ export const TAB_PAGE_LOADERS: Record<string, PageLoader> = {
   'report-counterparties': loadCounterpartiesReportPage,
   'report-cash-flow': loadCashFlowReportPage,
   'report-due-dates': loadDueDatesReportPage,
+  'report-forecast': loadCashForecastPage,
   'report-assets-liabilities': loadAssetsLiabilitiesReportPage,
   'report-opening-balances': loadOpeningBalanceReportPage,
   'report-wallet': loadModuleReportPage,

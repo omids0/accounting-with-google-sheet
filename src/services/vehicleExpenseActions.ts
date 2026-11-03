@@ -12,6 +12,7 @@ import {
 } from './vehicleExpenseRecords'
 import { ensureVehicleExpenseCategory } from './vehicleExpenses'
 import { deleteMileageLogsByReference } from './vehicleHistory'
+import { repointServicesAfterExpenseDelete } from './vehiclePeriodicLink'
 import { renewPeriodicFromExpense } from './vehiclePeriodicRenewal'
 import { fetchVehicles, updateVehicleMileage } from './vehicleProfiles'
 import {
@@ -119,7 +120,6 @@ export async function createManualVehicleExpense(
     validateVehicleExpenseInput(input)
 
   const title = buildVehicleExpenseTitle(expenseType, vehicleTitle, isOther)
-
   const expenseRecordId = await createLinkedExpenseRecord(spreadsheetId, {
     title,
     amount,
@@ -260,6 +260,7 @@ export async function deleteManualVehicleExpense(
 ): Promise<void> {
   await deleteVehicleExpenseMetadataByRecordId(spreadsheetId, expenseRecordId)
   await deleteLinkedRecord(spreadsheetId, 'expense', expenseRecordId)
+  await repointServicesAfterExpenseDelete(spreadsheetId, expenseRecordId)
 }
 
 export async function handleExpenseRecordDeleted(
@@ -270,6 +271,7 @@ export async function handleExpenseRecordDeleted(
   if (!isVehicleExpenseCategory(category)) return
 
   await deleteVehicleExpenseMetadataByRecordId(spreadsheetId, expenseRecordId)
+  await repointServicesAfterExpenseDelete(spreadsheetId, expenseRecordId)
 }
 
 export async function handleExpenseRecordUpdated(

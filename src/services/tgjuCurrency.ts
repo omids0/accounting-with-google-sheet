@@ -1,6 +1,7 @@
-import { getCachedTgjuEurToman, getCachedTgjuPrices } from './tgju'
+import { fetchTgjuPrices, getCachedTgjuEurToman, getCachedTgjuPrices } from './tgju'
 import { vaultTgjuKeys } from './treasuryCatalog'
-import type { CurrencyUnit } from '../types'
+import { needsLiveQuotes } from './treasuryHoldings'
+import type { CurrencyUnit, VaultTransaction } from '../types'
 import { getCurrency } from '../utils/formatMoney'
 
 /** asset id → price; always carries `usd`, the rate prices are converted with. */
@@ -82,4 +83,22 @@ export function getSummableTgjuPrices(
   const display = getDisplayTgjuPrices(tomanPrices, currency)
 
   return display && display.currency === currency ? display.prices : null
+}
+
+/**
+ * The summable prices, fetching tgju's quotes first when none are cached yet (a cold start, before
+ * the vault page was ever opened). The fetch is shared and times out quickly (`fetchTgjuPrices`), and
+ * a dead network gives `null` rather than an error. Pass the vault's `transactions` to skip the
+ * request when every asset in them has a manual price.
+ */
+export async function ensureVaultPrices(
+  transactions?: VaultTransaction[]
+): Promise<TgjuPriceTable | null> {
+  const cached = getSummableTgjuPrices()
+
+  if (cached || (transactions && !needsLiveQuotes(transactions))) return cached
+
+  await fetchTgjuPrices(vaultPriceKeys()).catch(() => null)
+
+  return getSummableTgjuPrices()
 }

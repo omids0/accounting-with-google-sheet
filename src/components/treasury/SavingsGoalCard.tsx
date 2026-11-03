@@ -20,24 +20,27 @@ import {
 
 const STATUS_BADGE = { active: 'هدف', reached: 'رسید', archived: 'بایگانی' } as const
 
-/** One savings goal: progress, «X از Y · N٪», the plan line, deposit and edit. */
+/**
+ * One savings goal: progress, «X از Y · N٪», the plan line, deposit and edit. An archived goal
+ * shows what it still holds and «بازگردانی از بایگانی» instead of a deposit.
+ */
 export default function SavingsGoalCard({
   goal,
   onDeposit,
-  onEdit
+  onEdit,
+  onRestore
 }: {
   goal: SavingsGoalView
   onDeposit: (goal: SavingsGoalView) => void
   onEdit: (goal: SavingsGoalView) => void
+  onRestore: (goal: SavingsGoalView) => void
 }) {
   const reached = isGoalReached(goal.balance, goal.target)
-  const plan = goalPlanLine(goal, getTodayIso())
+  const archived = goal.status === 'archived'
+  const plan = archived ? '' : goalPlanLine(goal, getTodayIso())
 
   return (
-    <Card
-      className={cn(goalCardClass, goal.status === 'archived' && 'opacity-70')}
-      data-highlight-id={goal.id}
-    >
+    <Card className={cn(goalCardClass, archived && 'opacity-70')} data-highlight-id={goal.id}>
       <div className={goalCardHeadClass}>
         <h3 className="m-0 truncate text-[0.95rem] font-bold">{goal.title}</h3>
         <span className={goalBadgeClass}>{STATUS_BADGE[goal.status]}</span>
@@ -58,11 +61,15 @@ export default function SavingsGoalCard({
         </p>
       ) : null}
       <div className={goalCardActionsClass}>
-        {goal.status !== 'archived' ? (
+        {archived ? (
+          <Button type="button" variant="secondary" size="sm" onClick={() => onRestore(goal)}>
+            بازگردانی از بایگانی
+          </Button>
+        ) : (
           <Button type="button" size="sm" onClick={() => onDeposit(goal)}>
             + واریز به هدف
           </Button>
-        ) : null}
+        )}
         <button type="button" className={goalLinkButtonClass} onClick={() => onEdit(goal)}>
           ویرایش
         </button>

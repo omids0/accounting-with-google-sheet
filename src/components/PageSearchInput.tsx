@@ -49,7 +49,6 @@ export default function PageSearchInput({
           className={pageSearchClearClass}
           onClick={() => onChange('')}
           aria-label="پاک کردن جستجو"
-          tabIndex={-1}
         >
           <AppIcon name="close" size={15} />
         </button>

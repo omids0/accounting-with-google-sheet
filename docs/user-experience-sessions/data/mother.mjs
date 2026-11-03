@@ -1,5 +1,6 @@
 // Persona 1: housewife (45). Household money in toman, one bank card + cash, small family loans, one appliance instalment.
 import * as L from './lib.mjs'
+import * as A from './areas.mjs'
 import * as F from './smsFormats.mjs'
 
 const { ago, uid } = L
@@ -18,7 +19,7 @@ export function buildMother() {
     card: '6037997788901234',
     holder: 'زهرا محمدی',
     acctNo: '0101234567001',
-    opening: 15000000
+    opening: 55000000
   })
 
   // ---- people
@@ -26,7 +27,11 @@ export function buildMother() {
   const brother = L.person(TAG, 'brother', 'علی', 'نوروزی', { phones: ['09123334455'] })
   const neighbor = L.person(TAG, 'neighbor', 'خانم', 'احمدی', { phones: ['09351234567'] })
   const shop = L.person(TAG, 'shop', 'سوپرمارکت', 'رفاه', { phones: ['02177889900'] })
-  const people = [sister, brother, neighbor, shop]
+  const mom = L.person(TAG, 'mom', 'مادرم', '', { phones: ['09121110001'], note: 'مادر من' })
+  const mechanic = L.person(TAG, 'mechanic', 'استاد', 'رحیمی (مکانیک)', { phones: ['09123330044'], note: 'تعمیرگاه پژو، خیابان کارگر' })
+  const brotherInLaw = L.person(TAG, 'bil', 'حسین', 'کریمی', { phones: ['09351110022'], note: 'برادر همسر' })
+  const school = L.person(TAG, 'school', 'مدرسه', 'شهید بهشتی', { phones: ['02133445566'] })
+  const people = [sister, brother, neighbor, shop, mom, mechanic, brotherInLaw, school]
 
   // ---- income
   const inc = (daysAgo, title, category, amount, account, extra = {}) =>
@@ -34,7 +39,7 @@ export function buildMother() {
 
   inc(61, 'خرجی ماهانه از همسر', 'هدیه و یارانه', 38000000, card, { sub: 'خرجی', time: '09:10' })
   inc(30, 'خرجی ماهانه از همسر', 'هدیه و یارانه', 38000000, card, { sub: 'خرجی', time: '09:12' })
-  inc(40, 'هدیه مادر', 'هدیه و یارانه', 2000000, cash, { time: '16:00' })
+  inc(40, 'هدیه مادر', 'هدیه و یارانه', 2000000, cash, { time: '16:00', counterparty: L.fullName(mom) })
   inc(7, 'خرجی اضافه برای شهریه', 'هدیه و یارانه', 3000000, cash, { time: '10:30' })
 
   // ---- expenses
@@ -50,6 +55,7 @@ export function buildMother() {
   groceries.forEach(([d, amt], i) =>
     exp(d, i % 3 === 0 ? 'خرید هفتگی از سوپرمارکت' : 'خرید میوه و مواد غذایی', 'خوراک', amt, i % 4 === 0 ? cash : card, {
       sub: i % 3 === 0 ? 'سوپرمارکت' : 'میوه و سبزی',
+      counterparty: i % 3 === 0 ? L.fullName(shop) : '',
       time: '11:20'
     })
   )
@@ -62,9 +68,9 @@ export function buildMother() {
   exp(12, 'اینترنت ماهانه', 'قبوض', 1150000, card, { sub: 'اینترنت' })
 
   exp(40, 'لوازم‌التحریر بچه‌ها', 'آموزش', 1850000, cash, { sub: 'لوازم‌التحریر' })
-  exp(35, 'شهریه مدرسه — قسط اول', 'آموزش', 9500000, card, { sub: 'مدرسه', time: '10:00' })
+  exp(35, 'شهریه مدرسه — قسط اول', 'آموزش', 9500000, card, { sub: 'مدرسه', time: '10:00', counterparty: L.fullName(school) })
   exp(21, 'کلاس زبان دخترم', 'آموزش', 3200000, card, { sub: 'کلاس' })
-  exp(5, 'شهریه مدرسه — قسط دوم', 'آموزش', 9500000, card, { sub: 'مدرسه', time: '10:05' })
+  exp(5, 'شهریه مدرسه — قسط دوم', 'آموزش', 9500000, card, { sub: 'مدرسه', time: '10:05', counterparty: L.fullName(school) })
 
   exp(30, 'داروخانه', 'سلامت', 680000, cash, { sub: 'دارو' })
   exp(26, 'ویزیت دکتر', 'سلامت', 1500000, cash, { sub: 'پزشک' })
@@ -171,6 +177,75 @@ export function buildMother() {
     })
   ]
 
+  // ---- the family car (vehicles module): 3 periodic services, a mechanic visit, fuel, deadlines.
+  // Insurance ends in 3 weeks; the technical inspection ran out 12 days ago.
+  const veh = A.vehicleKit(book, TAG)
+  const rahimi = L.fullName(mechanic)
+
+  const car = veh.vehicle({
+    key: '206',
+    title: 'پژو ۲۰۶ — ماشین خانواده',
+    startKm: 106400,
+    since: ago(64),
+    vin: 'NAAP03EE5CJ245871',
+    year: '1395',
+    capacity: '5 نفر',
+    plate: A.plate('12', 'ب', '645', '33'),
+    interval: 'first-of-month'
+  })
+
+  // an old oil change typed in afterwards (no expense in the books, no reading)
+  veh.service(car, { type: 'روغن موتور', d: 230, km: 99300, intervalKm: 7500, brand: 'شل هلیکس', location: 'روغنی پیروزی', amount: 1500000, account: card, historical: true })
+  veh.service(car, { type: 'روغن موتور', d: 62, km: 106850, intervalKm: 7500, brand: 'شل هلیکس HX7', location: 'روغنی پیروزی', amount: 1650000, account: card })
+  veh.fuel(car, 58, 30, 107200, card)
+  veh.fuel(car, 52, 28, 107690, card)
+  veh.fuel(car, 46, 32, 108230, cash)
+  veh.service(car, { type: 'لنت ترمز', d: 44, km: 108520, intervalKm: 40000, brand: 'لنت ایران‌خودرو', location: 'تعمیرگاه استاد رحیمی', amount: 2800000, account: card, counterparty: rahimi })
+  veh.fuel(car, 39, 27, 108950, card)
+
+  veh.mechanic(car, {
+    d: 36,
+    km: 109300,
+    location: 'تعمیرگاه استاد رحیمی',
+    items: [
+      { category: 'جلو بندی', note: 'تعویض spiral جلو' },
+      { category: 'برق', note: 'تعویض سنسور دما' }
+    ],
+    amount: 3400000,
+    account: card,
+    counterparty: rahimi
+  })
+
+  veh.fuel(car, 32, 29, 109640, cash)
+  veh.service(car, { type: 'باتری', d: 27, km: 110020, intervalKm: 60000, brand: 'صبا باتری ۶۰ آمپر', location: 'باتری‌سازی مهدوی', amount: 5900000, account: card })
+  veh.fuel(car, 22, 31, 110420, card)
+  veh.fuel(car, 16, 33, 110980, cash)
+  veh.fuel(car, 10, 26, 111470, card)
+  veh.fuel(car, 4, 30, 111960, card)
+  veh.reading(car, 1, 112100)
+
+  veh.deadline(car, { category: 'بیمه شخص ثالث', start: ago(344), end: L.ahead(21), amount: 6400000, reminder: true, daysBefore: 7, renewals: [{ start: ago(709), end: ago(344), km: 82000, amount: 4800000 }] })
+  veh.deadline(car, { category: 'معاینه فنی', start: ago(377), end: ago(12), amount: 1350000, notes: 'مرکز معاینه فنی شماره ۱۲', reminder: true, daysBefore: 3, renewals: [{ start: ago(742), end: ago(377), km: 81500, amount: 1200000 }] })
+
+  // ---- savings goals: money leaves the card account into the goal (a ledger line each)
+  const goals = A.goalKit(book, TAG)
+  const north = goals.goal({ key: 'north', title: 'سفر شمال', target: 45000000, targetDate: L.ahead(145), account: card, note: 'نوروز ۱۴۰۶، یک هفته در رامسر', since: ago(52) })
+  const dowry = goals.goal({ key: 'dowry', title: 'جهیزیه دختر', target: 400000000, targetDate: L.ahead(1100), account: card, note: 'پس‌انداز بلندمدت، ماهی ۴ میلیون', since: ago(60) })
+
+  goals.deposit(dowry, 55, 4000000)
+  goals.deposit(north, 48, 6000000)
+  goals.deposit(dowry, 26, 4000000)
+  goals.deposit(north, 19, 6500000)
+  goals.deposit(north, 3, 3500000)
+  goals.deposit(dowry, 4, 4500000)
+
+  // ---- recurring items: the allowance comes on the 5th (the pending SMS below is the same money)
+  const recurringRows = [
+    A.recurringRowOf(TAG, 'allowance', { type: 'income', category: 'هدیه و یارانه', sub: 'خرجی', account: card, amount: 38000000, title: 'خرجی ماهانه از همسر', day: 5, lastPosted: '1405-07' }),
+    A.recurringRowOf(TAG, 'internet', { type: 'expense', category: 'قبوض', sub: 'اینترنت', account: card, amount: 1150000, title: 'اینترنت ماهانه', day: 23, lastPosted: '1405-07' }),
+    A.recurringRowOf(TAG, 'filimo', { type: 'expense', category: 'تفریح و سفر', sub: 'اشتراک', account: card, amount: 150000, title: 'اشتراک فیلیمو', day: 14, lastPosted: '1405-07' })
+  ]
+
   // ---- reminders, budgets
   const reminderRow = (key, p) => [
     uid(`${TAG}:rem:${key}`),
@@ -205,15 +280,23 @@ export function buildMother() {
         ['سلامت', 3000000],
         ['قبوض', 3000000],
         ['حمل‌ونقل', 1000000],
-        ['پوشاک و زیبایی', 3000000]
+        ['پوشاک و زیبایی', 3000000],
+        ['خودرو', 3000000]
       ],
       ago(50)
     ),
     [L.names.PERSONAL_REMINDERS_SHEET]: [
       L.heads.PERSONAL_REMINDERS_HEADERS,
       reminderRow('power', { category: 'قبض', title: 'قبض برق', dueDate: L.ahead(6), recurrence: 'monthly', amount: 800000, daysBefore: 2 }),
-      reminderRow('life', { category: 'بیمه', title: 'بیمه عمر', dueDate: L.ahead(40), recurrence: 'yearly', amount: 6000000, daysBefore: 7 })
-    ]
+      reminderRow('life', { category: 'بیمه', title: 'بیمه عمر', dueDate: L.ahead(40), recurrence: 'yearly', amount: 6000000, daysBefore: 7 }),
+      A.reminderRowOf(TAG, 'tuition3', { category: 'سایر', title: 'قسط سوم شهریه مدرسه', due: L.ahead(34), recurrence: 'none', amount: 9500000, daysBefore: 7 }),
+      A.reminderRowOf(TAG, 'municipality', { category: 'مالیات', title: 'عوارض نوسازی شهرداری', due: L.ahead(95), recurrence: 'yearly', amount: 2400000, daysBefore: 7 }),
+      // switched off on purpose: it must not show on the dashboard
+      A.reminderRowOf(TAG, 'filimo', { category: 'اشتراک', title: 'تمدید اشتراک فیلیمو', due: L.ahead(18), recurrence: 'monthly', amount: 150000, daysBefore: 1, enabled: false })
+    ],
+    [L.names.RECURRING_SHEET]: [L.heads.RECURRING_HEADERS, ...recurringRows],
+    [L.names.TREASURY_GOALS_SHEET]: goals.rows(),
+    ...veh.tabs()
   }
 
   // ---- bank SMS (Melli card). Templates are what the app learns from a first sample.
@@ -231,21 +314,34 @@ export function buildMother() {
 
   const sender = 'BMI'
 
-  const events = L.runningBalances(book, card, [
-    { day: ago(2), time: '17:41', verb: 'خرید', toman: 420000, delta: -420000, recorded: true },
-    { day: ago(1), time: '12:15', verb: 'خرید', toman: 1850000, delta: -1850000 },
-    { day: ago(0), time: '08:05', verb: 'واریز', toman: 38000000, delta: 38000000 },
-    { day: ago(5), time: '19:20', verb: 'برداشت', toman: 3000000, delta: -3000000 },
-    { day: ago(6), time: '09:00', verb: 'برداشت', toman: 2500, delta: -2500 }
-  ])
+  // «مانده» chain: see L.chainBalances. The allowance (newest pending) is the deliberate +1M case.
+  const events = L.chainBalances(
+    book,
+    card,
+    [
+      { day: ago(2), time: '17:41', verb: 'خرید', toman: 420000, delta: -420000, recorded: true },
+      { day: ago(2), time: '19:20', verb: 'برداشت', toman: 3000000, delta: -3000000 },
+      { day: ago(2), time: '19:21', verb: 'برداشت', toman: 2500, delta: -2500 }, // ATM fee
+      { day: ago(1), time: '12:15', verb: 'خرید', toman: 1850000, delta: -1850000 },
+      { day: ago(0), time: '08:05', verb: 'واریز', toman: 38000000, delta: 38000000 }
+    ],
+    { deliberateOff: 1000000 }
+  )
 
   const body = e =>
     F.melli(e.verb, { toman: e.toman, balance: e.balance, acct: card.acctNo, day: e.day, time: e.time })
 
   const swipe = events.find(e => e.toman === 1850000)
 
+  const meta = []
   const smsList = [
-    ...events.map(e => L.sms({ sender, day: e.day, time: e.time, body: body(e) })),
+    ...events.map(e => {
+      const item = L.sms({ sender, day: e.day, time: e.time, body: body(e) })
+
+      meta.push(L.chainMeta(item, e.status, { account: card.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+      return item
+    }),
     // the same body again a minute later (double swipe): its own id so it stays a separate card
     L.sms({ sender, day: swipe.day, time: '12:16', body: body(swipe), idSalt: '#2' }),
     // marketing: not financial
@@ -259,5 +355,7 @@ export function buildMother() {
     })
   ].sort((a, b) => a.receivedAt - b.receivedAt)
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, card, cash }
+  meta.push(L.chainMeta(L.sms({ sender, day: swipe.day, time: '12:16', body: body(swipe), idSalt: '#2' }), 'redelivery'))
+
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, card, cash }
 }

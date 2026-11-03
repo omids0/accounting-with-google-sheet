@@ -1,4 +1,5 @@
 import DangSplitAllocationFields from './DangSplitAllocationFields'
+import { PERCENT_SAVE_HINT } from './dangSplitAllocationSeed'
 import type {
   DangSplitCategoryWithRow,
   DangSplitExpenseWithRow,
@@ -45,9 +46,13 @@ export default function DangSplitAllocationModal({
       onClose={onClose}
       onSubmit={event => {
         event.preventDefault()
+        if (draft.percentError) return
+
         return onSave(draft.weights)
       }}
       saving={saving}
+      saveDisabled={draft.percentError !== null}
+      saveHint={draft.percentError ? PERCENT_SAVE_HINT : undefined}
       saveLabel="ذخیره تخصیص"
       size="wide"
     >

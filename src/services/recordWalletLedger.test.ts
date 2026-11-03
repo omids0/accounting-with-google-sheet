@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { applyWalletChanges, logUnappliedRecord, recordLedgerContext } from './recordWallet'
+import {
+  applyWalletChanges,
+  logUnappliedRecord,
+  prepareWalletChanges,
+  recordLedgerContext
+} from './recordWallet'
 import { appendSheetRow } from './sheets'
 import type * as SheetsModule from './sheets'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
@@ -77,6 +82,56 @@ describe('applyWalletChanges ledger', () => {
       applyWalletChanges(ID, null, expense(100), recordLedgerContext(values, 'ثبت'))
     ).resolves.toBeUndefined()
     expect(await balance()).toBe(400)
+  })
+})
+
+describe('a delete refund is given once', () => {
+  beforeEach(() => {
+    clearStore(ID)
+    setSheetAllRows(ID, WALLET_SHEET, [WALLET_HEADERS, ['acc', '', 'کارت', '500']])
+    setSheetAllRows(ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+  })
+
+  const remove = () =>
+    applyWalletChanges(ID, expense(100), null, recordLedgerContext(values, 'حذف', 'r1'))
+
+  it('a second delete of the same record gives nothing back and logs nothing', async () => {
+    await remove()
+    await remove()
+
+    expect(await balance()).toBe(600)
+    expect(await fetchLedger(ID, 'acc')).toHaveLength(1)
+  })
+
+  it('refunds again when the record was saved after its earlier refund line', async () => {
+    await remove()
+    await applyWalletChanges(ID, null, expense(100), recordLedgerContext(values, 'ویرایش', 'r1'))
+    await remove()
+
+    expect(await balance()).toBe(600)
+    expect(await fetchLedger(ID, 'acc')).toHaveLength(3)
+  })
+
+  it('another record is refunded on its own', async () => {
+    await remove()
+    await applyWalletChanges(ID, expense(100), null, recordLedgerContext(values, 'حذف', 'r2'))
+
+    expect(await balance()).toBe(700)
+  })
+
+  it('writes nothing until the returned function runs, and re-reads only when asked', async () => {
+    const write = await prepareWalletChanges(
+      ID,
+      expense(100),
+      null,
+      recordLedgerContext(values, 'حذف', 'r1'),
+      { refresh: false }
+    )
+
+    expect(await balance()).toBe(500)
+    expect(await fetchLedger(ID, 'acc')).toEqual([])
+    await write()
+    expect(await balance()).toBe(600)
   })
 })
 

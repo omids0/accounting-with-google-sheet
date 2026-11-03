@@ -120,7 +120,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       </FilterModal>
 
       {isInitialLoading ? (
-        <DangCardListSkeleton table />
+        <DangCardListSkeleton table checkbox={false} amount={false} plate metaLines={1} />
       ) : data.items.length === 0 ? (
         <EmptyState
           icon="car"
@@ -164,7 +164,7 @@ export default function VehicleListPage({ active = true }: { active?: boolean })
       <ConfirmDeleteModal
         open={data.deletingItem !== null}
         title={`«${data.deletingItem?.title ?? ''}» حذف شود؟`}
-        message="از حذف این خودرو مطمئن هستید؟"
+        message={data.deleteMessage}
         onClose={data.closeDeleteConfirm}
         onConfirm={data.handleDelete}
         deleting={data.deleting}

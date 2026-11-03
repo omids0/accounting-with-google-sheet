@@ -4,15 +4,17 @@ import type { ChartsRecords } from './chartsData'
 import { fetchChecks } from './checks'
 import { fetchInstallmentPlans } from './installments'
 import { buildMonthlyReport, type MonthlyReportData } from './monthlyReport'
+import { monthEndNetWorthReader } from './netWorthRebuild'
 import { fetchNetWorthSnapshots } from './netWorthSheet'
-import { loadNetWorthRecords, loadTodayNetWorth } from './netWorthSources'
+import { loadNetWorthRecords, loadRebuildInput, loadTodayNetWorth } from './netWorthSources'
 import { findEarliestRecordDate } from './openingBalanceDerive'
 import { loadSavingsGoals } from './savingsGoalsSheet'
+import { getNetAvailableConfig } from './settings'
 import { withoutSettlements } from './sharedSettlement'
 import { WALLET_LEDGER_SHEET } from './sheetNames'
 import { fetchSheetRows } from './sheets'
 import { rowToLedgerEntry } from './walletLedger'
-import { workspaceTypeOf } from './workspace'
+import { hasPersonalTabs, workspaceTypeOf } from './workspace'
 import { buildYearReview, hasYearActivity, type YearReview } from './yearReview'
 import { reviewableYears } from './yearReviewGate'
 import type { AppSettings } from '../types'
@@ -22,6 +24,26 @@ import { getTodayIso } from '../utils/jalaliDate'
 async function todayNetWorth(settings: AppSettings): Promise<number | null> {
   try {
     return (await loadTodayNetWorth(settings)).netWorth
+  } catch {
+    return null
+  }
+}
+
+/**
+ * End-of-month net worth worked back from records, for months with no stored snapshot. Only the
+ * personal workspace has a «دارایی قابل اتکا»; `null` there too when the sheets cannot be read.
+ */
+async function loadMonthEndReader(
+  settings: AppSettings,
+  records: ChartsRecords
+): Promise<((monthKey: string) => number | null) | null> {
+  if (!hasPersonalTabs(settings.spreadsheetId)) return null
+
+  try {
+    return monthEndNetWorthReader(
+      await loadRebuildInput(settings, records),
+      getNetAvailableConfig()
+    )
   } catch {
     return null
   }
@@ -39,6 +61,7 @@ async function loadCommon(settings: AppSettings) {
   ])
 
   const type = workspaceTypeOf(id)
+  const rebuildNetWorth = await loadMonthEndReader(settings, records)
 
   return {
     // A building's transfers and fund corrections, a shared account's «تسویه», are not flow.
@@ -46,7 +69,8 @@ async function loadCommon(settings: AppSettings) {
     installmentPlans,
     checks,
     snapshots,
-    todayNetWorth: today
+    todayNetWorth: today,
+    rebuildNetWorth
   }
 }
 
@@ -105,6 +129,12 @@ export async function loadYearReviews(
     years ?? reviewableYears(first ? parseJalaliMonthKey(first)?.year ?? null : null, today)
 
   return list
-    .map(year => buildYearReview(year, { ...common, ...goals }))
+    .map(year =>
+      buildYearReview(year, {
+        ...common,
+        ...goals,
+        currentYear: parseJalaliMonthKey(getJalaliMonthKey(today))?.year
+      })
+    )
     .filter(review => years || hasYearActivity(review))
 }

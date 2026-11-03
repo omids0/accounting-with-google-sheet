@@ -1,10 +1,12 @@
 import { useId, type ReactNode } from 'react'
 
+import AppIcon, { type AppIconName } from './AppIcon'
 import { cn } from '../utils/cn'
 import {
   calmBlockBadgeClass,
   calmBlockClass,
   calmBlockHeadClass,
+  calmBlockIconClass,
   calmBlockLinkClass,
   calmBlockTitleClass
 } from './ui/calmListStyles'
@@ -16,6 +18,8 @@ export interface CalmBlockAction {
 
 export interface CalmBlockProps {
   title: string
+  /** Shown in a tinted tile before the title. */
+  icon?: AppIconName
   /** Short note after the title, e.g. «· ۱ معوق». */
   badge?: ReactNode
   /** The «همه ←» style link on the end of the header row. */
@@ -32,6 +36,7 @@ export interface CalmBlockProps {
  */
 export default function CalmBlock({
   title,
+  icon,
   badge,
   action,
   toolbar,
@@ -43,10 +48,17 @@ export default function CalmBlock({
   return (
     <section className={cn(calmBlockClass, className)} aria-labelledby={titleId}>
       <div className={calmBlockHeadClass}>
-        <h2 id={titleId} className={calmBlockTitleClass}>
-          {title}
-          {badge ? <span className={calmBlockBadgeClass}>{badge}</span> : null}
-        </h2>
+        <div className="flex min-w-0 items-center gap-2">
+          {icon ? (
+            <span className={calmBlockIconClass}>
+              <AppIcon name={icon} size={16} />
+            </span>
+          ) : null}
+          <h2 id={titleId} className={calmBlockTitleClass}>
+            {title}
+            {badge ? <span className={calmBlockBadgeClass}>{badge}</span> : null}
+          </h2>
+        </div>
         {action ? (
           <button type="button" className={calmBlockLinkClass} onClick={action.onClick}>
             {action.label}

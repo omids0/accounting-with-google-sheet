@@ -10,6 +10,8 @@ import { markBankSmsHandled } from './bankSmsNative'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
 import { createLinkedExpenseRecord } from './paymentTransactions'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
+import { fetchTransfers } from './transfers'
+import { TRANSFERS_HEADERS, TRANSFERS_SHEET } from './transfersModel'
 import { fetchWalletAccounts, WALLET_HEADERS, WALLET_SHEET } from './wallet'
 import type * as WalletModule from './wallet'
 import { fetchLedger, WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } from './walletLedger'
@@ -19,6 +21,10 @@ vi.mock('./bankSmsNative', () => ({ markBankSmsHandled: vi.fn(async () => undefi
 vi.mock('./paymentTransactions', () => ({
   createLinkedExpenseRecord: vi.fn(async () => 'rec-1'),
   createLinkedIncomeRecord: vi.fn(async () => 'rec-2')
+}))
+vi.mock('./sheets', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  ensureSheetWithHeaders: vi.fn(async () => undefined)
 }))
 vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn() }))
 vi.mock('./wallet', async importOriginal => {
@@ -60,6 +66,7 @@ describe('SMS balance moves in the ledger', () => {
       ['two', '', 'دوم', '0']
     ])
     setSheetAllRows(ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+    setSheetAllRows(ID, TRANSFERS_SHEET, [TRANSFERS_HEADERS])
   })
 
   it('logs a balance-only confirm as «پیامک»', async () => {
@@ -142,7 +149,19 @@ describe('SMS balance moves in the ledger', () => {
   it('logs both sides of an own-account transfer', async () => {
     await confirmSmsTransfer(ID, sms('s1', 'acc', 'debit'), sms('s2', 'two', 'credit'))
 
-    expect((await fetchLedger(ID, 'acc'))[0]).toMatchObject({ delta: -300, balanceAfter: 700 })
-    expect((await fetchLedger(ID, 'two'))[0]).toMatchObject({ delta: 300, balanceAfter: 300 })
+    const [transfer] = await fetchTransfers(ID)
+
+    expect((await fetchLedger(ID, 'acc'))[0]).toMatchObject({
+      delta: -300,
+      balanceAfter: 700,
+      source: 'transfer',
+      recordId: transfer.id
+    })
+    expect((await fetchLedger(ID, 'two'))[0]).toMatchObject({
+      delta: 300,
+      balanceAfter: 300,
+      source: 'transfer',
+      recordId: transfer.id
+    })
   })
 })

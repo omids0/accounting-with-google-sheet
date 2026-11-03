@@ -180,7 +180,7 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
   }
 
   return (
-    <div className={loginPageClass}>
+    <main className={loginPageClass}>
       <div className={cn(loginCardClass, animateInClass)}>
         <div className={loginLogoClass}>
           <span className={loginLogoIconClass}>
@@ -217,6 +217,6 @@ export default function LoginPage({ onSuccess, initialError = '', reason }: Logi
         {!expired && <LoginFooter />}
       </div>
       <ConfirmActionModal {...switchModalProps} />
-    </div>
+    </main>
   )
 }

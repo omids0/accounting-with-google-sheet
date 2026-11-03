@@ -1,14 +1,22 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState, useSyncExternalStore } from 'react'
 import { useSearchParams } from 'react-router'
 
 import SharedOffSheet, { type SharedOffChoice } from './SharedOffSheet'
 import SharedSpaceCard from './SharedSpaceCard'
+import { forgetSharedQuestion } from './sharedSpaceState'
 import { sharedBalanceWarning } from './sharedViewModel'
 import { useEnterWorkspace } from '../../hooks/useEnterWorkspace'
 import { getUserEmail } from '../../services/auth'
 import { useDataRevision } from '../../services/dataRevision'
 import { shareErrorMessage } from '../../services/driveShare'
 import type { WorkspaceMember } from '../../services/memberRegistry'
+import {
+  classifySharedFailure,
+  clearSharedAccessLost,
+  isSharedAccessLost,
+  markSharedAccessLost,
+  subscribeSharedAccessLost
+} from '../../services/sharedAccessLost'
 import {
   hideSharedAccount,
   isSharedOwner,
@@ -19,8 +27,14 @@ import {
   showSharedAccount,
   visibleSharedAccount
 } from '../../services/sharedAccountSwitch'
+import { forgetUnreachableShared } from '../../services/sharedForget'
 import { loadSharedNet } from '../../services/sharedLeave'
+import { sharedNameOf } from '../../services/sharedWorkspace'
+import { verifySpreadsheetExists } from '../../services/sheets'
+import { getSpreadsheetLabel } from '../../services/spreadsheetCatalog'
+import { confirmDelete } from '../../utils/confirmDelete'
 import { showError, showSuccess } from '../../utils/toast'
+import { toUserMessage } from '../../utils/userMessage'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 
 const SharedConnectSheet = lazy(() => import('./SharedConnectSheet'))
@@ -54,6 +68,12 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
     accountId ? knownSharedMembers(accountId) : null
   )
   const [warning, setWarning] = useState<string | null>(null)
+  const [forgetting, setForgetting] = useState(false)
+  // Found unreachable by «باز کردن» or by the member read below (the owner removed this user, or
+  // this device has no grant for the file): the card says so and offers a way out.
+  const lost = useSyncExternalStore(subscribeSharedAccessLost, () =>
+    accountId ? isSharedAccessLost(accountId) : false
+  )
 
   useEffect(() => {
     if (!accountId) return
@@ -61,6 +81,12 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
     let cancelled = false
 
     setMembers(knownSharedMembers(accountId))
+    // Marked unreachable earlier (this session or a past one): the card heals when the file opens.
+    if (isSharedAccessLost(accountId)) {
+      void verifySpreadsheetExists(accountId)
+        .then(readable => readable && !cancelled && clearSharedAccessLost(accountId))
+        .catch(() => undefined)
+    }
     // Offline: the card stays without avatars and role, «باز کردن» still works.
     void loadSharedMembers(accountId)
       .then(async list => {
@@ -73,12 +99,42 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
 
         if (!cancelled) setWarning(net && sharedBalanceWarning(net, getUserEmail() ?? ''))
       })
-      .catch(() => undefined)
+      .catch(err => {
+        // Offline and other failures keep the card as it was; only a refused file changes it.
+        if (!cancelled && classifySharedFailure(err) === 'denied') markSharedAccessLost(accountId)
+      })
 
     return () => {
       cancelled = true
     }
   }, [accountId, revision])
+
+  // A failed «باز کردن» marks the account lost itself (the hook knows the cause).
+  const open = async (id: string) => {
+    if (await enter(id, 'shared-home')) clearSharedAccessLost(id)
+  }
+
+  const forget = async () => {
+    if (!account) return
+
+    const name = sharedNameOf(getSpreadsheetLabel(account.name))
+
+    if (!(await confirmDelete(forgetSharedQuestion(name)))) return
+    setForgetting(true)
+    try {
+      if (await forgetUnreachableShared(account.id)) {
+        showSuccess('حساب مشترک از این دستگاه پاک شد')
+        setMembers(null)
+        refresh()
+      } else {
+        showError('برای پاک کردن، اول باید دفتر شخصی تو باز شود')
+      }
+    } catch (err) {
+      showError(toUserMessage(err, 'پاک کردن حساب مشترک ناموفق بود'))
+    } finally {
+      setForgetting(false)
+    }
+  }
 
   const turnOff = async (choice: SharedOffChoice) => {
     if (!account) return
@@ -106,10 +162,14 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
         account={account}
         members={members}
         hidden={!account && registered !== null}
+        state={lost ? 'denied' : 'normal'}
         opening={account !== null && entering === account.id}
+        forgetting={forgetting}
         onStart={onStart}
         onConnect={() => setConnect('open')}
-        onOpen={() => account && void enter(account.id, 'shared-home')}
+        onReconnect={() => setConnect('open')}
+        onForget={() => void forget()}
+        onOpen={() => account && void open(account.id)}
         onOff={() => setOffOpen(true)}
         onShowAgain={() => {
           if (registered) showSharedAccount(registered.id)
@@ -135,7 +195,7 @@ export default function SharedSpaceSection({ onStart }: { onStart: () => void })
             }}
             onConnected={id => {
               refresh()
-              void enter(id, 'shared-home')
+              void open(id)
             }}
           />
         </Suspense>

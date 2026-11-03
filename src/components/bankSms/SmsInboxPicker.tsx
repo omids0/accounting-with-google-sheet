@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { formatSmsTime } from './smsLabels'
+import SmsPermissionHelp from './SmsPermissionHelp'
 import {
   getBankSmsPermission,
   listBankSmsInbox,
@@ -19,6 +20,7 @@ type SmsInboxPickerProps = {
 export default function SmsInboxPicker({ onPick }: SmsInboxPickerProps) {
   const [items, setItems] = useState<BankSmsItem[] | null>(null)
   const [loading, setLoading] = useState(false)
+  const [denied, setDenied] = useState(false)
 
   const open = async () => {
     setLoading(true)
@@ -28,10 +30,12 @@ export default function SmsInboxPicker({ onPick }: SmsInboxPickerProps) {
         (await requestBankSmsPermission()) === 'granted'
 
       if (!granted) {
+        setDenied(true)
         showError('برای خواندن پیامک‌ها اجازه دسترسی لازم است')
 
         return
       }
+      setDenied(false)
       setItems(await listBankSmsInbox(30))
     } catch {
       showError('خواندن پیامک‌ها ممکن نشد')
@@ -42,9 +46,16 @@ export default function SmsInboxPicker({ onPick }: SmsInboxPickerProps) {
 
   if (!items) {
     return (
-      <Button type="button" variant="secondary" size="sm" loading={loading} onClick={open}>
-        انتخاب از پیامک‌ها
-      </Button>
+      <>
+        <Button type="button" variant="secondary" size="sm" loading={loading} onClick={open}>
+          انتخاب از پیامک‌ها
+        </Button>
+        {denied && (
+          <SmsPermissionHelp
+            grantedAction={{ label: 'انتخاب از پیامک‌ها', onClick: open, busy: loading }}
+          />
+        )}
+      </>
     )
   }
 

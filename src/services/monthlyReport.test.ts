@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { buildMonthlyReport, monthlyReportTitle, type MonthlyReportInput } from './monthlyReport'
+import {
+  buildMonthlyReport,
+  monthlyReportNetWorthNote,
+  monthlyReportTitle,
+  type MonthlyReportInput
+} from './monthlyReport'
 import {
   getMonthlyReportState,
   markMonthlyReportHandled,
@@ -122,17 +127,67 @@ describe('monthly report data', () => {
     expect(report.netWorthChange).toBe(-800_000)
   })
 
-  it('uses today’s value for the month just ended before its snapshot exists', () => {
-    const fresh = buildMonthlyReport('1405-07', {
+  describe('net worth of a month without a snapshot', () => {
+    const rebuilt: Record<string, number> = { '1405-06': 28_000_000, '1405-07': 29_000_000 }
+    const rebuildNetWorth = (monthKey: string) => rebuilt[monthKey] ?? null
+    const inAban = {
       ...input,
-      snapshots: [snapshot('1405-06', 30_000_000)],
-      todayNetWorth: 31_000_000,
+      snapshots: [],
+      todayNetWorth: 116_300_000,
       lastMonthKey: '1405-07'
+    }
+
+    it('prefers the stored snapshot, whatever else is known', () => {
+      const stored = buildMonthlyReport('1405-07', {
+        ...inAban,
+        snapshots: input.snapshots,
+        rebuildNetWorth
+      })
+
+      expect(stored.netWorth).toBe(29_770_000)
+      expect(stored.netWorthBasis).toBe('snapshot')
+      expect(monthlyReportNetWorthNote(stored)).toBeNull()
     })
 
-    expect(fresh.netWorth).toBe(31_000_000)
-    expect(fresh.netWorthChange).toBe(1_000_000)
-    expect(buildMonthlyReport('1405-05', input).netWorth).toBeNull()
+    it('rebuilds the end of last month instead of showing today’s value', () => {
+      const report = buildMonthlyReport('1405-07', { ...inAban, rebuildNetWorth })
+
+      expect(report.netWorth).toBe(29_000_000)
+      expect(report.netWorthBasis).toBe('rebuilt')
+      expect(report.netWorthChange).toBe(1_000_000)
+      expect(monthlyReportNetWorthNote(report)).toBe('تا پایان مهر ۱۴۰۵ (محاسبه‌شده)')
+    })
+
+    it('rebuilds a month older than last month too, and leaves one the rebuild cannot reach empty', () => {
+      const older = buildMonthlyReport('1405-06', { ...inAban, rebuildNetWorth })
+
+      expect([older.netWorth, older.netWorthBasis]).toEqual([28_000_000, 'rebuilt'])
+      expect(older.netWorthChange).toBeNull()
+      expect(buildMonthlyReport('1405-05', { ...inAban, rebuildNetWorth }).netWorth).toBeNull()
+      expect(buildMonthlyReport('1405-05', input).netWorth).toBeNull()
+    })
+
+    it('falls back to today’s value, flagged and without a change, only when no rebuild exists', () => {
+      const report = buildMonthlyReport('1405-07', {
+        ...inAban,
+        snapshots: [snapshot('1405-06', 30_000_000)],
+        rebuildNetWorth: () => null
+      })
+
+      expect([report.netWorth, report.netWorthBasis]).toEqual([116_300_000, 'today'])
+      expect(report.netWorthChange).toBeNull()
+      expect(monthlyReportNetWorthNote(report)).toBe('ارزش امروز')
+      // Older months never get today's value.
+      expect(
+        buildMonthlyReport('1405-06', { ...inAban, rebuildNetWorth: null }).netWorth
+      ).toBeNull()
+    })
+
+    it('leaves the month in progress alone', () => {
+      const current = buildMonthlyReport('1405-08', { ...inAban, rebuildNetWorth })
+
+      expect([current.netWorth, current.netWorthBasis]).toEqual([null, null])
+    })
   })
 
   it('titles the page with the month and year', () => {

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>بودجهٔ هوشمند — حساب‌کتاب</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="top">
+      <a href="index.html">← فهرست ایده‌ها</a>
+      <span>
+        <button data-toggle="new">بخش‌های تازه</button>
+        <button data-toggle="theme">تیره/روشن</button>
+      </span>
+    </div>
+
+    <main class="page">
+      <h1>بودجهٔ هوشمند</h1>
+      <p class="lead">
+        بودجه فقط یک سقف خشک نباشد: پول هر کار جدا بماند، روز حقوق خودش تقسیم شود، خرج‌های فصلی از
+        ماه‌ها قبل خبر بدهند و چیز عجیب را اپ خودش ببیند. امروز ۶ آبان ۱۴۰۵ است.
+      </p>
+      <p class="legend">
+        <span class="chip">بخش موجود در اپ</span>
+        <span class="chip" style="background: var(--new-soft); color: var(--new)">
+          بخش تازهٔ پیشنهادی (خط‌چین بنفش)
+        </span>
+        <a href="budget.html">بخش ۱: پاکت‌ها و خرج فصلی ←</a>
+        <a href="budget-2.html">بخش ۲: روز حقوق و اشتراک ←</a>
+      </p>
+
+      <div class="tabs">
+        <button data-idea="idea-bill">د) هشدار ناهنجاری و قبض دو برابر</button>
+      </div>
+
+      <section class="idea" id="idea-bill">
+        <div class="phones">
+          <div class="phone">
+            <div class="cap">اعلان روی گوشی</div>
+            <div class="app-bar"><span>اعلان‌ها</span><span>امروز</span></div>
+            <div class="screen">
+              <div class="card">
+                <h3>خلاصهٔ بودجه</h3>
+                <small>دو دسته به سقف ماه نزدیک‌اند: تفریح (۱۰۰٪) و ماشین (۸۵٪).</small>
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴" id="alert">
+                <h3 id="alertTitle">قبض برق ۲٫۳ برابر شد</h3>
+                <small id="alertText"
+                  >برق آبان ۱٬۸۵۰٬۰۰۰ است؛ میانگین ۳ ماه ۸۰۰٬۰۰۰ بود (۲٫۳ برابر). بررسی کنیم؟</small
+                >
+              </div>
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <h3>هشدار فقط برای چیزهای عجیب</h3>
+                <label class="muted"
+                  >حساسیت: هشدار بده وقتی از <output id="o-th">۱٫۵</output> برابر میانگین بیشتر شد
+                  <input
+                    type="range"
+                    id="r-th"
+                    min="1.2"
+                    max="3"
+                    step="0.1"
+                    value="1.5"
+                    style="width: 100%"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="phone">
+            <div class="cap">جزئیات هشدار</div>
+            <div class="app-bar"><span>قبض برق</span><span>آبان ۱۴۰۵</span></div>
+            <div class="screen">
+              <div class="card new" data-idea="ایدهٔ ۴">
+                <h3>برق آبان ۱٬۸۵۰٬۰۰۰ است</h3>
+                <svg
+                  viewBox="0 0 300 150"
+                  width="100%"
+                  role="img"
+                  aria-label="نمودار قبض برق چهار ماه"
+                >
+                  <rect x="215" y="87" width="50" height="38" fill="var(--primary)" />
+                  <rect x="150" y="85" width="50" height="40" fill="var(--primary)" />
+                  <rect x="85" y="86" width="50" height="39" fill="var(--primary)" />
+                  <rect x="20" y="35" width="50" height="90" fill="var(--danger)" />
+                  <line
+                    x1="10"
+                    x2="290"
+                    y1="86"
+                    y2="86"
+                    stroke="var(--muted)"
+                    stroke-dasharray="4 3"
+                  />
+                  <g font-size="11" text-anchor="middle" fill="currentColor">
+                    <text x="240" y="80">۷۸۰٬۰۰۰</text>
+                    <text x="175" y="78">۸۲۰٬۰۰۰</text>
+                    <text x="110" y="79">۸۰۰٬۰۰۰</text>
+                    <text x="45" y="28">۱٬۸۵۰٬۰۰۰</text>
+                    <text x="240" y="142">مرداد</text>
+                    <text x="175" y="142">شهریور</text>
+                    <text x="110" y="142">مهر</text>
+                    <text x="45" y="142">آبان</text>
+                  </g>
+                </svg>
+                <small class="muted"
+                  >خط‌چین: میانگین سه ماه، ۸۰۰٬۰۰۰ تومان. زمان از راست به چپ می‌رود؛ آبان آخرین ماه
+                  است.</small
+                >
+                <div class="row">
+                  <button
+                    class="btn"
+                    data-demo-msg="قبض همین‌طور ثبت می‌ماند و هشدار این ماه بسته می‌شود"
+                  >
+                    درست است</button
+                  ><button class="btn ghost" data-demo-msg="رکورد قبض برق برای ویرایش باز می‌شود">
+                    اشتباه ثبت شده
+                  </button>
+                </div>
+                <small class="muted"
+                  >«اشتباه ثبت شده» رکورد را برای ویرایش باز می‌کند. دیگر نشان نده</small
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="notes">
+          <h2>ایدهٔ ۴: هشدار ناهنجاری و «قبض دو برابر شد»</h2>
+          <dl>
+            <dt>مشکل</dt>
+            <dd>قبض برق دو برابر می‌شود یا مبلغی اشتباه ثبت می‌شود و کسی تا آخر ماه نمی‌فهمد.</dd>
+            <dt>ایده</dt>
+            <dd>
+              اپ هر دسته یا هر قبض را با میانگین چند ماه قبل مقایسه کند؛ اگر چند برابر شد، یک اعلان
+              آرام با دو راه ساده بدهد: «درست است» یا «اشتباه ثبت شده».
+            </dd>
+            <dt>چرا</dt>
+            <dd>هم خطای تایپ پیدا می‌شود هم افزایش واقعی قبض، پیش از آنکه بودجه خراب شود.</dd>
+            <dt>اندازه</dt>
+            <dd><span class="chip ok">کوچک</span> تا <span class="chip warn">متوسط</span></dd>
+            <dt>کجای اپ</dt>
+            <dd>خلاصهٔ بودجه (موجود) و اعلان‌ها؛ جزئیات در همان رکورد قبض.</dd>
+            <dt>داده لازم</dt>
+            <dd>
+              فقط تراکنش‌های موجود: میانگین سه ماه هر دسته. ذخیرهٔ تازه فقط «دیگر نشان نده» و
+              حساسیت.
+            </dd>
+            <dt>خطر</dt>
+            <dd>
+              اعلان زیاد کاربر را خسته می‌کند. پس: آستانهٔ قابل تنظیم، حداکثر یک اعلان در روز، حداقل
+              سه ماه سابقه و «دیگر نشان نده» برای هر دسته.
+            </dd>
+          </dl>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+    <script>
+      ;(() => {
+        const out = document.getElementById('o-th')
+        const range = document.getElementById('r-th')
+        const ratio = 1850000 / 800000
+        const fa = n => n.toLocaleString('fa-IR', { maximumFractionDigits: 1 })
+        const draw = () => {
+          const th = Number(range.value)
+          const hit = ratio >= th
+          out.textContent = fa(th)
+          document.getElementById('alertTitle').textContent = hit
+            ? `قبض برق ${fa(ratio)} برابر شد`
+            : 'با این حساسیت هشداری نیست'
+          document.getElementById('alertText').textContent = hit
+            ? `برق آبان ۱٬۸۵۰٬۰۰۰ است؛ میانگین ۳ ماه ۸۰۰٬۰۰۰ بود (${fa(ratio)} برابر). بررسی کنیم؟`
+            : `برق آبان ${fa(ratio)} برابر میانگین است و از آستانهٔ ${fa(
+                th
+              )} برابر کمتر است؛ اعلانی فرستاده نمی‌شود.`
+        }
+        range.addEventListener('input', draw)
+        draw()
+      })()
+    </script>
+  </body>
+</html>

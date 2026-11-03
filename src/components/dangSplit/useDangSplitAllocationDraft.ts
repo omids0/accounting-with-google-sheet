@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
+import {
+  isAllocationDraftUnchanged,
+  manualPercentsError,
+  resolveDraftWeights,
+  seedAllocationDraft,
+  toNumericPercents,
+  type AllocationDraftSeed
+} from './dangSplitAllocationSeed'
 import type { DangSplitCategoryWithRow, DangSplitPersonWithRow } from './types'
 import type { DangSplitAllocationWithRow } from '../../services/dangSplitExpenses'
-import {
-  resolveEqualWeights,
-  resolveManualWeights,
-  splitExpenseShares,
-  type DangSplitWeight
-} from '../../services/dangSplitMath'
+import { splitExpenseShares, type DangSplitWeight } from '../../services/dangSplitMath'
 import type { DangSplitWeightMode } from '../../types/dangSplit'
 
 /** حالت پیش‌نویس مودال تخصیص: چه کسانی انتخاب شده‌اند و سهمشان چطور حساب می‌شود */
@@ -27,45 +30,57 @@ export function useDangSplitAllocationDraft({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [mode, setMode] = useState<DangSplitWeightMode>('equal')
   const [manualPercents, setManualPercents] = useState<Record<string, number | ''>>({})
+  const [seed, setSeed] = useState<AllocationDraftSeed>(() => seedAllocationDraft([], []))
   const [pendingCategory, setPendingCategory] = useState<DangSplitCategoryWithRow | null>(null)
+  const latest = useRef({ people, currentAllocations })
+
+  latest.current = { people, currentAllocations }
 
   // The allocation list is rebuilt on every render, so reset the draft from a
   // stable signature instead of the array identity — otherwise every keystroke
-  // would wipe the selection.
-  const currentSignature = currentAllocations.map(item => item.personId).join(',')
+  // would wipe the selection. The signature carries the stored weights: the draft
+  // opens in the mode that produced them (see seedAllocationDraft).
+  const currentSignature = currentAllocations
+    .map(item => `${item.personId}:${item.weight}`)
+    .join(',')
+  const peopleSignature = people.map(item => `${item.id}:${item.defaultWeight}`).join(',')
 
   useEffect(() => {
     if (!open) return
 
-    setSelectedIds(currentSignature === '' ? [] : currentSignature.split(','))
-    setMode('equal')
-    setManualPercents({})
+    const next = seedAllocationDraft(latest.current.people, latest.current.currentAllocations)
+
+    setSeed(next)
+    setSelectedIds(next.selectedIds)
+    setMode(next.mode)
+    setManualPercents(next.manualPercents)
     setPendingCategory(null)
-  }, [currentSignature, open])
+  }, [currentSignature, peopleSignature, open])
 
   const selectedPeople = useMemo(
     () => people.filter(item => selectedIds.includes(item.id)),
     [people, selectedIds]
   )
 
-  const numericPercents = useMemo(() => {
-    const result: Record<string, number> = {}
+  const numericPercents = useMemo(() => toNumericPercents(manualPercents), [manualPercents])
 
-    for (const [personId, value] of Object.entries(manualPercents)) {
-      if (value !== '' && Number.isFinite(Number(value))) {
-        result[personId] = Number(value)
-      }
-    }
-
-    return result
-  }, [manualPercents])
+  // Untouched, the draft hands back the stored weights as they are; only an edit
+  // recomputes them from the people's default weights or the typed percents.
+  const unchanged = useMemo(
+    () => isAllocationDraftUnchanged(seed, { selectedIds, mode, manualPercents }),
+    [seed, selectedIds, mode, manualPercents]
+  )
 
   const weights: DangSplitWeight[] = useMemo(
     () =>
-      mode === 'equal'
-        ? resolveEqualWeights(selectedPeople)
-        : resolveManualWeights(selectedPeople, numericPercents),
-    [mode, numericPercents, selectedPeople]
+      resolveDraftWeights({ seed, draft: { selectedIds, mode, manualPercents }, selectedPeople }),
+    [seed, selectedIds, mode, manualPercents, selectedPeople]
+  )
+
+  const percentError = useMemo(
+    () =>
+      mode === 'manual' && !unchanged ? manualPercentsError(selectedPeople, numericPercents) : null,
+    [mode, unchanged, selectedPeople, numericPercents]
   )
 
   const shares = useMemo(() => splitExpenseShares(amount, weights), [amount, weights])
@@ -118,6 +133,7 @@ export function useDangSplitAllocationDraft({
     manualPercents,
     setPercent,
     manualTotal,
+    percentError,
     weights,
     shares,
     togglePerson,

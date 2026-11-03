@@ -1,11 +1,20 @@
 import { monthsToRebuild, snapshotMonthToWrite, type NetWorthGate } from './netWorth'
-import { earliestNetMonth, rebuildSnapshots } from './netWorthRebuild'
+import {
+  earliestNetMonth,
+  hasFlowAfterMonth,
+  rebuiltMonthEnd,
+  rebuildSnapshots,
+  unquotedVaultAssetsAt,
+  type NetWorthRebuildInput
+} from './netWorthRebuild'
 import { appendNetWorthSnapshots, fetchNetWorthSnapshots, netWorthTimestamp } from './netWorthSheet'
 import { loadNetWorthRecords, loadRebuildInput, loadTodayNetWorth } from './netWorthSources'
+import type { NetWorthValues } from './netWorthTrend'
 import { sessionStart, waitForSessionSync } from './sessionSync'
 import { getNetAvailableConfig, getSettings } from './settings'
 import { getItem, setItem } from './storage'
 import { hasPersonalTabs } from './workspace'
+import type { AppSettings } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { getTodayIso } from '../utils/jalaliDate'
 
@@ -26,6 +35,40 @@ function writeNetWorthGate(spreadsheetId: string, gate: NetWorthGate): void {
   }
 }
 
+/**
+ * The values of the previous month's `auto` row. Opened on its first day, today's value is that
+ * month's end. Opened later, today's value would carry the new month's records, so the month-end is
+ * worked back from them (the same rebuild the reports use); today's value stays only where the
+ * rebuild is impossible (before the first record, or the sheets cannot be read).
+ *
+ * `null` when the value would leave out a live-priced vault asset because tgju gave no quote: stored,
+ * it would be a fake drop in the trend that nothing repairs. The caller then writes nothing and keeps
+ * the month open, so the next start tries again.
+ */
+async function autoMonthValues(
+  settings: AppSettings,
+  monthKey: string,
+  rebuildInput: () => Promise<NetWorthRebuildInput>
+): Promise<NetWorthValues | null> {
+  try {
+    const input = await rebuildInput()
+
+    if (hasFlowAfterMonth(input.monthlyNet, monthKey)) {
+      if (unquotedVaultAssetsAt(input, monthKey).length > 0) return null
+
+      const rebuilt = rebuiltMonthEnd(input, monthKey, getNetAvailableConfig())
+
+      if (rebuilt) return rebuilt
+    }
+  } catch {
+    // The rebuild input could not be read: today's value, as before.
+  }
+
+  const { vaultUnquoted, ...today } = await loadTodayNetWorth(settings)
+
+  return vaultUnquoted.length > 0 ? null : today
+}
+
 async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Promise<void> {
   // «دارایی قابل اتکا» is the user's own: a building or shared file has no such tab and never gets one.
   if (!hasPersonalTabs(spreadsheetId)) return
@@ -43,28 +86,42 @@ async function snapshotAndRebuild(spreadsheetId: string, monthKey: string): Prom
   const recordedAt = netWorthTimestamp()
   const autoMonth = snapshotMonthToWrite(gate, monthKey, existing)
   const rows = []
+  let loaded: NetWorthRebuildInput | null = null
+  const rebuildInput = async () =>
+    (loaded ??= await loadRebuildInput(settings, await loadNetWorthRecords(settings)))
+
+  // A value that would leave out a quote-less vault asset is not stored; its gate stays open (retry).
+  let autoDone = true
+  let rebuildDone = true
 
   if (autoMonth) {
-    rows.push({
-      monthKey: autoMonth,
-      ...(await loadTodayNetWorth(settings)),
-      recordedAt,
-      source: 'auto' as const
-    })
+    const values = await autoMonthValues(settings, autoMonth, rebuildInput)
+
+    if (values) {
+      rows.push({ monthKey: autoMonth, ...values, recordedAt, source: 'auto' as const })
+    } else {
+      autoDone = false
+    }
+
+    // Skipped or not, the rebuild must not fill this month with a `rebuilt` row.
     existing.add(autoMonth)
   }
 
   if (!gate.rebuiltAt) {
-    const input = await loadRebuildInput(settings, await loadNetWorthRecords(settings))
+    const input = await rebuildInput()
     const months = monthsToRebuild(earliestNetMonth(input.monthlyNet), existing, monthKey)
 
-    rows.unshift(...rebuildSnapshots(input, months, getNetAvailableConfig(), recordedAt))
+    if (months.some(month => unquotedVaultAssetsAt(input, month).length > 0)) {
+      rebuildDone = false
+    } else {
+      rows.unshift(...rebuildSnapshots(input, months, getNetAvailableConfig(), recordedAt))
+    }
   }
 
   await appendNetWorthSnapshots(spreadsheetId, rows)
   writeNetWorthGate(spreadsheetId, {
-    checkedMonth: monthKey,
-    rebuiltAt: gate.rebuiltAt ?? new Date().toISOString()
+    checkedMonth: autoDone ? monthKey : gate.checkedMonth,
+    rebuiltAt: rebuildDone ? gate.rebuiltAt ?? new Date().toISOString() : gate.rebuiltAt
   })
 }
 

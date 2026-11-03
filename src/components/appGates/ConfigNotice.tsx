@@ -14,7 +14,7 @@ import {
 /** Shown to developers when the build has no Google OAuth client id. */
 export default function ConfigNotice() {
   return (
-    <div className={loginPageClass}>
+    <main className={loginPageClass}>
       <div className={cn(loginCardClass, animateInClass)}>
         <div className={loginLogoClass}>
           <span className={loginLogoIconClass}>
@@ -30,6 +30,6 @@ export default function ConfigNotice() {
           VITE_GOOGLE_CLIENT_ID=xxx.apps.googleusercontent.com
         </Alert>
       </div>
-    </div>
+    </main>
   )
 }

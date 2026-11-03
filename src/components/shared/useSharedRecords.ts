@@ -4,6 +4,7 @@ import { appendSharedRecord, deleteSharedRecord, saveSharedAmount } from './shar
 import {
   canEditRecord,
   latestRecord,
+  memberDisplayName,
   personName,
   sharedPair,
   type PersonNames
@@ -45,7 +46,7 @@ const refuse = () => {
  */
 export function useSharedRecords() {
   const revision = useDataRevision()
-  const { label } = useSharing()
+  const { label, info } = useSharing()
   const [forms, setForms] = useState<CustomForm[]>([])
   const [raw, setRaw] = useState<StoredRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -101,8 +102,11 @@ export function useSharedRecords() {
   )
 
   const me = (getUserEmail() ?? '').trim().toLowerCase()
-  // The rows keep a partner who left (or was removed) in the balance.
-  const pair = sharedPair(members<WorkspaceMember>(spreadsheetId), rows)
+  const memberRows = members<WorkspaceMember>(spreadsheetId)
+  // The rows keep a partner who left (or was removed) in the balance...
+  const pair = sharedPair(memberRows, rows)
+  // ...but only the member rows say who can be picked as payer or bearer of a new expense.
+  const activePair = sharedPair(memberRows)
   const role = roleOf<SharedRole>(me, spreadsheetId)
   const access = {
     canRecord: can('record'),
@@ -150,9 +154,16 @@ export function useSharedRecords() {
       )
     )
 
-    return Object.fromEntries([...emails].filter(Boolean).map(email => [email, label(email).name]))
+    const listed = new Set(memberRows.map(member => member.email.trim().toLowerCase()))
+    const nameFor = (email: string) =>
+      memberDisplayName(label(email), {
+        isMember: listed.has(email),
+        hasAccess: !!info?.editors.some(editor => editor.email === email)
+      })
+
+    return Object.fromEntries([...emails].filter(Boolean).map(email => [email, nameFor(email)]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [records, pairKey, label, me])
+  }, [records, pairKey, label, info, me, memberRows.length])
 
   const nameOf = useCallback((email: string) => personName(email, me, names), [me, names])
 
@@ -262,6 +273,8 @@ export function useSharedRecords() {
     me,
     role,
     pair,
+    /** The owner and partner who are members now (no former partner): the add sheet's people. */
+    activePair,
     balance,
     names,
     nameOf,

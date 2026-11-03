@@ -32,7 +32,11 @@ const ACCOUNT_KEY_PREFIXES = [
   'accounting_sync_outbox_',
   'accounting_sync_failed_',
   'accounting_sheet_store_',
-  'accounting_sheet_synced_at_'
+  'accounting_sheet_synced_at_',
+  // Record deletes confirmed but not finished (pendingRecordDeletes.ts).
+  'accounting_pending_record_deletes_',
+  // The shared account this device could not open (sharedAccessLost.ts).
+  'accounting_shared_lost_'
 ] as const
 
 /** Single keys that describe the signed-in account rather than this device. */
@@ -94,7 +98,9 @@ const ACCOUNT_KEYS = [
   // The shared account turned off on this device (sharedAccountSwitch.ts).
   'accounting_shared_hidden_v1',
   // Copies of personal records still to be sent to the shared account (sharedLinkPrefs.ts).
-  'accounting_shared_link_v1'
+  'accounting_shared_link_v1',
+  // «تا آخر ماه چقدر می‌ماند؟»: accounts left out of the forecast (cashForecastLoad.ts).
+  'accounting_cash_forecast_v1'
 ] as const
 
 const REVOKE_TIMEOUT_MS = 3000

@@ -1,6 +1,7 @@
 // Persona 2: salaried accountant (28). Two bank accounts + cash, rent, loan instalments, checks,
 // and deliberately tricky rows: a refund, a transfer between own accounts, near-duplicate entries.
 import * as L from './lib.mjs'
+import * as AR from './areas.mjs'
 import * as F from './smsFormats.mjs'
 
 const { ago, uid } = L
@@ -36,7 +37,11 @@ export function buildEmployee() {
   const friend = L.person(TAG, 'friend', 'سعید', 'رحیمی', { phones: ['09351112233'] })
   const engineer = L.person(TAG, 'eng', 'مهندس', 'کاویانی', { phones: ['09124445566'] })
   const pedram = L.person(TAG, 'pedram', 'پدرام', 'شیرازی', { phones: ['09190001122'] })
-  const people = [landlord, friend, engineer, pedram]
+  const arian = L.person(TAG, 'arian', 'شرکت', 'آرین‌تجارت', { phones: ['02188776655'], note: 'مشتری پروژه سیستم حسابداری' })
+  const nilo = L.person(TAG, 'nilo', 'فروشگاه', 'نیلو', { phones: ['02177112233'], note: 'مشتری پروژه داشبورد فروش' })
+  const mechanic = L.person(TAG, 'mechanic', 'استاد', 'کریمی (مکانیک)', { phones: ['09125556677'] })
+  const reza = L.person(TAG, 'reza', 'رضا', 'مرادی', { phones: ['09128889900'], note: 'همسفر شمال' })
+  const people = [landlord, friend, engineer, pedram, arian, nilo, mechanic, reza]
 
   const inc = (d, title, category, amount, account, extra = {}) =>
     book.rec({ type: 'income', date: ago(d), title, category, amount, account, ...extra })
@@ -190,6 +195,133 @@ export function buildEmployee() {
     ''
   ]
 
+  // ---- freelance income: the second project's invoice (the first one, 6.5M, is above)
+  inc(3, 'پروژه داشبورد فروش — فروشگاه نیلو', 'کار آزاد', 9000000, A, { sub: 'پروژه', counterparty: L.fullName(nilo), time: '16:20' })
+
+  // ---- his own small car (vehicles module): 2 periodic services, fuel, insurance and inspection
+  const veh = AR.vehicleKit(book, TAG)
+  const karimi = L.fullName(mechanic)
+
+  const car = veh.vehicle({
+    key: 'tiba',
+    title: 'تیبا ۲ — شخصی',
+    startKm: 61100,
+    since: ago(60),
+    year: '1398',
+    capacity: '5 نفر',
+    plate: AR.plate('45', 'د', '312', '11'),
+    interval: 'every-2-months'
+  })
+
+  veh.service(car, { type: 'روغن موتور', d: 38, km: 61350, intervalKm: 5000, brand: 'بهران', location: 'روغنی ستاره', amount: 1450000, account: A, counterparty: karimi })
+  veh.fuel(car, 33, 28, 61600, A)
+  veh.fuel(car, 26, 30, 61980, A)
+  veh.service(car, { type: 'لنت ترمز', d: 21, km: 62150, intervalKm: 40000, brand: 'لنت ایساکو', location: 'تعمیرگاه استاد کریمی', amount: 2100000, account: A, counterparty: karimi })
+  veh.fuel(car, 19, 25, 62300, A)
+  veh.fuel(car, 12, 27, 62720, A)
+  veh.fuel(car, 5, 29, 63050, A)
+
+  veh.deadline(car, { category: 'بیمه شخص ثالث', start: ago(225), end: L.ahead(140), amount: 3900000, reminder: true, daysBefore: 7, renewals: [{ start: ago(590), end: ago(225), km: 52000, amount: 3100000 }] })
+  veh.deadline(car, { category: 'معاینه فنی', start: ago(160), end: L.ahead(205), amount: 1350000, notes: 'برای ۲ سال', reminder: false })
+
+  // ---- savings goal with a target date: money leaves the savings account
+  const goals = AR.goalKit(book, TAG)
+  const fund = goals.goal({ key: 'fund', title: 'صندوق اضطراری ۶ ماهه', target: 240000000, targetDate: L.ahead(210), account: B, note: 'معادل ۶ ماه هزینه و قسط', since: ago(50) })
+
+  goals.deposit(fund, 33, 15000000)
+  goals.deposit(fund, 19, 12000000)
+  goals.deposit(fund, 6, 18000000)
+
+  // ---- timesheets: two freelance projects, ~6 weeks. The rate is in the description (no column for it).
+  // Entries marked «تایید شده» are the ones an invoice covered: project 1, 13 h x 500k = 6.5M (income on day -12);
+  // project 2, 15 h x 600k = 9M (income on day -3).
+  const ts = AR.timesheetKit(TAG)
+  const p1 = ts.sheet({ key: 'arian', title: 'آرین‌تجارت — سیستم حسابداری', description: 'نرخ ساعتی: ۵۰۰٬۰۰۰ تومان', since: ago(44) })
+  const p2 = ts.sheet({ key: 'nilo', title: 'فروشگاه نیلو — داشبورد فروش', description: 'نرخ ساعتی: ۶۰۰٬۰۰۰ تومان', since: ago(32) })
+
+  ;[
+    [41, '19:00', 120, 'جلسه تحلیل نیازمندی با مدیر مالی', true],
+    [39, '19:30', 90, 'طراحی ساختار حساب‌ها', true],
+    [36, '10:00', 120, 'طراحی دیتابیس', true],
+    [34, '19:00', 60, 'نمونه اولیه صفحه ورود', true],
+    [31, '09:30', 120, 'پیاده‌سازی ثبت سند', true],
+    [27, '19:00', 90, 'گزارش تراز آزمایشی', true],
+    [23, '19:15', 60, 'اصلاح ایرادهای جلسه بازبینی', true],
+    [20, '10:00', 60, 'مستندسازی', true],
+    [15, '19:00', 60, 'آموزش کاربران', true],
+    [11, '19:00', 90, 'گزارش ترازنامه', false],
+    [9, '19:30', 120, 'خروجی اکسل', false],
+    [7, '10:00', 150, 'تست با داده واقعی', false],
+    [4, '19:00', 60, 'رفع ایراد گزارش', false],
+    [1, '19:30', 75, 'جلسه تحویل مرحله دوم', false]
+  ].forEach(([d, start, min, title, checked]) => ts.entry(p1, d, start, min, title, '', checked))
+
+  ;[
+    [30, '20:00', 120, 'جمع‌آوری نیازمندی', true],
+    [28, '20:00', 90, 'طراحی داشبورد', true],
+    [25, '10:00', 150, 'اتصال به فایل فروش', true],
+    [22, '20:00', 120, 'نمودار فروش روزانه', true],
+    [19, '20:30', 90, 'فیلتر دسته‌بندی کالا', true],
+    [16, '10:00', 180, 'گزارش مشتریان', true],
+    [13, '20:00', 150, 'بهینه‌سازی سرعت', true],
+    [8, '20:00', 120, 'نسخه موبایل', false],
+    [6, '20:00', 90, 'اصلاحات درخواستی', false],
+    [3, '20:30', 60, 'خروجی PDF', false],
+    [2, '10:00', 120, 'تست نهایی', false]
+  ].forEach(([d, start, min, title, checked]) => ts.entry(p2, d, start, min, title, '', checked))
+
+  if (ts.minutes(p1, true) !== 780 || ts.minutes(p2, true) !== 900) throw new Error('invoiced minutes do not match the invoices')
+
+  // ---- dang-split: a trip with friends (shared expenses split by weights, nothing posts to the wallet)
+  const trip = AR.dangSplitGroup(TAG, {
+    key: 'north',
+    title: 'سفر شمال با دوستان',
+    description: 'سه شب ویلا در رامسر؛ ضریب زوج ۲',
+    since: ago(24),
+    settledOn: ago(10),
+    categories: [{ key: 'couple', title: 'زوج' }, { key: 'single', title: 'مجرد' }],
+    people: [
+      { key: 'me', name: 'امیرحسین کاظمی', cat: 'single', weight: 1, paid: -15887332 },
+      { key: 'saeed', name: 'سعید رحیمی', cat: 'single', weight: 1, paid: 7486166, settled: true },
+      { key: 'pedram', name: 'پدرام شیرازی', cat: 'single', weight: 1, deposit: 1000000, paid: 401166, settled: true },
+      { key: 'couple', name: 'نیلوفر و آرش', cat: 'couple', weight: 2, paid: 8000000, note: 'دو نفر، یک سهم دوبرابر' },
+      { key: 'reza', name: 'رضا مرادی', cat: 'single', weight: 1, note: 'فقط دو روز بود' }
+    ],
+    expenses: [
+      { key: 'villa', title: 'اجاره ویلا ۳ شب', d: 27, amount: 36000000, payer: 'me' },
+      { key: 'fuel', title: 'بنزین و عوارض', d: 27, amount: 2350000, payer: 'saeed', note: 'فقط ماشین سعید', weights: { me: 1, saeed: 1, pedram: 1 } },
+      { key: 'food', title: 'خرید غذا و کباب', d: 26, amount: 8435000, payer: 'pedram' },
+      { key: 'boat', title: 'قایق‌سواری', d: 26, amount: 3000000, payer: 'me', note: 'رضا هنوز نرسیده بود', weights: { me: 1, saeed: 1, pedram: 1, couple: 2 } },
+      { key: 'breakfast', title: 'صبحانه و میوه', d: 25, amount: 1860000, payer: 'couple', weights: { me: 1, saeed: 1, pedram: 1, couple: 1, reza: 1 } },
+      { key: 'park', title: 'ورودی پارک آبی', d: 25, amount: 2700000, payer: 'reza', weights: { me: 1, saeed: 1, pedram: 1, reza: 1 } }
+    ]
+  })
+
+  // ---- recurring: salary and internet join the rent reminder above (Aban not recorded yet for any of the three)
+  const recurringRows = [
+    rentReminder,
+    AR.recurringRowOf(TAG, 'salary', { type: 'income', category: 'حقوق', account: A, amount: 65000000, title: 'حقوق ماهانه', day: 30, lastPosted: '1405-07' }),
+    AR.recurringRowOf(TAG, 'internet', { type: 'expense', category: 'قبوض', sub: 'اینترنت', account: A, amount: 1350000, title: 'اینترنت ماهانه', day: 3, lastPosted: '1405-07' })
+  ]
+
+  // ---- net worth («دارایی ماهانه»): 3 months from before the book (typed / rebuilt), 2 written by the app.
+  // Illustrative: assets = wallet (+ goal) at month end; liabilities = instalments due in the next 30 days.
+  const plans = [
+    { dues: loanDue, amount: loanSpec.amount },
+    { dues: laptopDue, amount: laptopSpec.amount }
+  ]
+  const monthEnd = month => L.jalaliToIso(1405, month, month <= 6 ? 31 : 30)
+  const due30 = end => AR.remainingAt(plans, end) - AR.remainingAt(plans, L.isoAdd(30, end))
+  const snapshot = (month, assets, source, at) => ({ month: `1405-${String(month).padStart(2, '0')}`, assets, liabilities: due30(monthEnd(month)), source, at })
+
+  const netWorth = AR.netWorthRows([
+    snapshot(3, 70500000, 'manual', ago(60)),
+    snapshot(4, 80200000, 'rebuilt', ago(60)),
+    snapshot(5, 91000000, 'rebuilt', ago(60)),
+    snapshot(6, book.walletTotalAt(monthEnd(6)) + goals.balanceAt(fund, monthEnd(6)), 'auto', L.isoAdd(1, monthEnd(6))),
+    snapshot(7, book.walletTotalAt(monthEnd(7)) + goals.balanceAt(fund, monthEnd(7)), 'auto', L.isoAdd(1, monthEnd(7)))
+  ])
+
   const out = book.build()
 
   const data = {
@@ -203,39 +335,64 @@ export function buildEmployee() {
     [L.names.COUNTERPARTIES_SHEET]: [L.heads.COUNTERPARTIES_HEADERS, ...people.map(L.personRow)],
     [L.names.INSTALLMENTS_SHEET]: [L.heads.INSTALLMENTS_HEADERS, loanPlan.row, laptopPlan.row],
     [L.names.CHECKS_SHEET]: [L.heads.CHECKS_HEADERS, ...checks],
-    [L.names.RECURRING_SHEET]: [L.heads.RECURRING_HEADERS, rentReminder],
+    [L.names.RECURRING_SHEET]: [L.heads.RECURRING_HEADERS, ...recurringRows],
     [L.names.BUDGETS_SHEET]: L.budgetRows(
-      [['خوراک', 12000000], ['تفریح و سفر', 6000000], ['حمل‌ونقل', 3000000], ['قبوض', 6000000], ['پوشاک و زیبایی', 4000000]],
+      [['خوراک', 12000000], ['تفریح و سفر', 6000000], ['حمل‌ونقل', 3000000], ['قبوض', 6000000], ['پوشاک و زیبایی', 4000000], ['خودرو', 4000000]],
       ago(50)
     ),
     [L.names.PERSONAL_REMINDERS_SHEET]: [
       L.heads.PERSONAL_REMINDERS_HEADERS,
-      [uid(`${TAG}:rem:ins`), L.stamp(ago(30), '09:00'), 'بیمه', 'بیمه تکمیلی', L.ahead(33), 'yearly', '9500000', '7', 'TRUE']
-    ]
+      [uid(`${TAG}:rem:ins`), L.stamp(ago(30), '09:00'), 'بیمه', 'بیمه تکمیلی', L.ahead(33), 'yearly', '9500000', '7', 'TRUE'],
+      AR.reminderRowOf(TAG, 'domain', { category: 'اشتراک', title: 'تمدید دامنه و هاست سایت', due: L.ahead(58), recurrence: 'yearly', amount: 850000, daysBefore: 7 }),
+      AR.reminderRowOf(TAG, 'tax', { category: 'مالیات', title: 'اظهارنامه مالیات بر درآمد (کار آزاد)', due: L.ahead(64), recurrence: 'yearly', amount: 0, daysBefore: 7 })
+    ],
+    [L.names.TREASURY_GOALS_SHEET]: goals.rows(),
+    [L.names.NET_WORTH_SHEET]: netWorth,
+    [L.names.TIMESHEETS_SHEET]: ts.sheetRows(),
+    [L.names.TIMESHEET_ENTRIES_SHEET]: ts.entryRows(),
+    ...trip.tabs(),
+    ...veh.tabs()
   }
 
   // ---- bank SMS
   const melliOf = (verb, e) => F.melli(verb, { toman: e.toman, balance: e.balance, acct: A.acctNo, day: e.day, time: e.time })
   const mellatOf = (verb, e) => F.mellat(verb, { toman: e.toman, balance: e.balance, ref: '4567***1234', day: e.day, time: e.time })
 
-  const aEvents = L.runningBalances(book, A, [
-    { day: ago(6), time: '13:40', verb: 'خرید', toman: 540000, delta: -540000, recorded: true },
-    { day: ago(5), time: '08:10', verb: 'واریز', toman: 65000000, delta: 65000000, recorded: true },
-    { day: ago(1), time: '18:00', verb: 'برداشت', toman: 5000000, delta: -5000000 }, // transfer out, pending pair
-    { day: ago(1), time: '20:30', verb: 'خرید', toman: 2380000, delta: -2380000 },
-    { day: ago(0), time: '07:15', verb: 'برداشت', toman: 4350000, delta: -4350000 } // today's loan instalment
-  ])
+  // «مانده» chain: see L.chainBalances. Today's loan instalment (newest pending on A) is the
+  // deliberate +1M case; B's chain is exact.
+  const aEvents = L.chainBalances(
+    book,
+    A,
+    [
+      { day: ago(6), time: '13:40', verb: 'خرید', toman: 540000, delta: -540000, recorded: true },
+      { day: ago(5), time: '08:10', verb: 'واریز', toman: 65000000, delta: 65000000, recorded: true },
+      { day: ago(1), time: '18:00', verb: 'برداشت', toman: 5000000, delta: -5000000 }, // transfer out, pending pair
+      { day: ago(1), time: '20:30', verb: 'خرید', toman: 2380000, delta: -2380000 },
+      { day: ago(0), time: '07:15', verb: 'برداشت', toman: 4350000, delta: -4350000 } // today's loan instalment
+    ],
+    { deliberateOff: 1000000 }
+  )
 
-  const bEvents = L.runningBalances(book, B, [
+  const bEvents = L.chainBalances(book, B, [
     { day: ago(2), time: '06:30', verb: 'واریز', toman: 1230000, delta: 1230000 },
     { day: ago(1), time: '18:01', verb: 'واریز', toman: 5000000, delta: 5000000 } // transfer in, pending pair
   ])
 
+  const meta = []
+  const tracked = (account, item, e) => {
+    meta.push(L.chainMeta(item, e.status, { account: account.id, ...(e.off ? { offToman: e.off } : {}) }))
+
+    return item
+  }
+  const dinnerRepeat = L.sms({ sender: 'BMI', day: ago(1), time: '20:31', body: melliOf('خرید', aEvents.find(e => e.toman === 2380000)), idSalt: '#2' })
+
+  meta.push(L.chainMeta(dinnerRepeat, 'redelivery'))
+
   const smsList = [
-    ...aEvents.map(e => L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e.verb, e) })),
-    ...bEvents.map(e => L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e.verb, e) })),
+    ...aEvents.map(e => tracked(A, L.sms({ sender: 'BMI', day: e.day, time: e.time, body: melliOf(e.verb, e) }), e)),
+    ...bEvents.map(e => tracked(B, L.sms({ sender: 'BankMellat', day: e.day, time: e.time, body: mellatOf(e.verb, e) }), e)),
     // same dinner body twice (double swipe)
-    L.sms({ sender: 'BMI', day: ago(1), time: '20:31', body: melliOf('خرید', aEvents.find(e => e.toman === 2380000)), idSalt: '#2' }),
+    dinnerRepeat,
     L.sms({ sender: 'BMI', day: ago(3), time: '10:00', body: F.promo('بانک ملی ایران') }),
     // a shape no template knows: unknown, can be taught
     L.sms({ sender: '10002040', day: ago(2), time: '15:30', body: F.posNotice({ shop: 'کافه نیلوفر', toman: 285000, cardTail: '3344', day: ago(2), time: '15:30' }) })
@@ -255,5 +412,5 @@ export function buildEmployee() {
 
   data[L.names.SMS_TEMPLATES_SHEET] = [L.heads.SMS_TEMPLATES_HEADERS, ...templates.map(t => t.row)]
 
-  return { data, sms: smsList, templates: templates.map(t => t.template), book, accounts: [A, B, C] }
+  return { data, sms: smsList, meta, templates: templates.map(t => t.template), book, accounts: [A, B, C] }
 }

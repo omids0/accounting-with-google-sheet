@@ -74,6 +74,27 @@ export function computeHoldings(
   return holdings.sort((a, b) => rank(a) - rank(b))
 }
 
+/**
+ * Holdings that need a live (tgju) quote but have none, so they are valued 0. Manual-priced assets
+ * are never listed: their price is the user's own.
+ */
+export function unquotedHoldings(holdings: VaultHolding[]): VaultHolding[] {
+  return holdings.filter(isUnquoted)
+}
+
+/** A live-priced holding with no quote: its value is unknown, not 0. */
+export function isUnquoted(holding: VaultHolding): boolean {
+  return holding.asset.priceSource !== 'manual' && holding.currentUnitPrice <= 0
+}
+
+/** True when any asset in `transactions` is priced by a live quote (a manual one needs no network). */
+export function needsLiveQuotes(
+  transactions: VaultTransaction[],
+  catalog: VaultAsset[] = getVaultCatalog()
+): boolean {
+  return transactions.some(tx => resolveVaultAsset(tx.assetType, catalog).priceSource !== 'manual')
+}
+
 export type VaultClassCounts = Record<VaultAssetClass, number> & { all: number }
 
 /** Holdings per class (every holding already has a net quantity > 0). */

@@ -13,8 +13,7 @@ import {
   paidAmount
 } from '../../services/receivables'
 import { getReceivableDisplayTitle } from '../../services/receivablesRow'
-import { fetchTgjuPrices } from '../../services/tgju'
-import { getSummableTgjuPrices, vaultPriceKeys } from '../../services/tgjuCurrency'
+import { ensureVaultPrices } from '../../services/tgjuCurrency'
 import { exportTreasuryPdf, fetchVaultTransactions } from '../../services/treasury'
 import { getAssetClassLabel } from '../../services/treasuryCatalog'
 import { loadVaultCatalog } from '../../services/treasuryCatalogSheet'
@@ -104,12 +103,10 @@ export async function loadModuleReport(
         loadVaultCatalog(spreadsheetId)
       ])
 
-      // Opened straight from the menu, before the vault page cached tgju's quotes.
-      await fetchTgjuPrices(vaultPriceKeys()).catch(() => null)
+      // Opened straight from the menu, before the vault page cached tgju's quotes; manual prices need none.
+      const prices = await ensureVaultPrices(transactions)
 
-      const prices = getSummableTgjuPrices()
-
-      const holdings = prices ? computeHoldings(transactions, prices) : []
+      const holdings = computeHoldings(transactions, prices ?? {})
 
       const total = holdings.reduce((sum, holding) => sum + holding.totalValue, 0)
 

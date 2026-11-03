@@ -8,10 +8,14 @@ export function showSuccess(message: string) {
   toast.success(message)
 }
 
-/** Error toasts report failed saves and loads; `duration` (ms) keeps one up longer than usual. */
+/**
+ * Error toasts report failed saves and loads; `duration` (ms) keeps one up longer than usual. The
+ * message is the toast's id, so the same error raised again while it is still up (a price refresh that
+ * keeps failing) refreshes that toast instead of stacking a copy of it.
+ */
 export function showError(message: string, duration?: number) {
   haptic('error')
-  toast.error(message, duration ? { duration } : undefined)
+  toast.error(message, { id: `error:${message}`, ...(duration ? { duration } : {}) })
 }
 
 const SAVING_TOAST_ID = 'saving'

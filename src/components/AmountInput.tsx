@@ -15,10 +15,20 @@ import {
   amountWordsClass
 } from './ui/formControlStyles'
 import { formErrorClass, formHintClass } from './ui/formStyles'
-import { amountIntegerHint, amountMaxMessage, parseAmountInput } from '../utils/amountInput'
+import {
+  AMOUNT_DIGITS_ONLY_MESSAGE,
+  AMOUNT_NEGATIVE_MESSAGE,
+  amountInputRejection,
+  amountIntegerHint,
+  amountMaxMessage,
+  parseAmountInput
+} from '../utils/amountInput'
 import { cn } from '../utils/cn'
 import { formatPersianNumber, getCurrencySymbol } from '../utils/formatMoney'
 import { numberToPersianWords } from '../utils/numberToWords'
+
+// 16px on touch screens: iOS zooms the page when a smaller input is focused.
+const inputStateClass = 'disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:text-[16px]'
 
 interface AmountInputProps {
   value: string | number
@@ -31,10 +41,19 @@ interface AmountInputProps {
   invalid?: boolean
   'aria-invalid'?: boolean
   'aria-describedby'?: string
+  'aria-required'?: boolean
+  /**
+   * Accessible name. Without it the input is named by its associated `<label>` (an `id` is
+   * given); with neither, it falls back to the unit or «مبلغ». An aria-label would override
+   * the visible label, so it is only set when nothing else names the input.
+   */
+  'aria-label'?: string
   /** When set, shown instead of the currency symbol (e.g. km). */
   unit?: string
   /** Hide Persian amount words (useful for non-money numeric fields). */
   hideWords?: boolean
+  /** Read-only while a save is running. */
+  disabled?: boolean
 }
 
 export default function AmountInput({
@@ -48,8 +67,11 @@ export default function AmountInput({
   invalid = false,
   'aria-invalid': ariaInvalid,
   'aria-describedby': ariaDescribedBy,
+  'aria-required': ariaRequired,
+  'aria-label': ariaLabelProp,
   unit,
-  hideWords = false
+  hideWords = false,
+  disabled = false
 }: AmountInputProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -66,29 +88,37 @@ export default function AmountInput({
 
   const suffix = unit ?? getCurrencySymbol()
 
-  const [notice, setNotice] = useState<'integer' | 'max' | null>(null)
+  const [notice, setNotice] = useState<'integer' | 'max' | 'negative' | 'digits' | null>(null)
 
   const noticeId = useId()
 
-  const noticeText =
-    notice === 'max'
-      ? amountMaxMessage(unit ? undefined : suffix)
-      : amountIntegerHint(unit ? undefined : suffix)
+  const ariaLabel = ariaLabelProp ?? (id ? undefined : unit ?? 'مبلغ')
+
+  const noticeTexts = {
+    max: amountMaxMessage(unit ? undefined : suffix),
+    integer: amountIntegerHint(unit ? undefined : suffix),
+    negative: AMOUNT_NEGATIVE_MESSAGE,
+    digits: AMOUNT_DIGITS_ONLY_MESSAGE
+  }
+
+  const noticeText = notice ? noticeTexts[notice] : ''
 
   const describedBy = notice ? `${noticeId} ${ariaDescribedBy ?? ''}`.trim() : ariaDescribedBy
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { digits, cutDecimal, overMax } = parseAmountInput(e.target.value, { previous: display })
+    // A minus sign or «1e9» is dropped, so the user is told instead of saving another amount.
+    const rejected = amountInputRejection(e.target.value)
 
     // After a decimal point every later digit is ignored until the user deletes something,
     // clears the field or leaves it: each keystroke is its own change event.
     if (afterDecimalRef.current && (digits.length > raw.length || digits === raw)) {
-      setNotice('integer')
+      setNotice(rejected ?? 'integer')
 
       return
     }
     afterDecimalRef.current = cutDecimal && !overMax
-    setNotice(overMax ? 'max' : cutDecimal ? 'integer' : null)
+    setNotice(overMax ? 'max' : rejected ?? (cutDecimal ? 'integer' : null))
     // Past the maximum the field keeps what it had; it stops taking digits.
     if (overMax) return
     onChange(digits === '' ? '' : Number(digits))
@@ -163,9 +193,16 @@ export default function AmountInput({
             onBlur={handleBlur}
             dir="ltr"
             placeholder="۰"
-            className={cn(amountFieldInputClass, amountFieldInputCompactClass, 'numeric')}
-            aria-label={unit ? unit : 'مبلغ'}
+            className={cn(
+              amountFieldInputClass,
+              amountFieldInputCompactClass,
+              'numeric',
+              inputStateClass
+            )}
+            disabled={disabled}
+            aria-label={ariaLabel}
             aria-invalid={ariaInvalid}
+            aria-required={ariaRequired}
             aria-describedby={describedBy}
           />
           <span className={cn(amountFieldCurrencyClass, amountFieldCurrencyCompactClass)}>
@@ -179,7 +216,8 @@ export default function AmountInput({
 
   return (
     <div className={amountFieldClass}>
-      <div className={cn(amountFieldInputWrapClass, invalid && amountFieldInputWrapInvalidClass)}>
+      {/* A label: a tap on the border or the unit chip focuses the input, so the whole 44 px box is the target. */}
+      <label className={cn(amountFieldInputWrapClass, invalid && amountFieldInputWrapInvalidClass)}>
         <input
           id={id}
           type="text"
@@ -189,13 +227,15 @@ export default function AmountInput({
           onBlur={handleBlur}
           dir="ltr"
           placeholder="۰"
-          className={cn(amountFieldInputClass, 'numeric')}
-          aria-label={unit ? unit : 'مبلغ'}
+          className={cn(amountFieldInputClass, 'numeric', inputStateClass)}
+          disabled={disabled}
+          aria-label={ariaLabel}
           aria-invalid={ariaInvalid}
+          aria-required={ariaRequired}
           aria-describedby={describedBy}
         />
         <span className={amountFieldCurrencyClass}>{suffix}</span>
-      </div>
+      </label>
       {noticeLine}
       {words && (
         <p className={amountWordsClass}>

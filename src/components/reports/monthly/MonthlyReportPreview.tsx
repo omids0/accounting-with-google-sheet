@@ -1,5 +1,9 @@
 import { useIsBuildingWorkspace } from '../../../hooks/useWorkspaceType'
-import { monthlyReportTitle, type MonthlyReportData } from '../../../services/monthlyReport'
+import {
+  monthlyReportNetWorthNote,
+  monthlyReportTitle,
+  type MonthlyReportData
+} from '../../../services/monthlyReport'
 import { monthlyReportHighlightLine } from '../../../services/monthlyReportPdf'
 import { reportWords } from '../../../services/reportWording'
 import { formatPersianNumber } from '../../../utils/formatMoney'
@@ -42,6 +46,7 @@ export default function MonthlyReportPreview({
   const building = useIsBuildingWorkspace()
   const words = reportWords(building)
   const change = report.netWorthChange
+  const netWorthNote = monthlyReportNetWorthNote(report)
 
   const highlightLine = monthlyReportHighlightLine(report)
 
@@ -96,6 +101,7 @@ export default function MonthlyReportPreview({
                 <MoneyText amount={Math.abs(change)} />)
               </>
             ) : null}
+            {netWorthNote ? `، ${netWorthNote}` : null}
           </>
         ) : null}
         {` · تکرارهای ثبت‌شده ${formatPersianNumber(report.recurringPosted)}`}

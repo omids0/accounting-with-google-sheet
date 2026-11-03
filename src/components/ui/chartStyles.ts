@@ -28,9 +28,9 @@ export const dashboardHeroHeaderClass = cx(
 )
 
 export const dashboardHeroLabelClass =
-  'dashboard-hero-label mb-1 text-[0.8rem] font-medium opacity-90'
+  'dashboard-hero-label mb-1 text-[0.8rem] font-medium opacity-95'
 
-export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-90'
+export const dashboardHeroHintClass = 'mt-2 px-1 text-[0.72rem] leading-[1.55] opacity-95'
 
 export const dashboardFlowSectionClass = cx(
   'dashboard-flow-section grid grid-cols-2 gap-2',
@@ -50,7 +50,7 @@ export const dashboardAssetsCardClass = cx(
 
 export const dashboardLiabilitiesCardClass = cx(
   'dashboard-liabilities-card',
-  '[&_.asset-value]:text-[#b91c1c] [&_.asset-row-total_.asset-value]:text-[#991b1b]'
+  '[&_.asset-value]:text-danger [&_.asset-row-total_.asset-value]:text-danger'
 )
 
 export const assetBreakdownClass = 'asset-breakdown flex flex-col gap-2'
@@ -78,16 +78,19 @@ export const assetValueClass = cx(
 /** A part of the row above (the vault's asset classes), indented and quieter. */
 export const assetRowSubClass = cx(
   'asset-row-sub -mt-1.5 border-b-0 py-0 ps-3',
-  '[&_.asset-label]:text-[0.66rem] [&_.asset-value]:text-[0.7rem] [&_.asset-value]:font-medium [&_.asset-value]:text-muted'
+  '[&_.asset-label]:text-[0.72rem] [&_.asset-value]:text-[0.72rem] [&_.asset-value]:font-medium [&_.asset-value]:text-muted'
 )
 
 /** Row left out of the «دارایی قابل اتکا» total — shown, but visibly not counted. */
 export const assetRowExcludedClass = '[&_.asset-value]:font-medium [&_.asset-value]:text-muted'
 
-export const assetExcludedTagClass = 'ms-1 text-[0.62rem] font-normal text-muted'
+export const assetExcludedTagClass = 'ms-1 text-[0.72rem] font-normal text-muted'
 
 export const assetSettingsHintClass =
-  'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.64rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
+  'mt-1 cursor-pointer border-none bg-transparent p-0 text-start text-[0.72rem] text-muted underline decoration-dotted underline-offset-2 hover:text-primary'
+
+/** Under a breakdown row whose value is a floor (a live quote is missing). */
+export const assetUnquotedNoteClass = 'm-0 text-[0.72rem] leading-[1.6] text-warning'
 
 export const statGridClass = 'mb-0 grid grid-cols-3 gap-[0.4rem] md:gap-3'
 
@@ -113,7 +116,7 @@ export function statCardClass({
 }) {
   return cn(
     wide ? cardClassName() : '',
-    'rounded-[var(--radius)] border border-border text-center transition-[transform,box-shadow,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] hover:shadow-[var(--shadow-card-hover,var(--shadow))]',
+    'rounded-[var(--radius)] border border-border text-center transition-[box-shadow,border-color] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:border-[color-mix(in_srgb,var(--color-primary)_16%,var(--color-border))] hover:shadow-[var(--shadow-card-hover,var(--shadow))]',
     !wide && 'px-2 py-3',
     wide && 'mt-2 flex w-full items-center justify-between px-4 py-[0.9rem] text-right',
     animated && 'animate-[statCardIn_0.5s_var(--ease-page)_both]',
@@ -125,8 +128,7 @@ export function statCardClass({
       'bg-bg [&_.stat-value]:text-primary-dark [&_.money-display--primary]:text-primary-dark',
     variant === 'flow' &&
       'border-border bg-bg [&_.stat-value]:text-primary-dark [&_.money-display--primary]:text-primary-dark',
-    lift &&
-      'transition-[transform,box-shadow] duration-[var(--duration-normal)] hover:-translate-y-[3px]',
+    lift && 'transition-[box-shadow] duration-[var(--duration-normal)]',
     className
   )
 }
@@ -228,7 +230,7 @@ export const categoryDonutChartWrapClass = 'relative z-[1] min-h-[168px]'
 export const categoryDonutCenterClass =
   'pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-[0.15rem] text-center'
 
-export const categoryDonutCenterLabelClass = 'text-[0.68rem] font-semibold text-muted'
+export const categoryDonutCenterLabelClass = 'text-[0.72rem] font-semibold text-muted'
 
 export const categoryDonutCenterValueClass =
   'text-[0.78rem] font-extrabold tabular-nums text-primary-dark [font-feature-settings:"tnum"_1]'
@@ -247,7 +249,7 @@ export const categoryDonutLegendNameClass =
   'line-clamp-2 min-w-0 break-words font-semibold leading-snug text-text'
 
 export const categoryDonutLegendPctClass = cx(
-  'min-w-[2.6rem] rounded-full px-1.5 py-px text-center text-[0.68rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]',
+  'min-w-[2.6rem] rounded-full px-1.5 py-px text-center text-[0.72rem] font-bold tabular-nums text-muted [font-feature-settings:"tnum"_1]',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_75%,transparent)]'
 )
 
@@ -286,4 +288,4 @@ export const headerIconAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_1px_rgba
 export const fabAppIconClass = '[&_.app-icon]:drop-shadow-[0_1px_2px_rgba(0,0,0,0.12)]'
 
 export const reportTableRowInteractiveClass =
-  'transition-[background,transform] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)] hover:-translate-x-0.5 motion-reduce:transition-none motion-reduce:hover:translate-x-0'
+  'transition-[background] duration-[var(--duration-fast)] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_50%,transparent)] motion-reduce:transition-none'

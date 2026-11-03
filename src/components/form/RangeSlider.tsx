@@ -101,6 +101,7 @@ export default function RangeSlider({
           aria-valuemin={min}
           aria-valuemax={to}
           aria-valuenow={from}
+          aria-valuetext={formatValue(from)}
         />
         <input
           type="range"
@@ -114,6 +115,7 @@ export default function RangeSlider({
           aria-valuemin={from}
           aria-valuemax={safeMax}
           aria-valuenow={to}
+          aria-valuetext={formatValue(to)}
         />
         <div className={rangeSliderTicksClass} aria-hidden="true">
           {Array.from({ length: 5 }, (_, index) => (

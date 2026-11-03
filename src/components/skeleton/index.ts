@@ -19,3 +19,4 @@ export {
   FormSkeleton,
   AppLoadingSkeleton
 } from './PageSkeletons'
+export { ChartCardSkeleton } from './ChartSkeletons'

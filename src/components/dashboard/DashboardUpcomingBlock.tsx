@@ -6,6 +6,9 @@ import CalmBlock from '../CalmBlock'
 import DueItemRow from '../DueItemRow'
 import { calmEmptyClass, calmListClass } from '../ui/calmListStyles'
 
+const forecastLinkClass =
+  'focus-ring-inset mt-1 flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-border bg-bg px-3 text-start text-[0.8rem] font-semibold text-primary-dark'
+
 /** Rows shown on every screen size; «همه ←» opens the full list. */
 const UPCOMING_ROWS = 5
 
@@ -13,10 +16,13 @@ const UPCOMING_ROWS = 5
 export default function DashboardUpcomingBlock({
   items,
   onViewAll,
+  onOpenForecast,
   className
 }: {
   items: DashboardReminderItem[]
   onViewAll: () => void
+  /** «تا آخر ماه چقدر می‌ماند؟»: opens the cash forecast. */
+  onOpenForecast?: () => void
   className?: string
 }) {
   const { rows, overdueCount } = useMemo(
@@ -28,6 +34,7 @@ export default function DashboardUpcomingBlock({
     <CalmBlock
       className={className}
       title="پیش رو"
+      icon="clock"
       badge={overdueCount > 0 ? `· ${formatPersianNumber(overdueCount)} معوق` : undefined}
       action={{ label: 'همه ←', onClick: onViewAll }}
     >
@@ -40,6 +47,12 @@ export default function DashboardUpcomingBlock({
           ))}
         </ul>
       )}
+      {onOpenForecast ? (
+        <button type="button" className={forecastLinkClass} onClick={onOpenForecast}>
+          <span>تا آخر ماه چقدر می‌ماند؟</span>
+          <span aria-hidden="true">←</span>
+        </button>
+      ) : null}
     </CalmBlock>
   )
 }

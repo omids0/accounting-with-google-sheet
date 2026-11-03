@@ -13,16 +13,34 @@ function getFocusableElements(container: HTMLElement) {
 
 const DEFAULT_INITIAL_FOCUS = '[data-modal-initial-focus]'
 
+const TEXT_FIELD_SELECTOR =
+  'textarea, input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="range"])'
+
+/**
+ * On a touch screen a focused text field raises the keyboard while the sheet is still sliding in:
+ * the WebView resizes under it and the sheet jumps. The user taps the field they want instead.
+ */
+function opensKeyboardOnTouch(element: HTMLElement) {
+  return (
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches &&
+    element.matches(TEXT_FIELD_SELECTOR)
+  )
+}
+
 /** The preferred element, else the first field, else the first control that is not ✕, else the container. */
 function getInitialFocus(container: HTMLElement, preferred: string): HTMLElement {
   const explicit = container.querySelector<HTMLElement>(preferred)
   if (explicit) return explicit
 
   const focusable = getFocusableElements(container)
-  const target =
-    focusable.find(element => element.matches(FIELD_SELECTOR)) ??
-    focusable.find(element => !element.hasAttribute('data-modal-close'))
-  if (target) return target
+  const field = focusable.find(element => element.matches(FIELD_SELECTOR))
+  if (field && !opensKeyboardOnTouch(field)) return field
+
+  if (!field) {
+    const control = focusable.find(element => !element.hasAttribute('data-modal-close'))
+    if (control) return control
+  }
 
   if (!container.hasAttribute('tabindex')) container.tabIndex = -1
 
@@ -62,7 +80,9 @@ export function useFocusTrap(
       document.activeElement instanceof HTMLElement ? document.activeElement : null
 
     openTraps.push(containerRef)
-    if (containerRef.current) getInitialFocus(containerRef.current, initialFocus).focus()
+    // preventScroll: the panel is still sliding in; scrolling it into view makes it jump.
+    if (containerRef.current)
+      getInitialFocus(containerRef.current, initialFocus).focus({ preventScroll: true })
 
     const onKeyDown = (event: KeyboardEvent) => {
       const container = containerRef.current

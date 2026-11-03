@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import IntegrityLink from './integrity/IntegrityLink'
 import TransferFormModal from './transfers/TransferFormModal'
 import TransferListLink from './transfers/TransferListLink'
 import { useWalletTransferActions } from './transfers/useWalletTransferActions'
@@ -217,6 +218,8 @@ export default function WalletPage({ active = true }: WalletPageProps) {
       )}
 
       {data.items.length > 0 && <TransferListLink />}
+
+      {data.items.length > 0 && <IntegrityLink />}
 
       {data.items.length > 0 && (
         <StatCard

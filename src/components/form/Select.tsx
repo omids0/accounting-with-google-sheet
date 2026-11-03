@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useAnchoredPosition } from './useAnchoredPosition'
@@ -26,6 +27,12 @@ interface SelectProps {
   options: SelectOption[]
   disabled?: boolean
   'aria-label'?: string
+  /** Id of the element that names the select (a visible label); the value is read after it. */
+  'aria-labelledby'?: string
+  /** Id of the trigger. `FormField` passes it; its label (`<id>-label`) then names the select. */
+  id?: string
+  /** Muted text shown while nothing is chosen (the value is empty and no option has it). */
+  placeholder?: string
   compact?: boolean
   className?: string
   invalid?: boolean
@@ -34,12 +41,17 @@ interface SelectProps {
 /** At least one touch target tall, growing with a two-line value (a fixed height clipped it). */
 const SELECT_GROWS_CLASS = 'h-auto min-h-touch-min py-1.5'
 
+export const SELECT_EMPTY_LABEL = 'موردی نیست'
+
 export default function Select({
   value,
   onChange,
   options,
   disabled = false,
   'aria-label': ariaLabel,
+  'aria-labelledby': ariaLabelledBy,
+  id,
+  placeholder,
   compact = false,
   className,
   invalid = false
@@ -51,7 +63,25 @@ export default function Select({
 
   const selected = options.find(option => option.value === value)
 
-  const displayLabel = selected?.label ?? value
+  const showPlaceholder = !selected && !value && Boolean(placeholder)
+
+  const displayLabel = showPlaceholder ? placeholder : selected?.label ?? value
+
+  const autoId = useId()
+
+  const triggerId = id ?? autoId
+
+  const valueId = `${triggerId}-value`
+
+  // A button named by `aria-label` or a `<label>` would lose the chosen value, so the name is
+  // the label followed by the value.
+  const labelId = ariaLabelledBy ?? (!ariaLabel && id ? `${id}-label` : undefined)
+
+  const labelledBy = labelId
+    ? `${labelId} ${valueId}`
+    : ariaLabel
+    ? `${triggerId} ${valueId}`
+    : undefined
 
   const handleSelect = (option: SelectOption) => {
     if (option.disabled) return
@@ -67,6 +97,7 @@ export default function Select({
     >
       <button
         ref={listbox.triggerRef}
+        id={triggerId}
         type="button"
         className={cn(
           customSelectTriggerClass,
@@ -76,12 +107,15 @@ export default function Select({
         onClick={() => !disabled && listbox.toggle()}
         onKeyDown={event => !disabled && listbox.onTriggerKeyDown(event)}
         disabled={disabled}
-        aria-label={ariaLabel}
+        aria-label={labelId ? undefined : ariaLabel}
+        aria-labelledby={labelledBy}
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-controls={open ? listbox.listboxId : undefined}
       >
-        <span className={customSelectValueClass}>{displayLabel}</span>
+        <span id={valueId} className={cn(customSelectValueClass, showPlaceholder && 'text-muted')}>
+          {displayLabel}
+        </span>
         <AppIcon
           name="chevron-down"
           size={12}
@@ -98,11 +132,29 @@ export default function Select({
             className={customSelectMenuClass}
             role="listbox"
             style={menuStyle}
-            aria-label={ariaLabel}
+            aria-label={labelId ? undefined : ariaLabel}
+            aria-labelledby={labelId}
             tabIndex={-1}
             aria-activedescendant={activeIndex >= 0 ? listbox.optionId(activeIndex) : undefined}
             onKeyDown={listbox.onListKeyDown}
           >
+            {options.length === 0 ? (
+              <button
+                type="button"
+                role="option"
+                tabIndex={-1}
+                aria-selected={false}
+                aria-disabled
+                disabled
+                className={customSelectOptionClass({
+                  selected: false,
+                  disabled: true,
+                  active: false
+                })}
+              >
+                {SELECT_EMPTY_LABEL}
+              </button>
+            ) : null}
             {options.map((option, index) => {
               const isSelected = option.value === value
 

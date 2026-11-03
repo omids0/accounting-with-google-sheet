@@ -4,6 +4,7 @@ import {
   autoLockHeld,
   backupsToPrune,
   recentAutoBackup,
+  updateBackupsToPrune,
   type DriveBackupFile,
   type DriveBackupKind
 } from './autoBackupPlan'
@@ -19,6 +20,9 @@ import { showSuccess } from '../utils/toast'
 
 /** A finished Drive backup: the clocks of both reminders move, the folder line updates. */
 function markDriveBackup(spreadsheetId: string, at: number, kind: DriveBackupKind, label: string) {
+  // A pre-update copy is a safety net, not the user's backup habit: neither reminder clock moves.
+  if (kind === 'update-dev' || kind === 'update-prod') return
+
   const state = getBackupState(spreadsheetId)
 
   patchBackupState(spreadsheetId, {
@@ -29,23 +33,34 @@ function markDriveBackup(spreadsheetId: string, at: number, kind: DriveBackupKin
   })
 }
 
-function buildActiveBackup(spreadsheetId: string): Promise<FullBackup> {
+export function buildActiveBackup(spreadsheetId: string): Promise<FullBackup> {
   return buildFullBackup(spreadsheetId, activeSpreadsheetLabel(getSettings()))
 }
 
-/** Uploads one zip and drops the automatic ones past the newest three (best effort). */
-async function uploadAndPrune(
+/**
+ * Uploads one zip and drops, best effort, the old ones of its own family: the automatic ones past
+ * the newest three, or a pre-update copy's own environment past the newest five. Manual copies, and
+ * the other environment's pre-update copies, are never touched.
+ */
+export async function uploadAndPrune(
   spreadsheetId: string,
   backup: FullBackup,
   kind: DriveBackupKind,
-  known?: DriveBackupFile[]
+  known?: DriveBackupFile[],
+  appVersion?: string
 ): Promise<DriveBackupFile> {
   const folder = await getBackupFolder(spreadsheetId)
   const existing = known ?? (await listDriveBackups(spreadsheetId, folder.id))
-  const file = await uploadDriveBackup(spreadsheetId, folder.id, backup, kind)
+  const file = await uploadDriveBackup(spreadsheetId, folder.id, backup, kind, appVersion)
+  const all = [file, ...existing]
 
   markDriveBackup(spreadsheetId, file.createdAt, kind, folder.label)
-  await deleteDriveFiles(backupsToPrune([file, ...existing]).map(item => item.id))
+  const stale =
+    kind === 'update-dev' || kind === 'update-prod'
+      ? updateBackupsToPrune(all, kind)
+      : backupsToPrune(all)
+
+  await deleteDriveFiles(stale.map(item => item.id))
 
   return file
 }

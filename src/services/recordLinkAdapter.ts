@@ -1,6 +1,7 @@
 import { logActivity, logItemActivity } from './activityLog'
 import {
   linkedPaymentIds,
+  mirrorDataRows,
   rowsMentioning,
   syncNotes,
   syncRecordPayments,
@@ -69,6 +70,15 @@ export function createRecordLinkAdapter<T extends PaidItem>(
     kind: config.kind,
     noun,
     recordType: config.recordType,
+
+    linkedRecordIds: spreadsheetId =>
+      mirrorDataRows(spreadsheetId, sheetName).flatMap(({ row, rowNumber }) =>
+        config
+          .rowToItem(row, rowNumber)
+          .payments.flatMap(payment =>
+            payment.transactionRecordId ? [payment.transactionRecordId] : []
+          )
+      ),
 
     findByRecordId: (spreadsheetId, recordId) =>
       itemsOf(spreadsheetId, recordId).map(item => ({

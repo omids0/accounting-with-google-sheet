@@ -4,6 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useEnterWorkspace } from './useEnterWorkspace'
 import { useEnterBuilding } from '../components/buildings/useEnterBuilding'
+import {
+  clearSharedAccessLost,
+  isSharedAccessLost,
+  SHARED_NO_ACCESS_MESSAGE
+} from '../services/sharedAccessLost'
+import { SpreadsheetNoAccessError } from '../services/spreadsheetAccess'
 
 const mocks = vi.hoisted(() => ({
   activeId: 'p1',
@@ -11,7 +17,8 @@ const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
   switchActive: vi.fn(async () => 'ok'),
   moveSync: vi.fn(async () => undefined),
-  remember: vi.fn()
+  remember: vi.fn(),
+  showError: vi.fn()
 }))
 
 vi.mock('react-router', () => ({ useNavigate: () => mocks.navigate }))
@@ -28,6 +35,7 @@ vi.mock('../services/workspace', () => ({
   getWorkspaceType: (id: string) => mocks.types[id] ?? 'personal',
   rememberPersonalSheet: mocks.remember
 }))
+vi.mock('../utils/toast', () => ({ showError: mocks.showError }))
 vi.mock('../stores/appStore', () => ({ bumpSpreadsheetKey: vi.fn() }))
 vi.mock('../components/settings/useSheetSwitchGuard', () => ({
   useSheetSwitchGuard: () => ({
@@ -59,7 +67,15 @@ describe('useEnterWorkspace', () => {
   beforeEach(() => {
     ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
     mocks.activeId = 'p1'
-    for (const mock of [mocks.navigate, mocks.switchActive, mocks.moveSync, mocks.remember, done]) {
+    clearSharedAccessLost('s1')
+    for (const mock of [
+      mocks.navigate,
+      mocks.switchActive,
+      mocks.moveSync,
+      mocks.remember,
+      mocks.showError,
+      done
+    ]) {
       mock.mockClear()
     }
     container = document.createElement('div')
@@ -112,5 +128,30 @@ describe('useEnterWorkspace', () => {
     expect(mocks.switchActive).not.toHaveBeenCalled()
     expect(mocks.navigate).toHaveBeenCalledWith('/shared')
     expect(done).toHaveBeenCalledTimes(1)
+  })
+
+  it('says calmly that the shared account cannot be opened and marks it lost', async () => {
+    mocks.switchActive.mockRejectedValueOnce(new SpreadsheetNoAccessError())
+
+    expect(await act(() => enters.shared?.('s1'))).toBe(false)
+    expect(mocks.showError).toHaveBeenCalledWith(SHARED_NO_ACCESS_MESSAGE)
+    expect(isSharedAccessLost('s1')).toBe(true)
+    expect(mocks.navigate).not.toHaveBeenCalled()
+  })
+
+  it('keeps the usual message for a failure that is not about access', async () => {
+    mocks.switchActive.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    expect(await act(() => enters.shared?.('s1'))).toBe(false)
+    expect(mocks.showError).not.toHaveBeenCalledWith(SHARED_NO_ACCESS_MESSAGE)
+    expect(isSharedAccessLost('s1')).toBe(false)
+  })
+
+  it('leaves a building out of the shared wording', async () => {
+    mocks.switchActive.mockRejectedValueOnce(new SpreadsheetNoAccessError())
+
+    expect(await act(() => enters.building?.('b1'))).toBe(false)
+    expect(mocks.showError).not.toHaveBeenCalledWith(SHARED_NO_ACCESS_MESSAGE)
+    expect(isSharedAccessLost('b1')).toBe(false)
   })
 })

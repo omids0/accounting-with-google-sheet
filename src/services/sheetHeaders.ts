@@ -1,21 +1,10 @@
 /** Column headers of the fixed module tabs; dependency-free for the same reason as sheetNames.ts. */
 
+export * from './sheetHeadersActivity'
 export * from './sheetHeadersBuilding'
 export * from './sheetHeadersVehicle'
 
 export const ACTIVITY_HEADERS = ['آخرین_بازدید', 'آخرین_عملیات']
-
-export const ACTIVITY_LOG_HEADERS = [
-  'شناسه',
-  'زمان',
-  'کاربر',
-  'نام',
-  'عمل',
-  'ماژول',
-  'شناسه مورد',
-  'خلاصه',
-  'دستگاه'
-]
 
 export const APP_LOCK_HEADERS = ['فعال', 'رمز_هش', 'نمک', 'زمان_بروزرسانی']
 

@@ -18,6 +18,7 @@ import { getBankById, resolveBankInternalId } from './banks'
 import { isCustomCardColor } from './customCardTheme'
 import type { WalletAccountWithRow, WalletFormState } from './types'
 import WalletAccountCardVisual from './WalletAccountCardVisual'
+import WalletAccountNumberField from './WalletAccountNumberField'
 import WalletCardColorSection from './WalletCardColorSection'
 import WalletCardNumberInput from './WalletCardNumberInput'
 import { walletCardPreviewClass } from './walletCardStyles'
@@ -262,9 +263,7 @@ export default function WalletFormModal({
 
       {isBankAccount && (
         <FormRow>
-          <FormField label="شماره حساب" hint="اختیاری — روی کارت نمایش داده می‌شود">
-            <input {...register('accountNumber')} dir="ltr" placeholder="مثلاً: 0123456789" />
-          </FormField>
+          <WalletAccountNumberField registration={register('accountNumber')} />
 
           <FormField
             label="شماره شبا"

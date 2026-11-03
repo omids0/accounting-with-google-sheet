@@ -1,5 +1,7 @@
 import { monthKeyOfIso } from '../../services/buildingMonths'
 import { suggestSettlement, type SharedRow } from '../../services/sharedSettlement'
+import { UNKNOWN_WRITER_NAME } from '../../services/sharing'
+import { isolateLatin } from '../../utils/bidiIsolate'
 import { formatMoney } from '../../utils/formatMoney'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { isSettlement } from '../../utils/protectedCategories'
@@ -16,7 +18,7 @@ import {
  * «شریک», never «همسر».
  */
 
-/** E-mail → display name (Drive's name, else the e-mail local part; see `writerLabel`). */
+/** E-mail → display name (Drive's name, else «شریک» / «عضو سابق»; see `memberDisplayName`). */
 export type PersonNames = Readonly<Record<string, string>>
 
 type Values = Record<string, string | number | undefined>
@@ -26,13 +28,32 @@ const key = (email: unknown) =>
     .trim()
     .toLowerCase()
 
-/** «شما» for the signed-in user; anyone else by name, else the part of the e-mail before '@'. */
+/** A person who is no longer a member and has no Drive access (left, or removed). */
+export const FORMER_MEMBER_NAME = 'عضو سابق'
+
+/**
+ * The name shown for someone other than me: Drive's name when known, else «عضو سابق» for a person
+ * the member rows and Drive both no longer list, else «شریک». Never the Latin e-mail local part.
+ */
+export function memberDisplayName(
+  label: { known: boolean; name: string },
+  { isMember, hasAccess }: { isMember: boolean; hasAccess: boolean }
+): string {
+  if (label.known) return label.name
+
+  return isMember || hasAccess ? UNKNOWN_WRITER_NAME : FORMER_MEMBER_NAME
+}
+
+/**
+ * «شما» for the signed-in user; anyone else by name, else «شریک». A name with Latin letters is
+ * isolated so it cannot reorder the Persian sentence around it.
+ */
 export function personName(email: string, me: string, names: PersonNames): string {
   const person = key(email)
 
   if (person && person === key(me)) return 'شما'
 
-  return names[person] || person.split('@')[0] || person
+  return names[person] ? isolateLatin(names[person]) : UNKNOWN_WRITER_NAME
 }
 
 /**
@@ -207,7 +228,7 @@ export function matchesPerson(values: Values, person: string): boolean {
 }
 
 /**
- * The two people of the balance: the owner and the single partner; null until there is one.
+ * The two people of the balance (the add sheet uses it without `rows`: only members can be picked): the owner and the single partner; null until there is one.
  * With `rows`, a partner whose member row is gone (left, or removed) is still the other person
  * the rows name most (payer, `only:` bearer), so the balance stays for whoever remains.
  */

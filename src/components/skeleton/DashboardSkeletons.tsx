@@ -38,6 +38,7 @@ import {
   dashboardCellClass,
   dashboardGridClass,
   dashboardHeroStripClass,
+  dashboardQuickActionsClass,
   dashboardHeroStripItemClass,
   dashboardHeroStripValueClass,
   dashboardPeriodChipClass,
@@ -125,6 +126,18 @@ function CalmDashboardSkeleton() {
               </div>
             ))}
           </div>
+        </div>
+
+        <div className={dashboardQuickActionsClass} aria-hidden="true">
+          {Array.from({ length: 4 }, (_, index) => (
+            <Skeleton
+              key={index}
+              variant="rect"
+              width="100%"
+              height="4.25rem"
+              className="rounded-2xl"
+            />
+          ))}
         </div>
 
         <CalmBlock title="پیش رو" className={dashboardCellClass.upcoming}>

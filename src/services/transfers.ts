@@ -20,8 +20,10 @@ import {
   transferToRow,
   type Transfer
 } from './transfersModel'
+import { reversalLegs } from './transfersReversal'
 import { fetchWalletAccounts } from './wallet'
 import { refreshWalletAccounts } from './walletFresh'
+import { fetchAllLedger } from './walletLedger'
 import { isPersonalWorkspace } from './workspace'
 import { validatePositiveAmount } from '../utils/formValidation'
 import { roundMoney } from '../utils/roundMoney'
@@ -35,7 +37,15 @@ export {
   wasRolledBack,
   type Transfer
 }
-export { describeTransfer, transferIsReversible } from './transfersModel'
+export {
+  describeTransfer,
+  transferIsReversible,
+  transferLegInfo,
+  transferLegState,
+  type TransferLegInfo,
+  type TransferLegState
+} from './transfersModel'
+export { fetchTransferLegInfos } from './transfersReversal'
 
 export const SAME_ACCOUNT_MESSAGE = 'حساب مبدأ و حساب مقصد نباید یکی باشند'
 
@@ -50,6 +60,17 @@ export interface CreateTransferInput {
   /** `YYYY-MM-DD` */
   date: string
   note?: string
+  /**
+   * A fixed id, for a transfer that must not be registered twice (the same bank-SMS pair confirmed
+   * on two devices, or again after a failed confirm): when a row with this id exists, nothing is
+   * written and that transfer is returned. Without it a new id is made.
+   */
+  id?: string
+  /**
+   * Accounts whose balance already holds this transfer (a newer bank-SMS «مانده» includes it): their
+   * side is only written to the history as «بدون اثر», the balance is left alone.
+   */
+  settledAccountIds?: readonly string[]
 }
 
 function assertPersonal(spreadsheetId: string): void {
@@ -91,6 +112,32 @@ async function removeRow(spreadsheetId: string, id: string): Promise<boolean> {
 }
 
 /**
+ * The transfer with this id when it is already registered: in the local copy of the tab, or in the
+ * sheet itself (another device). Its fields are those of the row when this device has it.
+ */
+async function findExistingTransfer(
+  spreadsheetId: string,
+  id: string
+): Promise<Transfer | undefined> {
+  const local = (await readRows(spreadsheetId)).find(item => item.transfer.id === id)
+
+  if (local) return local.transfer
+  if ((await sheetHasRowId(spreadsheetId, TRANSFERS_SHEET, id)) !== true) return undefined
+
+  // Only on the sheet so far: the caller needs to know it exists, not its fields.
+  return {
+    id,
+    createdAt: '',
+    date: '',
+    fromAccountId: '',
+    toAccountId: '',
+    amount: 0,
+    note: '',
+    createdBy: ''
+  }
+}
+
+/**
  * Registers a transfer: one row in «انتقال‌ها», then the source balance goes down and the
  * destination balance goes up by the same amount, each with a «گردش حساب» row (source `transfer`,
  * the transfer's id as record). The row is written first; if a balance or history write then
@@ -113,6 +160,11 @@ export async function createTransfer(input: CreateTransferInput): Promise<Transf
   if (!date) throw new Error('تاریخ الزامی است')
 
   // The balances the sheet holds now, not the page's copy (another device may have moved them).
+  const id = input.id?.trim() || crypto.randomUUID()
+  const existing = input.id ? await findExistingTransfer(spreadsheetId, id) : undefined
+
+  if (existing) return existing
+
   const gone = await refreshWalletAccounts(spreadsheetId, [fromAccountId, toAccountId])
   const accounts = await fetchWalletAccounts(spreadsheetId)
   const from = accounts.find(item => item.id === fromAccountId && !gone.has(item.id))
@@ -121,7 +173,7 @@ export async function createTransfer(input: CreateTransferInput): Promise<Transf
   if (!from || !to) throw new Error(ACCOUNT_GONE_MESSAGE)
 
   const transfer: Transfer = {
-    id: crypto.randomUUID(),
+    id,
     createdAt: new Date().toLocaleString('fa-IR'),
     date,
     fromAccountId,
@@ -134,18 +186,21 @@ export async function createTransfer(input: CreateTransferInput): Promise<Transf
   await ensureSheetWithHeaders(spreadsheetId, TRANSFERS_SHEET, TRANSFERS_HEADERS)
   await appendSheetRow(spreadsheetId, TRANSFERS_SHEET, transferToRow(transfer))
 
+  const settled = new Set(input.settledAccountIds ?? [])
   const legs: TransferLeg[] = [
     {
       accountId: from.id,
       delta: -transfer.amount,
       title: `انتقال به «${to.title}»`,
-      undoTitle: `بازگرداندن انتقال به «${to.title}»`
+      undoTitle: `بازگرداندن انتقال به «${to.title}»`,
+      settled: settled.has(from.id)
     },
     {
       accountId: to.id,
       delta: transfer.amount,
       title: `انتقال از «${from.title}»`,
-      undoTitle: `بازگرداندن انتقال از «${from.title}»`
+      undoTitle: `بازگرداندن انتقال از «${from.title}»`,
+      settled: settled.has(to.id)
     }
   ]
 
@@ -168,13 +223,15 @@ export async function createTransfer(input: CreateTransferInput): Promise<Transf
 }
 
 /**
- * Deletes a transfer and takes both balance moves back (each a change on the balance the sheet
- * holds now, with a «گردش حساب» row of source `transfer` that says «لغو انتقال …»). The row goes
- * first, so a second call (or another device) can never reverse it twice; if a reversal then
- * fails, the finished one is taken back and the row is put back so the user can try again. A
- * transfer whose row is already gone does nothing. When one of its accounts was deleted since,
- * only the row is removed: that account's share of the money left with it, and moving the other
- * side alone would create money (see `transferIsReversible`).
+ * Deletes a transfer and takes back what it really did to the balances: the net of its «گردش حساب»
+ * rows (source `transfer`, its id) per account, each as a change on the balance the sheet holds
+ * now with a row that says «لغو انتقال …». So a phantom transfer (a closed page cut the save off
+ * before the money moved) just loses its row, a half-done one gives back only the side that moved,
+ * and one already reversed is never reversed twice. The row goes first, so a second call (or another
+ * device) can never reverse it twice; if a reversal then fails, the finished one is taken back and
+ * the row is put back so the user can try again. A transfer whose row is already gone does nothing.
+ * When an account it moved was deleted since, only the row is removed: that account's share of the
+ * money left with it, and moving the other side alone would create money.
  */
 export async function deleteTransfer(spreadsheetId: string, id: string): Promise<void> {
   assertPersonal(spreadsheetId)
@@ -186,6 +243,8 @@ export async function deleteTransfer(spreadsheetId: string, id: string): Promise
   if ((await sheetHasRowId(spreadsheetId, TRANSFERS_SHEET, id)) === false) return
 
   const { transfer } = found
+  // Read before anything changes: an unreadable history must stop the delete, not guess.
+  const history = await fetchAllLedger(spreadsheetId)
   const gone = await refreshWalletAccounts(spreadsheetId, [
     transfer.fromAccountId,
     transfer.toAccountId
@@ -193,30 +252,18 @@ export async function deleteTransfer(spreadsheetId: string, id: string): Promise
   const accounts = await fetchWalletAccounts(spreadsheetId)
   const from = accounts.find(item => item.id === transfer.fromAccountId && !gone.has(item.id))
   const to = accounts.find(item => item.id === transfer.toAccountId && !gone.has(item.id))
+  const legs = reversalLegs(transfer, history, from, to)
 
   await deleteSheetRow(spreadsheetId, TRANSFERS_SHEET, found.rowNumber)
 
-  if (from && to) {
-    const legs: TransferLeg[] = [
-      {
-        accountId: from.id,
-        delta: transfer.amount,
-        title: `لغو انتقال به «${to.title}»`,
-        undoTitle: `بازگرداندن لغو انتقال به «${to.title}»`
-      },
-      {
-        accountId: to.id,
-        delta: -transfer.amount,
-        title: `لغو انتقال از «${from.title}»`,
-        undoTitle: `بازگرداندن لغو انتقال از «${from.title}»`
-      }
-    ]
-
+  if (legs.length) {
     try {
-      await applyLegs(spreadsheetId, legs, { transferId: transfer.id, date: transfer.date }, [
-        from,
-        to
-      ])
+      await applyLegs(
+        spreadsheetId,
+        legs,
+        { transferId: transfer.id, date: transfer.date },
+        [from, to].flatMap(account => (account ? [account] : []))
+      )
     } catch (failure) {
       // Everything undone: the transfer is still a transfer, so the row comes back.
       if (wasRolledBack(failure)) {

@@ -1,6 +1,8 @@
 import ActiveFilterChips from './ActiveFilterChips'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
+import LoadErrorState from './LoadErrorState'
+import NotSignedInState from './NotSignedInState'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
 import { isConfigured } from '../services/settings'
@@ -61,7 +63,7 @@ export default function RecordsPage({
   })
 
   if (!isConfigured()) {
-    return <EmptyState icon="records" message="ابتدا با گوگل وارد شوید" />
+    return <NotSignedInState icon="records" />
   }
 
   return (
@@ -116,8 +118,10 @@ export default function RecordsPage({
         </aside>
 
         <div className={recordsPageMainClass}>
-          {page.loading && page.records.length === 0 ? (
+          {page.records.length === 0 && (page.loading || (!page.loaded && !page.loadFailed)) ? (
             <RecordListSkeleton />
+          ) : page.records.length === 0 && page.loadFailed ? (
+            <LoadErrorState onRetry={page.loadRecords} />
           ) : page.records.length === 0 ? (
             <EmptyState
               icon="empty-inbox"

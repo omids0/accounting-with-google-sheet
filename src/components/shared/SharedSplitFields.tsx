@@ -11,6 +11,11 @@ interface SharedSplitFieldsProps {
   people: string[]
   me: string
   nameOf: (email: string) => string
+  /**
+   * A partner existed and is gone (the balance still names them). False: nobody has joined yet.
+   * Left out: not known here, so the hint fits both.
+   */
+  former?: boolean
   amount: number
   payer: string
   split: SharedSplit
@@ -26,6 +31,7 @@ export default function SharedSplitFields({
   people,
   me,
   nameOf,
+  former,
   amount,
   payer,
   split,
@@ -43,7 +49,9 @@ export default function SharedSplitFields({
   const pair: [string, string] | null = people.length === 2 ? [people[0], people[1]] : null
 
   const preview = !pair
-    ? 'تا شریک به حساب نپیوسته، سهمی حساب نمی‌شود.'
+    ? former === false
+      ? 'تا شریک به حساب نپیوسته، هزینه فقط به نام شما ثبت می‌شود.'
+      : 'شریکی در این حساب نیست؛ هزینه فقط به نام شما ثبت می‌شود.'
     : amount > 0
     ? splitPreview(amount, split, pair, payer)
         .map(part => `سهم ${nameOf(part.email)}: ${formatMoney(part.share)}`)

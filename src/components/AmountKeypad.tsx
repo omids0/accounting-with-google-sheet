@@ -5,6 +5,7 @@ import PickerSheet from './form/PickerSheet'
 import {
   keypadDisplayClass,
   keypadGridClass,
+  keypadLimitClass,
   keypadKeyClass,
   keypadQuickChipClass,
   keypadQuickRowClass,
@@ -15,6 +16,7 @@ import { formActionsClassName } from './ui/formStyles'
 import { formModalActionsClass } from './ui/modalStyles'
 import {
   addToKeypad,
+  KEYPAD_MAX_DIGITS,
   KEYPAD_QUICK_ADDS,
   keypadKeyFromEvent,
   keypadNumber,
@@ -46,8 +48,19 @@ export default function AmountKeypad({
 }: AmountKeypadProps) {
   const [digits, setDigits] = useState('')
 
+  // The pad ignores digits past the limit; say so instead of leaving the key looking dead.
+  const [limitHit, setLimitHit] = useState(false)
+
+  const edit = (next: string) => {
+    setLimitHit(digits !== '' && next === digits)
+    setDigits(next)
+  }
+
   useEffect(() => {
-    if (open) setDigits(value === '' || value === 0 ? '' : String(value))
+    if (open) {
+      setDigits(value === '' || value === 0 ? '' : String(value))
+      setLimitHit(false)
+    }
     // The draft starts from the field's amount each time the pad opens, not on every edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -60,7 +73,7 @@ export default function AmountKeypad({
       const key = keypadKeyFromEvent(event.key)
 
       if (key) {
-        setDigits(current => pressKeypadKey(current, key))
+        edit(pressKeypadKey(digits, key))
       } else if (event.key === 'Enter' && !(event.target instanceof HTMLButtonElement)) {
         onConfirm(keypadNumber(digits))
       } else {
@@ -72,9 +85,11 @@ export default function AmountKeypad({
     document.addEventListener('keydown', onKeyDown)
 
     return () => document.removeEventListener('keydown', onKeyDown)
+    // `edit` only reads `digits`, which is in the list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, digits, onConfirm])
 
-  const press = (key: KeypadKey) => setDigits(current => pressKeypadKey(current, key))
+  const press = (key: KeypadKey) => edit(pressKeypadKey(digits, key))
 
   const keyButton = (key: KeypadKey, content: ReactNode, ariaLabel?: string, alt = false) => (
     <button
@@ -108,13 +123,16 @@ export default function AmountKeypad({
         {formatPersianNumber(keypadNumber(digits))}
         <small className={keypadUnitClass}>{getCurrencySymbol()}</small>
       </p>
+      <p className={keypadLimitClass} role="status">
+        {limitHit ? `حداکثر ${formatPersianNumber(KEYPAD_MAX_DIGITS)} رقم مجاز است.` : null}
+      </p>
       <div className={keypadQuickRowClass}>
         {KEYPAD_QUICK_ADDS.map(amount => (
           <button
             key={amount}
             type="button"
             className={keypadQuickChipClass}
-            onClick={() => setDigits(current => addToKeypad(current, amount))}
+            onClick={() => edit(addToKeypad(digits, amount))}
           >
             +{formatPersianNumber(amount)}
           </button>

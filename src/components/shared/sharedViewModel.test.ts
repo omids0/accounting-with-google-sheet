@@ -3,11 +3,14 @@ import { describe, expect, it } from 'vitest'
 import {
   balanceHeadline,
   canEditRecord,
+  FORMER_MEMBER_NAME,
   latestRecord,
   matchesPerson,
+  memberDisplayName,
   monthTotals,
   personName,
   recordLockNote,
+  sharedBalanceWarning,
   sharedPair,
   splitLabel,
   splitPreview
@@ -21,10 +24,36 @@ const VIEWER = 'sara@example.com'
 const NAMES = { [OWNER]: 'نیما', [PARTNER]: 'مینا', [VIEWER]: 'سارا' }
 
 describe('personName', () => {
-  it('says «شما» for me and the known name or the e-mail local part for others', () => {
+  it('says «شما» for me and the known name or «شریک» for others, never the e-mail', () => {
     expect(personName(OWNER, OWNER, NAMES)).toBe('شما')
     expect(personName(PARTNER, OWNER, NAMES)).toBe('مینا')
-    expect(personName('Reza.K@Example.com', OWNER, {})).toBe('reza.k')
+    expect(personName('Reza.K@Example.com', OWNER, {})).toBe('شریک')
+  })
+
+  it('isolates a Latin name so it cannot scramble the sentence around it', () => {
+    expect(personName(PARTNER, OWNER, { [PARTNER]: 'Mina R' })).toBe('\u2068Mina R\u2069')
+    expect(
+      sharedBalanceWarning({ [OWNER]: 500, [PARTNER]: -500 }, OWNER, { [PARTNER]: 'Mina' })
+    ).toBe('\u2068Mina\u2069 ۵۰۰ تومان به شما بدهکار است.')
+  })
+})
+
+describe('memberDisplayName', () => {
+  const unknown = { known: false, name: 'شریک' }
+
+  it('keeps the Drive name', () => {
+    expect(
+      memberDisplayName({ known: true, name: 'مینا' }, { isMember: false, hasAccess: false })
+    ).toBe('مینا')
+  })
+
+  it('says «شریک» for a member or someone with access and «عضو سابق» for who is gone', () => {
+    expect(memberDisplayName(unknown, { isMember: true, hasAccess: false })).toBe('شریک')
+    expect(memberDisplayName(unknown, { isMember: false, hasAccess: true })).toBe('شریک')
+    expect(memberDisplayName(unknown, { isMember: false, hasAccess: false })).toBe(
+      FORMER_MEMBER_NAME
+    )
+    expect(FORMER_MEMBER_NAME).toBe('عضو سابق')
   })
 })
 
@@ -232,6 +261,17 @@ describe('sharedPair', () => {
       balanceOfRows(rows, sharedPair(full)!)
     )
     expect(balanceOfRows(rows, sharedPair(left, rows)!).net[OWNER]).not.toBe(0)
+  })
+
+  it('without rows (the add sheet) offers nobody once the partner is gone, and again after a re-invite', () => {
+    const owner = [{ email: OWNER, role: 'owner' }]
+    const invited = [...owner, { email: PARTNER, role: 'partner' }]
+
+    expect(sharedPair(owner)).toBeNull()
+    // The balance still names the former partner through the rows...
+    expect(sharedPair(owner, rows)).toEqual([OWNER, PARTNER])
+    // ...and a re-invite brings the options back.
+    expect(sharedPair(invited)).toEqual([OWNER, PARTNER])
   })
 
   it('stays null when the rows name nobody but the owner', () => {

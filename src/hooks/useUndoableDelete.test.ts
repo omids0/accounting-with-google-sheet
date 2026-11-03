@@ -14,6 +14,9 @@ vi.mock('../components/UndoToast', () => ({
 
 vi.mock('../utils/sheetError', () => ({ handleSheetError: vi.fn() }))
 
+// `schedule` loads the write queue ahead of time; the real one is not needed here.
+vi.mock('../services/sheetSync', () => ({}))
+
 type HookResult = ReturnType<typeof useUndoableDelete>
 
 describe('useUndoableDelete', () => {
@@ -121,6 +124,34 @@ describe('useUndoableDelete', () => {
     Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true })
 
     expect(item.commit).toHaveBeenCalledOnce()
+  })
+
+  it('starts the commit inside the event that hides or closes the page', async () => {
+    const item = entry()
+
+    await act(() => hook.schedule(item))
+    // No await between the event and the assertion: nothing may run before the commit starts.
+    window.dispatchEvent(new Event('pagehide'))
+
+    expect(item.commit).toHaveBeenCalledOnce()
+    expect(item.commit).toHaveBeenCalledWith({ leaving: true })
+    expect(dismissUndoToast).toHaveBeenCalledWith('toast-1')
+  })
+
+  it('tells the commit it is leaving only when the page is hidden, not on the timer or a route change', async () => {
+    const timed = entry('c1')
+
+    await act(() => hook.schedule(timed))
+    await act(() => vi.advanceTimersByTimeAsync(UNDO_WINDOW_MS))
+    expect(timed.commit).toHaveBeenCalledWith({ leaving: false })
+
+    const routed = entry('c2')
+
+    await act(() => hook.schedule(routed))
+    await act(async () => {
+      await navigate('/wallet')
+    })
+    expect(routed.commit).toHaveBeenCalledWith({ leaving: false })
   })
 
   it('a second delete writes the first one first', async () => {

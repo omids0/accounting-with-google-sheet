@@ -13,6 +13,7 @@ import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import MileageInput from './MileageInput'
 import UpdateMileageToggle from './UpdateMileageToggle'
+import { useMileageDropConfirm } from './useMileageDropConfirm'
 
 type VehicleCompleteModalProps = {
   open: boolean
@@ -82,72 +83,83 @@ export default function VehicleCompleteModal({
   const isHistorical = watch('isHistorical')
   const nextKmPreview = mileage > 0 && intervalKm > 0 ? calculateNextKm(mileage, intervalKm) : null
 
+  // A past service (the mileage switch off) skips the «کارکرد کمتر از قبل» check of the save, so a
+  // typo like «۱۰۰» for «۱۴۰۲۲۰» is asked about here.
+  const { submit, confirmModal } = useMileageDropConfirm(defaultMileage, onSubmit)
+
   const onFormSubmit = (event: FormEvent<HTMLFormElement>) => {
-    return submitValidatedForm(handleSubmit, values => onSubmit(values), event)
+    return submitValidatedForm(
+      handleSubmit,
+      values => submit(values, parseNumeric(values.mileage), values.isHistorical),
+      event
+    )
   }
 
   return (
-    <FormModal
-      open={open}
-      title={`ثبت انجام: ${serviceType}`}
-      onClose={onClose}
-      onSubmit={onFormSubmit}
-      saving={saving}
-      saveLabel="ثبت انجام سرویس"
-    >
-      <FormRow>
-        <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
-          <MileageInput
-            value={watch('mileage')}
-            onChange={value => setValue('mileage', value === '' ? '' : String(value))}
-            invalid={Boolean(errors.mileage)}
-          />
+    <>
+      <FormModal
+        open={open}
+        title={`ثبت انجام: ${serviceType}`}
+        onClose={onClose}
+        onSubmit={onFormSubmit}
+        saving={saving}
+        saveLabel="ثبت انجام سرویس"
+      >
+        <FormRow>
+          <FormField label="کارکرد (کیلومتر)" required error={formFieldError(errors, 'mileage')}>
+            <MileageInput
+              value={watch('mileage')}
+              onChange={value => setValue('mileage', value === '' ? '' : String(value))}
+              invalid={Boolean(errors.mileage)}
+            />
+          </FormField>
+
+          <FormField label="فاصله (کیلومتر)" required error={formFieldError(errors, 'intervalKm')}>
+            <MileageInput
+              value={watch('intervalKm')}
+              onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
+              invalid={Boolean(errors.intervalKm)}
+            />
+          </FormField>
+        </FormRow>
+
+        <UpdateMileageToggle
+          checked={!isHistorical}
+          onChange={update => setValue('isHistorical', !update)}
+          currentMileage={defaultMileage}
+        />
+
+        {nextKmPreview != null ? (
+          <p className="text-[0.82rem] text-muted">
+            کیلومتر بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
+          </p>
+        ) : null}
+
+        <FormRow>
+          <FormField label="برند">
+            <input type="text" {...register('brand')} />
+          </FormField>
+
+          <FormField label="محل">
+            <input type="text" {...register('location')} />
+          </FormField>
+        </FormRow>
+
+        <FormRow>
+          <FormField label="مبلغ (اختیاری)">
+            <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
+          </FormField>
+
+          <FormField label="تاریخ اقدام">
+            <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
+          </FormField>
+        </FormRow>
+
+        <FormField label="توضیحات" controlWidth="full">
+          <textarea {...register('notes')} rows={2} />
         </FormField>
-
-        <FormField label="فاصله (کیلومتر)" required error={formFieldError(errors, 'intervalKm')}>
-          <MileageInput
-            value={watch('intervalKm')}
-            onChange={value => setValue('intervalKm', value === '' ? '' : String(value))}
-            invalid={Boolean(errors.intervalKm)}
-          />
-        </FormField>
-      </FormRow>
-
-      <UpdateMileageToggle
-        checked={!isHistorical}
-        onChange={update => setValue('isHistorical', !update)}
-        currentMileage={defaultMileage}
-      />
-
-      {nextKmPreview != null ? (
-        <p className="text-[0.82rem] text-muted">
-          کیلومتر بعدی: <strong>{nextKmPreview.toLocaleString('fa-IR')}</strong>
-        </p>
-      ) : null}
-
-      <FormRow>
-        <FormField label="برند">
-          <input type="text" {...register('brand')} />
-        </FormField>
-
-        <FormField label="محل">
-          <input type="text" {...register('location')} />
-        </FormField>
-      </FormRow>
-
-      <FormRow>
-        <FormField label="مبلغ (اختیاری)">
-          <AmountInput value={watch('amount')} onChange={value => setValue('amount', value)} />
-        </FormField>
-
-        <FormField label="تاریخ اقدام">
-          <JalaliDatePicker value={watch('date')} onChange={date => setValue('date', date)} />
-        </FormField>
-      </FormRow>
-
-      <FormField label="توضیحات" controlWidth="full">
-        <textarea {...register('notes')} rows={2} />
-      </FormField>
-    </FormModal>
+      </FormModal>
+      {confirmModal}
+    </>
   )
 }

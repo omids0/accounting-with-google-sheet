@@ -1,0 +1,54 @@
+.env {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  position: relative;
+  padding: 6px 0 16px;
+  font-size: 0.88rem;
+}
+.env::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 4px 0;
+  height: 8px;
+  border-radius: 99px;
+  background: linear-gradient(to left, var(--c, var(--primary)) var(--p), var(--border) 0);
+}
+.env.warn {
+  --c: var(--warn);
+}
+.env.bad {
+  --c: var(--danger);
+}
+.kind {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+.sheet {
+  border-top: 3px solid var(--primary);
+  background: var(--surface);
+  border-radius: 14px 14px 0 0;
+  padding: 10px 12px;
+}
+.strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  text-align: center;
+  font-size: 0.72rem;
+}
+.strip span {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 0;
+  background: var(--surface);
+}
+.strip .now {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.strip .mark {
+  border-color: var(--new);
+  color: var(--new);
+  font-weight: 700;
+}

@@ -2,16 +2,25 @@ import { Toaster } from 'react-hot-toast'
 
 import { appToasterClass } from './ui/displayStyles'
 
+/** The dark theme's tints are translucent: lay one over the surface so the toast stays opaque. */
+const tint = (token: string) => `linear-gradient(${token}, ${token}), var(--color-surface)`
+
 export default function AppToaster() {
   return (
     <Toaster
       position="top-center"
       containerClassName={appToasterClass}
+      // Below the notch / status bar (a bare top: 16px sits under it on iOS).
+      containerStyle={{ top: 'calc(var(--safe-top) + 8px)' }}
       toastOptions={{
         duration: 3500,
         // Screen readers announce «ذخیره شد» politely; a failed save interrupts.
         ariaProps: { role: 'status', 'aria-live': 'polite' },
+        // Theme tokens, so the neutral (info) and the loading toasts follow the dark theme too.
         style: {
+          background: 'var(--color-surface)',
+          color: 'var(--color-text)',
+          border: '1px solid var(--color-border)',
           fontFamily: 'var(--font)',
           direction: 'rtl',
           fontSize: '0.85rem',
@@ -21,17 +30,19 @@ export default function AppToaster() {
         },
         success: {
           style: {
-            background: '#f0fdf4',
+            background: tint('var(--color-success-bg)'),
             color: 'var(--color-success)',
-            border: '1px solid #bbf7d0'
+            border: '1px solid var(--color-success-border)'
           }
         },
         error: {
+          // A failure is read, not glanced at: it stays longer than «ذخیره شد».
+          duration: 6000,
           ariaProps: { role: 'alert', 'aria-live': 'assertive' },
           style: {
-            background: '#fef2f2',
+            background: tint('var(--color-danger-bg)'),
             color: 'var(--color-danger)',
-            border: '1px solid #fecaca'
+            border: '1px solid var(--color-danger-border)'
           }
         }
       }}

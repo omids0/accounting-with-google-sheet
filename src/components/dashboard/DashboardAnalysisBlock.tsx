@@ -61,6 +61,7 @@ export default function DashboardAnalysisBlock({
     <CalmBlock
       className={className}
       title={`تحلیل این ${periodNoun}`}
+      icon="chart"
       action={{ label: 'نمودارها ←', onClick: onOpenCharts }}
       toolbar={
         <TransactionTypeSegment

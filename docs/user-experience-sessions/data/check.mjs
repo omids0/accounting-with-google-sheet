@@ -3,6 +3,7 @@
 // Exit code 1 when anything is wrong. Run gen.mjs first.
 import { readFileSync } from 'node:fs'
 
+import { checkAreas } from './checkAreas.mjs'
 import * as L from './lib.mjs'
 
 const src = path => import(new URL(`../../../src/${path}`, import.meta.url).href)
@@ -18,6 +19,9 @@ const dup = await src('services/recordDuplicates.ts')
 const legacy = await src('services/legacyRowLayout.ts')
 const attachCol = await src('services/attachmentColumn.ts')
 const writerCol = await src('utils/writerColumn.ts')
+const smsBalance = await src('services/bankSmsBalance.ts')
+const smsReview = await src('services/bankSmsReview.ts')
+const chainFile = load('sms-balance-chain.json')
 
 let errors = 0
 let warnings = 0
@@ -40,7 +44,7 @@ const personas = [
 ]
 
 const KNOWN_TABS = new Set([...Object.values(L.names).filter(v => typeof v === 'string'), 'درآمد', 'هزینه'])
-const idTabs = new Set([L.names.WALLET_SHEET, L.names.WALLET_LEDGER_SHEET, L.names.COUNTERPARTIES_SHEET, L.names.INSTALLMENTS_SHEET, L.names.CHECKS_SHEET, L.names.RECEIVABLES_SHEET, L.names.DANG_SHEET, 'درآمد', 'هزینه'])
+const idTabs = new Set([L.names.WALLET_SHEET, L.names.WALLET_LEDGER_SHEET, L.names.COUNTERPARTIES_SHEET, L.names.INSTALLMENTS_SHEET, L.names.CHECKS_SHEET, L.names.RECEIVABLES_SHEET, L.names.DANG_SHEET, L.names.RECURRING_SHEET, L.names.PERSONAL_REMINDERS_SHEET, L.names.TIMESHEETS_SHEET, L.names.TIMESHEET_ENTRIES_SHEET, L.names.TREASURY_SHEET, L.names.TREASURY_ASSETS_SHEET, L.names.TREASURY_GOALS_SHEET, L.names.VEHICLES_SHEET, L.names.VEHICLE_PERIODIC_SHEET, L.names.VEHICLE_DEADLINE_SHEET, L.names.VEHICLE_MECHANIC_SHEET, L.names.VEHICLE_HISTORY_SHEET, L.names.VEHICLE_EXPENSE_META_SHEET, L.names.DANG_SPLIT_GROUPS_SHEET, L.names.DANG_SPLIT_CATEGORIES_SHEET, L.names.DANG_SPLIT_PEOPLE_SHEET, L.names.DANG_SPLIT_EXPENSES_SHEET, L.names.DANG_SPLIT_ALLOCATIONS_SHEET, 'درآمد', 'هزینه'])
 
 function dataRows(data, tab) {
   return (data[tab] ?? []).slice(1)
@@ -105,6 +109,7 @@ for (const p of personas) {
   let sumByAccount = new Map()
   const seenKey = new Map()
   const ledgerEntries = []
+  const recordInfo = new Map()
 
   for (const [tab, fields, kind] of [['درآمد', incomeFields, 'income'], ['هزینه', expenseFields, 'expense']]) {
     const headers = data[tab][0]
@@ -131,6 +136,7 @@ for (const p of personas) {
       if (get('walletAccount') && !accountIds.has(get('walletAccount'))) err(where(tab), `unknown account on ${get('title')}`)
       if (dup.parseCreatedAtMs(row[1]) == null) err(where(tab), `createdAt not parseable: ${row[1]}`)
 
+      recordInfo.set(row[0], { kind, date: get('date'), amount: parseNumeric(get('amount')), category: get('category'), sub: get('subCategory'), title: get('title'), account: get('walletAccount'), counterparty: get('counterparty') })
       ledgerEntries.push({ type: kind, amount: parseNumeric(get('amount')), date: get('date'), accountId: get('walletAccount') })
 
       const key = `${kind}|${get('date')}|${get('title')}|${get('amount')}|${get('walletAccount')}`
@@ -148,7 +154,9 @@ for (const p of personas) {
   // the independent re-derivation: opening + applied records == wallet balance
   for (const a of accounts) {
     const opening = ledger.find(r => r[2] === a[0] && r[7] === 'موجودی اولیه')
-    const expected = parseNumeric(opening?.[4]) + (sumByAccount.get(a[0]) ?? 0)
+    // money moved into / out of a savings goal has a ledger line and no income/expense row
+    const goalMoves = ledger.filter(r => r[2] === a[0] && r[7] === 'goal-deposit' && r[9] !== 'خیر').reduce((sum, r) => sum + parseNumeric(r[4]), 0)
+    const expected = parseNumeric(opening?.[4]) + (sumByAccount.get(a[0]) ?? 0) + goalMoves
 
     if (Math.abs(expected - parseNumeric(a[3])) > 0.5) err(where('wallet'), `«${a[2]}»: opening + records = ${expected}, sheet says ${a[3]}`)
   }
@@ -229,6 +237,9 @@ for (const p of personas) {
     if (row.length !== 9 || !/^\d{4}-\d{2}-\d{2}$/.test(row[4])) err(where('reminders'), `bad reminder ${row[3]}`)
   })
 
+  // ---- module tabs: vehicles, goals, vault, timesheets, dang-split, net worth, recurring, reminders, counterparties
+  checkAreas({ p, data, accounts, ledger, recordInfo, cats, err, rows: tab => dataRows(data, tab), say: msg => console.log(`  ${msg}`) })
+
   // ---- building workspace
   if (p.building) {
     const bUnits = L.bUnits.parseUnits(dataRows(data, L.names.BUILDING_UNITS_SHEET))
@@ -297,7 +308,87 @@ for (const p of personas) {
 
   console.log(`  sms (${sms.length}): ${JSON.stringify(tally)}`)
 
-  // the amounts a bank prints are rial: matched SMS must be convertible and consistent with a record when the file says so
+  // ---- the «مانده» chain: confirming the pending SMS in order must move each balance by exactly the
+  // SMS amount (the app writes the SMS «مانده» when it is the newest one), but for the ONE declared
+  // deliberate exception per dataset (+1,000,000 toman) that makes the jump notice testable.
+  const metaById = new Map((chainFile[p.name] ?? []).map(m => [m.id, m]))
+  const reviewed = smsReview.reviewSms(sms, templates.filter(Boolean), smsAccounts, 'toman')
+  const matched = reviewed.filter(e => e.result.kind === 'matched' && e.amount !== null)
+  const byAccount = new Map()
+  const sameDay = (a, b) => Math.abs(Date.parse(a) - Date.parse(b)) <= 864e5
+
+  for (const id of metaById.keys()) if (!ids.has(id)) err(p.sms, `chain file names an unknown SMS ${id}`)
+
+  for (const e of matched) {
+    if (!metaById.has(e.sms.id)) err(p.sms, `matched SMS ${e.sms.id.slice(0, 8)} has no entry in sms-balance-chain.json`)
+    else byAccount.set(e.result.accountId, [...(byAccount.get(e.result.accountId) ?? []), e])
+    if (e.balance !== null && e.balance < 0) err(p.sms, `negative «مانده» printed in ${e.sms.id.slice(0, 8)}`)
+  }
+
+  let exceptions = 0
+  let chained = 0
+
+  for (const [accountId, list] of byAccount) {
+    const account = accounts.find(a => a[0] === accountId)
+    const name = account[2]
+    const wallet = parseNumeric(account[3])
+    const ordered = [...list].sort((a, b) => a.sms.receivedAt - b.sms.receivedAt)
+    const status = e => metaById.get(e.sms.id).status
+    const firstPending = ordered.findIndex(e => status(e) !== 'recorded')
+
+    if (firstPending >= 0 && ordered.slice(firstPending).some(e => status(e) === 'recorded')) err(p.sms, `«${name}»: a recorded SMS is newer than a pending one`)
+
+    const deltaOf = e => (e.result.direction === 'debit' ? -1 : 1) * e.amount
+    const pendingOnes = ordered.filter(x => ['pending', 'pending-off'].includes(status(x)))
+
+    // already recorded: «مانده» = what the account's ledger shows right after that very record
+    for (const e of ordered.filter(x => status(x) === 'recorded')) {
+      const date = L.smsDate.smsRecordDate(e.sms.body, e.sms.receivedAt)
+      const line = ledger.find(r => r[2] === accountId && sameDay(r[3], date) && Math.abs(parseNumeric(r[4]) - deltaOf(e)) < 0.5 && Math.abs(parseNumeric(r[5]) - e.balance) < 0.5)
+
+      if (!line) err(p.sms, `«${name}»: recorded SMS ${e.amount} on ${date} prints «مانده» ${e.balance}, no ledger line has that balance right after it`)
+    }
+
+    // pending (and re-delivered bodies), oldest first, through the app's own balance rule
+    let current = wallet
+    let state = {}
+
+    for (const e of ordered.slice(Math.max(firstPending, 0)).filter(x => firstPending >= 0)) {
+      const st = status(e)
+      const next = smsBalance.nextAccountBalance(current, { receivedAt: e.sms.receivedAt, direction: e.result.direction, amount: e.amount }, e.balance, state)
+      const label = `«${name}» ${e.result.direction} ${e.amount} (${e.sms.id.slice(0, 8)})`
+
+      if (!next) {
+        err(p.sms, `${label}: the app would ignore it as already included`)
+        continue
+      }
+
+      const off = st === 'pending-off' ? metaById.get(e.sms.id).offToman : 0
+      const expected = current + (st === 'redelivery' ? 0 : deltaOf(e)) + off
+
+      if (st === 'pending-off') {
+        exceptions += 1
+        console.log(`  deliberate «مانده» exception: ${label} prints ${e.balance} toman, a consistent chain would print ${e.balance - off}`)
+      }
+      if (Math.abs(next.balance - expected) > 0.5) err(p.sms, `${label}: balance would go ${current} -> ${next.balance}, expected ${expected}`)
+      if (st === 'pending' || st === 'pending-off') chained += 1
+      if (st === 'pending-off' && (off !== 1000000 || e !== pendingOnes.at(-1))) err(p.sms, `${label}: the deliberate exception must be +1,000,000 and the newest pending SMS of its account`)
+
+      current = next.balance
+      state = next.state
+    }
+  }
+
+  // a body delivered twice: the copy repeats its original's «مانده» (the chain above checks that confirming it does not move the balance)
+  for (const e of matched.filter(x => metaById.get(x.sms.id)?.status === 'redelivery')) {
+    const original = matched.find(o => o !== e && o.sms.body === e.sms.body)
+
+    if (!original || original.balance !== e.balance || original.sms.receivedAt >= e.sms.receivedAt) err(p.sms, `re-delivered ${e.sms.id.slice(0, 8)} must repeat its original's «مانده» and arrive after it`)
+  }
+
+  if (exceptions !== 1) err(p.sms, `expected exactly ONE deliberate «مانده» exception, found ${exceptions}`)
+  console.log(`  «مانده» chain: ${chained} pending SMS move their balance by exactly their amount (${exceptions} deliberate +1,000,000 exception)`)
+
   void warn
 }
 

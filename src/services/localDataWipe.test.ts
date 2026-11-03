@@ -126,6 +126,18 @@ describe('clearAllLocalData', () => {
     expect(revoke).toHaveBeenCalledWith('tok', expect.any(Function))
   })
 
+  it('forgets which shared account this device could not open', async () => {
+    const { clearAllLocalData } = await import('./localDataWipe')
+    const { markSharedAccessLost, isSharedAccessLost } = await import('./sharedAccessLost')
+
+    seed()
+    markSharedAccessLost('shared-1')
+    expect(isSharedAccessLost('shared-1')).toBe(true)
+    await clearAllLocalData()
+
+    expect(isSharedAccessLost('shared-1')).toBe(false)
+  })
+
   it('signs out natively instead of using the web revoke', async () => {
     const { clearAllLocalData } = await import('./localDataWipe')
 

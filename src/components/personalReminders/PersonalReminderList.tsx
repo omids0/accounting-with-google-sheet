@@ -5,12 +5,12 @@ import type { PersonalReminderWithRow } from './types'
 import { useIsDesktop } from '../../hooks/useMediaQuery'
 import { getPersonalReminderRecurrenceLabel } from '../../services/personalReminders'
 import EmptyState from '../EmptyState'
+import IncrementalCardList from '../IncrementalCardList'
 import SearchEmptyState from '../SearchEmptyState'
 import { DangCardListSkeleton } from '../skeleton'
 import DataTable, { type DataTableColumn } from '../table/DataTable'
 import { checkboxColumn, dateColumn, moneyColumn, textColumn } from '../table/tableColumns'
 import TableRowActions from '../table/TableRowActions'
-import { listCardsContainerClass } from '../ui/featureCardStyles'
 
 type PersonalReminderListProps = {
   items: PersonalReminderWithRow[]
@@ -22,6 +22,8 @@ type PersonalReminderListProps = {
   onDelete: (item: PersonalReminderWithRow) => void
   /** Opens the same create form as the page speed dial. */
   onAdd?: () => void
+  /** The active filters: a new value starts the mobile list over at its first 50. */
+  resetKey?: string
 }
 
 export default function PersonalReminderList({
@@ -32,7 +34,8 @@ export default function PersonalReminderList({
   onComplete,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  resetKey = ''
 }: PersonalReminderListProps) {
   const isDesktop = useIsDesktop()
   const columns = useMemo<DataTableColumn<PersonalReminderWithRow>[]>(
@@ -96,8 +99,12 @@ export default function PersonalReminderList({
   }
 
   return (
-    <div className={listCardsContainerClass}>
-      {filteredItems.map(item => (
+    <IncrementalCardList
+      items={filteredItems}
+      getId={item => item.id}
+      resetKey={resetKey}
+      unit="یادآوری"
+      renderItem={item => (
         <PersonalReminderCard
           key={item.id}
           item={item}
@@ -106,7 +113,7 @@ export default function PersonalReminderList({
           onEdit={onEdit}
           onDelete={onDelete}
         />
-      ))}
-    </div>
+      )}
+    />
   )
 }

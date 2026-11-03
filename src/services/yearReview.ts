@@ -36,8 +36,17 @@ export interface YearReviewInput {
   snapshots: NetWorthSnapshot[]
   goals: SavingsGoal[]
   ledger: LedgerEntry[]
-  /** Today's value: the end of a year whose Esfand snapshot is not written yet. */
+  /** Today's value: the end of the year still running (or ending), never of a past year. */
   todayNetWorth?: number | null
+  /** The Jalali year of today; a year before it is closed and never takes today's value. */
+  currentYear?: number
+  /** Month-end value rebuilt from records (`monthEndNetWorthReader`) for a closed year's Esfand. */
+  rebuildNetWorth?: ((monthKey: string) => number | null) | null
+}
+
+export interface YearNetWorthOptions {
+  currentYear?: number
+  rebuild?: ((monthKey: string) => number | null) | null
 }
 
 /** Savings as a whole percent of income, rounded half away from zero; null without income. */
@@ -115,17 +124,24 @@ function snapshotOf(snapshots: NetWorthSnapshot[], monthKey: string): number | n
 export function yearNetWorthSpan(
   year: number,
   snapshots: NetWorthSnapshot[],
-  todayNetWorth?: number | null
+  todayNetWorth?: number | null,
+  options: YearNetWorthOptions = {}
 ): { from: number | null; to: number | null } {
   const inYear = snapshots
     .filter(item => item.monthKey.startsWith(`${year}-`))
     .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
   const from = snapshotOf(snapshots, buildJalaliMonthKey(year - 1, 12)) ?? inYear[0]?.netWorth
   const hasLaterYear = snapshots.some(item => item.monthKey > `${year}-12`)
-  const to =
-    snapshotOf(snapshots, buildJalaliMonthKey(year, 12)) ??
-    (hasLaterYear ? null : todayNetWorth ?? null) ??
-    inYear[inYear.length - 1]?.netWorth
+  const esfand = buildJalaliMonthKey(year, 12)
+  const closed = options.currentYear != null && year < options.currentYear
+  // A closed year ends at its own Esfand: the snapshot, else the rebuild, else its last snapshot;
+  // today's value only closes the year that is still running.
+  const fallback = closed
+    ? options.rebuild?.(esfand) ?? null
+    : hasLaterYear
+    ? null
+    : todayNetWorth ?? null
+  const to = snapshotOf(snapshots, esfand) ?? fallback ?? inYear[inYear.length - 1]?.netWorth
 
   return { from: from ?? null, to: to ?? null }
 }
@@ -139,7 +155,10 @@ export function buildYearReview(year: number, input: YearReviewInput): YearRevie
   const expenseRecords = filterByDateRange(records.expenseRecords, range, records.expenseDateField)
   const expense = sumAmounts(expenseRecords)
   const reached = goalReachDates(input.goals, input.ledger)
-  const span = yearNetWorthSpan(year, input.snapshots, input.todayNetWorth)
+  const span = yearNetWorthSpan(year, input.snapshots, input.todayNetWorth, {
+    currentYear: input.currentYear,
+    rebuild: input.rebuildNetWorth
+  })
 
   return {
     year,

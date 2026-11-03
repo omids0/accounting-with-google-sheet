@@ -157,6 +157,25 @@ export async function fetchAllLedger(spreadsheetId: string): Promise<LedgerEntry
   return rows.filter(row => String(row[2] ?? '').trim()).map(rowToLedgerEntry)
 }
 
+/**
+ * The accounts whose last history line for this record is its «حذف» refund: the record's money was
+ * already given back there. Reads the local mirror (offline-safe); a record edited or re-added
+ * after the refund has a later line, so it no longer counts. Lets a retried delete skip the refund.
+ */
+export function refundedAccountIds(spreadsheetId: string, recordId: string): Set<string> {
+  const last = new Map<string, LedgerSource>()
+
+  for (const row of getSheetAllRows(spreadsheetId, WALLET_LEDGER_SHEET)?.slice(1) ?? []) {
+    const entry = rowToLedgerEntry(row)
+
+    if (entry.recordId === recordId && entry.accountId.trim() && entry.applied) {
+      last.set(entry.accountId.trim(), entry.source)
+    }
+  }
+
+  return new Set([...last].filter(([, source]) => source === 'حذف').map(([accountId]) => accountId))
+}
+
 /** History of one account, newest first (rows are only ever appended). */
 export async function fetchLedger(
   spreadsheetId: string,

@@ -18,10 +18,17 @@ export const keypadDisplayClass =
 
 export const keypadUnitClass = 'text-[0.8rem] font-medium text-muted'
 
+/** The live line under the amount; it keeps its height so the pad does not jump when it fills. */
+export const keypadLimitClass =
+  'm-0 min-h-[1.25rem] text-center text-[0.78rem] leading-[1.25rem] text-danger'
+
 export const keypadQuickRowClass = 'flex flex-wrap justify-center gap-1.5 [direction:ltr]'
 
-export const keypadQuickChipClass =
-  'numeric cursor-pointer rounded-full border border-border bg-accent-soft px-3 py-1 text-[0.8rem] font-bold text-primary-dark active:scale-[0.96]'
+export const keypadQuickChipClass = [
+  'numeric relative cursor-pointer rounded-full border border-border bg-accent-soft px-3 py-1 text-[0.8rem] font-bold text-primary-dark active:scale-[0.96]',
+  'after:absolute after:left-1/2 after:top-1/2 after:h-touch-min after:w-full after:min-w-touch-min',
+  'after:-translate-x-1/2 after:-translate-y-1/2 after:content-[""]'
+].join(' ')
 
 /** 1-9, «۰۰۰», 0 and backspace read left to right whatever the page direction. */
 export const keypadGridClass = 'grid grid-cols-3 gap-2 [direction:ltr]'

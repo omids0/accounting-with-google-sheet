@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router'
 
+import LoadErrorState from './LoadErrorState'
 import AdvancedPushSetup from './reminders/AdvancedPushSetup'
 import NotificationStatusCard from './reminders/NotificationStatusCard'
 import ReminderRulesList from './reminders/ReminderRulesList'
 import { useRemindersPage } from './reminders/useRemindersPage'
-import Card from './ui/Card'
+import { CalmRowsSkeleton } from './skeleton'
 import { remindersPageClass } from './ui/reminderStyles'
 import { getPathForTab } from '../routes/paths'
 
@@ -20,9 +21,11 @@ export default function RemindersPage() {
       />
 
       {page.loading ? (
-        <Card>
-          <p className="m-0 text-[0.85rem] text-muted">در حال بارگذاری...</p>
-        </Card>
+        <div role="status" aria-busy="true" aria-label="در حال بارگذاری">
+          <CalmRowsSkeleton count={4} />
+        </div>
+      ) : page.loadFailed ? (
+        <LoadErrorState icon="bell" onRetry={page.reload} />
       ) : (
         <ReminderRulesList
           rules={page.rules}

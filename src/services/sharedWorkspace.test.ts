@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getDefaultSettings, saveSettings } from './settings'
-import { sharedLabel, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
+import {
+  collapseSharedPrefix,
+  sharedLabel,
+  sharedNameOf,
+  WORKSPACE_SHARED_VALUE
+} from './sharedWorkspace'
+import { getSpreadsheetLabel } from './spreadsheetCatalog'
 import {
   assertMemberWorkspace,
   getWorkspaceType,
@@ -28,6 +34,29 @@ describe('shared workspace type', () => {
   it('labels a shared account with its name', () => {
     expect(WORKSPACE_SHARED_VALUE).toBe('حساب مشترک')
     expect(sharedLabel('  خانواده ')).toBe('مشترک خانواده')
+  })
+
+  it('does not double the prefix a name already starts with', () => {
+    expect(sharedLabel('مشترک خرج خانه')).toBe('مشترک خرج خانه')
+    expect(sharedLabel('  مشترک  خرج خانه ')).toBe('مشترک  خرج خانه')
+    // Another word that merely starts with the letters still gets the prefix.
+    expect(sharedLabel('مشترکین ساختمان')).toBe('مشترک مشترکین ساختمان')
+    expect(sharedLabel('مشترک')).toBe('مشترک مشترک')
+  })
+
+  it('shows the account name without any leading «مشترک», older doubled labels included', () => {
+    expect(sharedNameOf('مشترک خرج خانه')).toBe('خرج خانه')
+    expect(sharedNameOf('مشترک مشترک خرج خانه')).toBe('خرج خانه')
+    expect(sharedNameOf('خانواده')).toBe('خانواده')
+    expect(sharedNameOf('مشترکین')).toBe('مشترکین')
+  })
+
+  it('reads an older doubled label once in menus and lists', () => {
+    expect(collapseSharedPrefix('مشترک مشترک خرج خانه')).toBe('مشترک خرج خانه')
+    expect(collapseSharedPrefix('مشترک خرج خانه')).toBe('مشترک خرج خانه')
+    expect(collapseSharedPrefix('خانه')).toBe('خانه')
+    expect(getSpreadsheetLabel('حسابداری · مشترک مشترک خرج خانه')).toBe('مشترک خرج خانه')
+    expect(getSpreadsheetLabel('حسابداری · مشترک خرج خانه')).toBe('مشترک خرج خانه')
   })
 
   it('is cached as shared once set', () => {

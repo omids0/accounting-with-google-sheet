@@ -39,6 +39,7 @@ import {
   LazyRecordsPage,
   LazyAssetsLiabilitiesReportPage,
   LazyCashFlowReportPage,
+  LazyCashForecastPage,
   LazyDueDatesReportPage,
   LazyFinancialSummaryReportPage,
   LazyCategoryTreeReportPage,
@@ -66,6 +67,7 @@ import {
   LazyWalletPage,
   LazyWalletReconcilePage,
   LazyWalletTracePage,
+  LazyWalletIntegrityPage,
   LazyWalletTransfersPage
 } from './lazyPages'
 import LineItemRoute from './LineItemRoute'
@@ -159,6 +161,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="search" element={<LazySearchPage />} />
             <Route path="wallet/opening-balances" element={<LazyOpeningBalancePage />} />
             <Route path="wallet/trace" element={<LazyWalletTracePage />} />
+            <Route path="wallet/integrity" element={<LazyWalletIntegrityPage />} />
             <Route path="wallet/transfers" element={<LazyWalletTransfersPage />} />
             <Route path="wallet/:accountId" element={<WalletAccountDetailRoute />} />
             <Route path="wallet/reconcile/:accountId" element={<LazyWalletReconcilePage />} />
@@ -198,6 +201,7 @@ export function AppAuthenticatedRoutes() {
             <Route path="reports/counterparties" element={<LazyCounterpartiesReportPage />} />
             <Route path="reports/cash-flow" element={<LazyCashFlowReportPage />} />
             <Route path="reports/due-dates" element={<LazyDueDatesReportPage />} />
+            <Route path="reports/forecast" element={<LazyCashForecastPage />} />
             <Route
               path="reports/assets-liabilities"
               element={<LazyAssetsLiabilitiesReportPage />}

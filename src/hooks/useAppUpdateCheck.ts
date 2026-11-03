@@ -16,7 +16,7 @@ const FIRST_CHECK_DELAY_MS = 8_000
  */
 export function useAppUpdateCheck(): {
   update: AvailableUpdate | null
-  apply: () => void
+  apply: () => Promise<void>
   dismiss: () => void
 } {
   const update = useAppUpdateStore(selectBannerUpdate)

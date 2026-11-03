@@ -43,3 +43,23 @@ export const entryDuplicateLinkClass = cx(
 
 /** A pinned chip keeps a primary outline. */
 export const entryTemplateChipPinnedClass = 'border-primary'
+
+/** «قبلاً ثبت شده؟»: the existing record shown inside the duplicate question. */
+export const duplicateRecordCardClass =
+  'mt-3 flex flex-col gap-1 rounded-[var(--radius-sm)] border border-border bg-bg px-3 py-2'
+
+export const duplicateRecordTitleClass = 'text-[0.9rem] font-bold text-text'
+
+export const duplicateRecordMetaClass = 'text-[0.78rem] leading-relaxed text-muted'
+
+/** Small status pill: «قبلاً ثبت شده» / «احتمال تکراری» / «ثبت می‌شود». */
+export function duplicateChipClass(kind: 'new' | 'registered' | 'probable' | 'pending') {
+  return cx(
+    'inline-flex w-fit items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[0.7rem] font-semibold',
+    (kind === 'new' || kind === 'pending') && 'border-border bg-bg text-muted',
+    kind === 'registered' &&
+      'border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-success',
+    kind === 'probable' &&
+      'border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] text-warning'
+  )
+}

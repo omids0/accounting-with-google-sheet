@@ -108,18 +108,31 @@ export interface WriterLabel {
   initial: string
   name: string
   isMe: boolean
+  /** Drive gave a display name; false when `name` is only the stand-in. */
+  known: boolean
+  /** The part of the e-mail before '@' (Latin): a secondary detail, never the main label. */
+  address: string
 }
 
-/** Drive's display name when known, else the part of the email before '@'. */
+/** What a person reads as while Drive has no display name for them. */
+export const UNKNOWN_WRITER_NAME = 'شریک'
+
+/**
+ * Drive's display name when known; otherwise «شما» for the signed-in account and «شریک» for anyone
+ * else. The e-mail local part (`address`) is Latin and scrambles a Persian line, so it is not a name.
+ */
 export function writerLabel(email: string, info: SharingInfo | null): WriterLabel {
   const normalized = email.trim().toLowerCase()
   const me = (getUserEmail() ?? '').trim().toLowerCase()
-  const known = info?.editors.find(editor => editor.email === normalized)?.name
-  const name = known || normalized.split('@')[0] || normalized
+  const isMe = !!me && normalized === me
+  const known = info?.editors.find(editor => editor.email === normalized)?.name ?? ''
+  const name = known || (isMe ? 'شما' : UNKNOWN_WRITER_NAME)
 
   return {
     initial: Array.from(name)[0]?.toUpperCase() ?? '',
     name,
-    isMe: !!me && normalized === me
+    isMe,
+    known: !!known,
+    address: normalized.split('@')[0] || normalized
   }
 }

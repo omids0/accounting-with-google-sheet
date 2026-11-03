@@ -26,6 +26,9 @@ export const APK_DOWNLOAD_URL =
 
 const DISMISSED_KEY = 'accounting_update_dismissed'
 
+/** The quiet toast when the backup taken before an update failed or ran out of time (`updateBackup.ts`). */
+export const UPDATE_BACKUP_FAILED_MESSAGE = 'پشتیبان پیش از به‌روزرسانی ساخته نشد'
+
 /**
  * A newer version, from the APK release manifest or a waiting web service worker.
  * `webUpdate.ts` exposes the same `checkForUpdate` / `applyUpdate` / `status` as
@@ -88,9 +91,15 @@ export async function checkForUpdate(): Promise<AvailableUpdate | null> {
   }
 }
 
-/** The installer downloads; Android then asks to install it over this version. */
-export function applyUpdate(update: AvailableUpdate): void {
-  if (update.apkUrl) window.open(update.apkUrl, '_blank')
+/**
+ * The installer downloads; Android then asks to install it over this version. False when the
+ * browser refused to open it (a popup opened long after the tap, e.g. after the pre-update backup):
+ * the caller then asks for one more tap, which always counts as a user gesture.
+ */
+export function applyUpdate(update: AvailableUpdate): boolean {
+  if (!update.apkUrl) return true
+
+  return window.open(update.apkUrl, '_blank') !== null
 }
 
 export function status(): AvailableUpdate | null {

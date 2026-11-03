@@ -21,6 +21,7 @@ export type Tab =
   | 'wallet-account-detail'
   | 'wallet-reconcile'
   | 'wallet-trace'
+  | 'wallet-integrity'
   | 'wallet-transfers'
   | 'bank-sms'
   | 'search'
@@ -39,6 +40,7 @@ export type Tab =
   | 'report-counterparties'
   | 'report-cash-flow'
   | 'report-due-dates'
+  | 'report-forecast'
   | 'report-assets-liabilities'
   | 'report-opening-balances'
   | 'report-wallet'
@@ -91,6 +93,7 @@ export const REPORT_TABS: Tab[] = [
   'report-counterparties',
   'report-cash-flow',
   'report-due-dates',
+  'report-forecast',
   'report-assets-liabilities',
   'report-opening-balances',
   'report-wallet',
@@ -136,6 +139,7 @@ export const SPEED_DIAL_TABS: Tab[] = [
   'treasury',
   'wallet',
   'wallet-account-detail',
+  'wallet-transfers',
   'timesheets',
   'timesheet-detail',
   'dang-split',
@@ -172,6 +176,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'wallet-account-detail': 'گردش حساب',
   'wallet-reconcile': 'تطبیق حساب',
   'wallet-trace': 'ردیاب اختلاف',
+  'wallet-integrity': 'بررسی یکپارچگی',
   'wallet-transfers': 'انتقال‌ها',
   'bank-sms': 'پیامک‌های بانکی',
   search: 'جستجو',
@@ -190,6 +195,7 @@ export const TAB_TITLES: Record<Tab, string> = {
   'report-counterparties': 'گزارش طرف حساب‌ها',
   'report-cash-flow': 'جریان نقدی',
   'report-due-dates': 'سررسیدها',
+  'report-forecast': 'پیش‌بینی نقدینگی',
   'report-assets-liabilities': 'دارایی و بدهی',
   'report-opening-balances': 'موجودی اول دوره',
   'report-wallet': 'گزارش کیف پول',
@@ -283,6 +289,7 @@ export const PERSONAL_ONLY_TABS: Tab[] = [
   'treasury',
   'wallet',
   'wallet-trace',
+  'wallet-integrity',
   'wallet-transfers',
   'bank-sms',
   'timesheets',

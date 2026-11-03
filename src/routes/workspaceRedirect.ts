@@ -36,8 +36,14 @@ function isPersonalSettingsPath(pathname: string): boolean {
  * does: a building sends the personal-only pages to its dashboard, the personal workspace sends
  * the building pages to its own, a shared account sends both to its home, and both of the others
  * send the shared pages to their home. Settings, backup, categories and close-year work in all.
+ * A shared page of an account this device cannot open (`sharedLost`: the owner removed the user,
+ * or the device has no grant) goes to «فضاهای من» instead, where its card explains and helps.
  */
-export function workspaceRedirect(pathname: string, type: WorkspaceType): string | null {
+export function workspaceRedirect(
+  pathname: string,
+  type: WorkspaceType,
+  sharedLost = false
+): string | null {
   if (type === 'shared' && isPersonalSettingsPath(pathname)) return SETTINGS_PATH
   // Reminder rules and push keys live only in the personal sheet: a building's board reads its tabs.
   if (type === 'building' && isRemindersPath(pathname)) return SETTINGS_PATH
@@ -55,7 +61,7 @@ export function workspaceRedirect(pathname: string, type: WorkspaceType): string
 
     return PERSONAL_ONLY_TABS.includes(tab) || BUILDING_TABS.includes(tab) ? home : null
   }
-  if (SHARED_TABS.includes(tab)) return home
+  if (SHARED_TABS.includes(tab)) return sharedLost ? getPathForTab('buildings-home') : home
 
   const isBuilding = type === 'building'
 

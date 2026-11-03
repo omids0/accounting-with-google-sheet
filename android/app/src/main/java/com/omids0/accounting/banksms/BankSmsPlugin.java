@@ -110,6 +110,23 @@ public class BankSmsPlugin extends Plugin {
         }
     }
 
+    /** App info screen: where «Allow restricted settings» and the permissions list live. */
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        Intent intent = new Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", getContext().getPackageName(), null)
+        );
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (ActivityNotFoundException e) {
+            call.reject("App settings are not available", e);
+        }
+    }
+
     @PluginMethod
     public void setViewDays(PluginCall call) {
         Integer days = call.getInt("days", 7);

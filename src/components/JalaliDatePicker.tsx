@@ -73,6 +73,11 @@ export default function JalaliDatePicker({
     setEditing(false)
   }
 
+  const handleClear = () => {
+    onChange('')
+    setEditing(false)
+  }
+
   const handleConfirm = () => {
     onChange(pendingIso)
     setEditing(false)
@@ -151,6 +156,11 @@ export default function JalaliDatePicker({
           >
             امروز
           </button>
+          {allowEmpty && hasValue ? (
+            <button type="button" className={jalaliDatePickerTodayBtnClass} onClick={handleClear}>
+              پاک کردن تاریخ
+            </button>
+          ) : null}
         </div>
         <CalendarWheelFields
           calendar={calendar}

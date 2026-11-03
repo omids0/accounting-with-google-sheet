@@ -127,6 +127,7 @@ export default function PersonalRemindersPage({ active = true }: PersonalReminde
         onEdit={form.openEditForm}
         onDelete={data.requestDelete}
         onAdd={form.openCreateForm}
+        resetKey={filterChips.map(chip => chip.label).join('|')}
       />
 
       <PersonalReminderFormModal

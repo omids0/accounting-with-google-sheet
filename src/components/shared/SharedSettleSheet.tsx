@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import type { SharedRecords } from './useSharedRecords'
 import { suggestSettlement } from '../../services/sharedSettlement'
+import { getCurrencySymbol } from '../../utils/formatMoney'
 import { getTodayIso } from '../../utils/jalaliDate'
 import AmountField from '../AmountField'
 import { FormField, Select } from '../form'
@@ -70,7 +71,7 @@ export default function SharedSettleSheet({ shared, onClose }: SharedSettleSheet
           }))}
         />
       </FormField>
-      <FormField label="مبلغ (تومان)" required controlWidth="full">
+      <FormField label={`مبلغ (${getCurrencySymbol()})`} required controlWidth="full">
         <AmountField label="مبلغ تسویه" value={amount} onChange={setAmount} />
       </FormField>
       <FormField label="تاریخ" controlWidth="full">

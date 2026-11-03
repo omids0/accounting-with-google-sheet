@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 
 import DangSplitPersonSummaryCard from './DangSplitPersonSummaryCard'
 import {
+  dangSplitBalanceLabelClass,
+  dangSplitBalanceRowClass,
   dangSplitBalanceValueClass,
   dangSplitCountBadgeClass,
   dangSplitGroupClass,
@@ -180,6 +182,21 @@ export default function DangSplitSummaryTab({
           </div>
         ))
       )}
+
+      {summary.unallocatedTotal > 0 ? (
+        <div>
+          <div className={dangSplitBalanceRowClass}>
+            <span className={dangSplitBalanceLabelClass}>پخش نشده:</span>
+            <span className={dangSplitBalanceValueClass('settled')}>
+              <MoneyText amount={summary.unallocatedTotal} />
+            </span>
+          </div>
+          <p className={formHintClass}>
+            این مبلغ از هزینه‌هایی است که به هیچ‌کس تخصیص داده نشده؛ تا تخصیص ندهی در مانده‌ی کسی
+            حساب نمی‌شود.
+          </p>
+        </div>
+      ) : null}
     </>
   )
 }

@@ -28,6 +28,7 @@ import { getSheetAllRows } from './spreadsheetStore'
 import { getOutboxEntries } from './syncOutbox'
 import { drainWorkspace, writeToWorkspace } from './workspaceBridge'
 import { SHARED_LINK_FIELD_LABEL } from '../components/form/sharedFields'
+import { sharedPair } from '../components/shared/sharedViewModel'
 import { showError } from '../utils/toast'
 
 export { pendingSharedLink } from './sharedLinkPrefs'
@@ -183,7 +184,6 @@ async function send(task: SharedLinkTask): Promise<boolean> {
   const { base, form, read, tabs } = await readTarget(task.sharedId, task.type)
   const me = (getUserEmail() ?? '').trim().toLowerCase()
   const members = parseMembers((read.get(PERIOD_SETTINGS_SHEET) ?? []).slice(1), 'shared')
-
   // Every writer re-checks right before writing (a role may have changed since the tick).
   if (!memberHasPermission(members, me, 'record', 'shared')) throw new NoRecordRight()
 
@@ -211,6 +211,7 @@ async function send(task: SharedLinkTask): Promise<boolean> {
     tabs,
     categories: rowsToGroups(read.get(CATEGORIES_SHEET) ?? [])[task.type],
     me,
+    solo: !sharedPair(members),
     createdAt: new Date().toLocaleString('fa-IR'),
     // Stable per task: a create retried after the page closed finds the copy it already wrote.
     newId: task.id

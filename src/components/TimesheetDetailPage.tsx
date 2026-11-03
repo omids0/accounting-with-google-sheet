@@ -2,6 +2,7 @@ import ActiveFilterChips from './ActiveFilterChips'
 import ConfirmActionModal from './ConfirmActionModal'
 import EmptyState from './EmptyState'
 import FilterModal from './FilterModal'
+import IncrementalCardList from './IncrementalCardList'
 import ListSortSection from './ListSortSection'
 import PageFilterPanel from './PageFilterPanel'
 import SearchEmptyState from './SearchEmptyState'
@@ -14,7 +15,6 @@ import { formatDurationFa, formatJiraTimesheetHours } from '../utils/datetime'
 import TimesheetEntryCard from './timesheets/TimesheetEntryCard'
 import TimesheetEntryFormModal from './timesheets/TimesheetEntryFormModal'
 import { useTimesheetDetailPage } from './timesheets/useTimesheetDetailPage'
-import { listCardsContainerClass } from './ui/featureCardStyles'
 import {
   timesheetDetailPageClass,
   timesheetDetailStatsClass,
@@ -112,8 +112,12 @@ export default function TimesheetDetailPage({
           ) : page.filteredItems.length === 0 ? (
             <SearchEmptyState />
           ) : (
-            <div className={listCardsContainerClass}>
-              {page.filteredItems.map(item => (
+            <IncrementalCardList
+              items={page.filteredItems}
+              getId={item => item.id}
+              resetKey={page.filterChips.map(chip => chip.label).join('|')}
+              unit="رکورد"
+              renderItem={item => (
                 <TimesheetEntryCard
                   key={item.id}
                   item={item}
@@ -122,8 +126,8 @@ export default function TimesheetDetailPage({
                   onEdit={page.openEditForm}
                   onDelete={page.requestDelete}
                 />
-              ))}
-            </div>
+              )}
+            />
           )}
         </>
       )}

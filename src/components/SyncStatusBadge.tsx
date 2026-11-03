@@ -35,7 +35,7 @@ export default function SyncStatusBadge() {
         className={syncStatusBadgeClass}
         aria-label={cause ? `${label}: ${cause}` : `${label}؛ جزئیات همگام‌سازی`}
         aria-haspopup="dialog"
-        title={`آخرین بروزرسانی: ${formatRelativeTime(latestSyncActivity(status))}`}
+        title={`${label} — آخرین بروزرسانی: ${formatRelativeTime(latestSyncActivity(status))}`}
         onClick={() => setDetailsOpen(true)}
       >
         {badgeContent}

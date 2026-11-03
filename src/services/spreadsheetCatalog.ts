@@ -1,3 +1,5 @@
+import { collapseSharedPrefix } from './sharedWorkspace'
+
 /** Standard title format: «حسابداری · 1406» — used to find sheets across devices in Google Drive */
 export const SPREADSHEET_TITLE_PREFIX = 'حسابداری · '
 
@@ -16,12 +18,12 @@ export function formatSpreadsheetTitle(label: string): string {
 
 export function getSpreadsheetLabel(title: string): string {
   if (title.startsWith(SPREADSHEET_TITLE_PREFIX)) {
-    return title.slice(SPREADSHEET_TITLE_PREFIX.length)
+    return collapseSharedPrefix(title.slice(SPREADSHEET_TITLE_PREFIX.length))
   }
 
   const legacy = title.match(/^حسابداری\s+(.+)$/)
 
-  return legacy ? legacy[1] : title
+  return collapseSharedPrefix(legacy ? legacy[1] : title)
 }
 
 export function isAccountingSpreadsheetTitle(title: string): boolean {

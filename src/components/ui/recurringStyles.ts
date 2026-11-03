@@ -55,3 +55,17 @@ export const recurringRowAmountClass = 'flex-none text-[0.85rem] font-bold tabul
 
 export const recurringCheckboxClass =
   'size-5 flex-none cursor-pointer accent-[var(--color-primary)]'
+
+/** «دیدن آن رکورد» under a row whose payment looks already recorded. */
+export const recurringRowLinkClass = cx(
+  // Small to look at, 44px to touch: the hit area reaches past the text, inside the row.
+  'relative cursor-pointer border-none bg-transparent p-0 text-[0.75rem] font-semibold text-primary',
+  'underline-offset-2 hover:underline',
+  'after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[""]'
+)
+
+/** Chip and link of a row side by side; they wrap under each other in a narrow column. */
+export const recurringRowStatusClass = 'mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1'
+
+/** The warning under a ticked row: wraps (never truncated) and keeps its contrast in dark mode. */
+export const recurringRowNoteClass = 'text-[0.72rem] font-semibold leading-relaxed text-warning'

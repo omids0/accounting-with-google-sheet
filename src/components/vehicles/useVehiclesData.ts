@@ -8,6 +8,7 @@ import {
   sortActiveItems,
   validateVehicleMileageEntry
 } from './utils'
+import { vehicleDeleteMessage } from './vehicleDeleteMessage'
 import { useDataRefresh } from '../../hooks/useDataRefresh'
 import { useSheetImportExport } from '../../hooks/useSheetImportExport'
 import { clearNudgeHandoff, peekNudgeHandoff } from '../../services/nudges'
@@ -16,6 +17,10 @@ import { getSettings, isConfigured } from '../../services/settings'
 import { hasStoreData } from '../../services/spreadsheetStore'
 import { fetchAllVehicleDeadlines } from '../../services/vehicleDeadlines'
 import { upsertManualVehicleExpenseMeta } from '../../services/vehicleExpenseActions'
+import {
+  countVehicleLinkedRows,
+  type VehicleLinkedCounts
+} from '../../services/vehicleLinkedCounts'
 import { fetchAllVehiclePeriodicServices } from '../../services/vehiclePeriodicServices'
 import {
   createVehicle,
@@ -52,6 +57,10 @@ export function useVehiclesData() {
   const [saving, setSaving] = useState(false)
   const [deletingItem, setDeletingItem] = useState<VehicleProfileWithRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+  // What the vehicle leaves behind, read when the question opens (null until it arrives).
+  const [linked, setLinked] = useState<{ vehicleId: string; counts: VehicleLinkedCounts } | null>(
+    null
+  )
 
   const dataRevision = useDataRefresh()
 
@@ -189,7 +198,14 @@ export function useVehiclesData() {
   }
 
   const openDeleteConfirm = (item: VehicleProfileWithRow) => {
+    const spreadsheetId = requireSpreadsheetId()
+
     setDeletingItem(item)
+    setLinked(null)
+    if (!spreadsheetId) return
+    countVehicleLinkedRows(spreadsheetId, item.id)
+      .then(counts => setLinked({ vehicleId: item.id, counts }))
+      .catch(() => undefined)
   }
 
   const closeDeleteConfirm = () => {
@@ -233,6 +249,9 @@ export function useVehiclesData() {
     editingItem,
     saving,
     deletingItem,
+    deleteMessage: vehicleDeleteMessage(
+      linked && linked.vehicleId === deletingItem?.id ? linked.counts : null
+    ),
     deleting,
     loadItems,
     openCreateForm,

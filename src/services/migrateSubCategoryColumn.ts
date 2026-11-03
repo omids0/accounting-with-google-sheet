@@ -32,10 +32,14 @@ function markMigrated(spreadsheetId: string): void {
   setItem(MIGRATION_STORAGE_KEY, { ...state, [spreadsheetId]: true })
 }
 
-export async function appendHeaderColumn(
+/**
+ * Adds every label the header of a tab lacks, at its end, in ONE header read (none when the tab is
+ * in the store) and at most ONE write. A tab that has them all, or no header yet, is not written.
+ */
+export async function appendHeaderColumns(
   spreadsheetId: string,
   sheetName: string,
-  label: string
+  labels: string[]
 ): Promise<void> {
   const rows = getSheetAllRows(spreadsheetId, sheetName) ?? []
 
@@ -44,14 +48,27 @@ export async function appendHeaderColumn(
   const header = (allRows[0] ?? []).map(cell => String(cell ?? ''))
 
   if (!header.some(cell => cell.trim())) return
-  if (header.some(cell => normalizeHeaderLabel(cell) === label)) return
 
-  const nextHeader = [...header, label]
+  const known = new Set(header.map(normalizeHeaderLabel))
+
+  const missing = labels.filter(label => !known.has(label))
+
+  if (!missing.length) return
+
+  const nextHeader = [...header, ...missing]
 
   await withGridGrowth(spreadsheetId, sheetName, 1, nextHeader.length, () =>
     writeSheetHeaders(spreadsheetId, sheetName, nextHeader)
   )
   setSheetAllRows(spreadsheetId, sheetName, [nextHeader, ...allRows.slice(1)])
+}
+
+export function appendHeaderColumn(
+  spreadsheetId: string,
+  sheetName: string,
+  label: string
+): Promise<void> {
+  return appendHeaderColumns(spreadsheetId, sheetName, [label])
 }
 
 /**

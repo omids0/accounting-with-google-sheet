@@ -31,7 +31,9 @@ export default function IranPlateVisual({
     <div
       className={cn('iran-plate', compact && 'iran-plate--compact', className)}
       role="img"
-      aria-label="پلاک خودرو"
+      aria-label={`پلاک خودرو ${[parts.serial, parts.letter, parts.number, 'ایران', parts.province]
+        .filter(Boolean)
+        .join(' ')}`}
     >
       <PlateFlag />
 

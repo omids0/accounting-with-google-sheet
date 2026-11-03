@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 import { getCategoriesPath } from '../../routes/paths'
 import { lockedCategoriesFor } from '../../utils/protectedCategories'
 import AmountInput from '../AmountInput'
@@ -22,6 +24,7 @@ import { getAccountingStartDate } from '../../services/accountingStartDate'
 import { getSettings } from '../../services/settings'
 import { getActiveWorkspaceType } from '../../services/workspace'
 import type { FieldConfig } from '../../types'
+import { decimalFieldText, decimalFieldValue, sanitizeDecimalInput } from '../../utils/decimalInput'
 import type { FormControlWidth } from '../ui/formStyles'
 import { formFieldNoteClass } from '../ui/recordsStyles'
 
@@ -69,6 +72,8 @@ export default function FieldInput({
   hint
 }: FieldInputProps) {
   const titleLimit = useTitleLimit(String(value ?? ''))
+  // Text typed into a number field: «۱۲.» or «-» is not a number yet but must not be erased.
+  const [numberDraft, setNumberDraft] = useState<string | null>(null)
   const isTitle = field.id === 'title'
   const placeholder = fieldPlaceholder(field)
   const resolvedWidth = controlWidth ?? defaultControlWidth(field)
@@ -127,10 +132,16 @@ export default function FieldInput({
     if (field.type === 'number') {
       return (
         <input
-          type="number"
+          type="text"
           inputMode="decimal"
-          value={value === '' ? '' : value}
-          onChange={e => onChange(e.target.value === '' ? '' : Number(e.target.value))}
+          autoComplete="off"
+          value={decimalFieldText(numberDraft, value ?? '')}
+          onChange={e => {
+            const text = sanitizeDecimalInput(e.target.value)
+
+            setNumberDraft(text)
+            onChange(decimalFieldValue(text))
+          }}
           dir="ltr"
           placeholder={placeholder}
         />

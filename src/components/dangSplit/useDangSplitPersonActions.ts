@@ -6,6 +6,7 @@ import { deleteDangSplitPersonCascade } from '../../services/dangSplitBundle'
 import {
   addDangSplitPersonDeposit,
   createDangSplitPerson,
+  hasDuplicatePersonName,
   updateDangSplitPerson
 } from '../../services/dangSplitPeople'
 import { requireSpreadsheetId } from '../../utils/authGuard'
@@ -60,6 +61,15 @@ export function useDangSplitPersonActions({
 
     if (!name) {
       showError('نام فرد لازم است')
+
+      return
+    }
+
+    // An old duplicate may be edited (weight, category) as long as its name is left alone.
+    const renamed = !editingItem || editingItem.name.trim() !== name
+
+    if (renamed && hasDuplicatePersonName(items, name, editingItem?.id)) {
+      showError(`در این گروه از قبل فردی به نام «${name}» هست؛ نام دیگری بگذار`)
 
       return
     }

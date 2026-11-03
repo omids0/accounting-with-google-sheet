@@ -10,6 +10,7 @@ import { useLayoutNavigation } from './useLayoutNavigation'
 import { useMainFocus } from './useMainFocus'
 import { useBankSmsSync } from '../../hooks/useBankSmsSync'
 import { useBridgeDrain } from '../../hooks/useBridgeDrain'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { useWorkspaceType } from '../../hooks/useWorkspaceType'
@@ -62,6 +63,7 @@ export default function Layout() {
   useBridgeDrain()
   useLaunchAction()
   const { mainRef, focusMain } = useMainFocus()
+  useDocumentTitle(headerTitle)
   useEffect(installSelectionHaptics, [])
 
   const workspace = useWorkspaceType()

@@ -19,7 +19,7 @@ export function describeRetryOutcome(outcome: RetryOutcome, offline: boolean): R
     return {
       kind: 'info',
       message: offline
-        ? `آفلاین هستی؛ ${pending.toLocaleString(
+        ? `آفلاین هستید؛ ${pending.toLocaleString(
             'fa-IR'
           )} تغییر در صف می‌ماند و با وصل شدن اینترنت فرستاده می‌شود.`
         : `${pending.toLocaleString('fa-IR')} تغییر هنوز در صف است و کمی بعد دوباره فرستاده می‌شود.`

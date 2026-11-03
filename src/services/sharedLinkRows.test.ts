@@ -183,6 +183,35 @@ describe('findCopyByRef and copyOperation', () => {
     expect(op && 'row' in op && op.row[0]).toBe('new-id')
   })
 
+  it('writes a new copy as only-me while no partner is a member, and keeps an edited copy', () => {
+    const solo = (t: ReturnType<typeof task>, from: typeof tabs) =>
+      copyOperation({
+        task: t,
+        form,
+        base,
+        tabs: from,
+        categories: ['خوراک', 'سایر'],
+        me: ME,
+        solo: true,
+        createdAt: 'now',
+        newId: 'new-id'
+      })
+    const fresh = solo(task('create'), new Map([[base, [headers]]]))
+    const row = fresh && 'row' in fresh ? (fresh.row as string[]) : []
+
+    expect(cell(row, 'تقسیم')).toBe('only:' + ME)
+    // An edit of a copy written while there was a partner keeps its own split.
+    const edited = solo(
+      task('update', {
+        split: 'equal' as const,
+        values: { ...task('update').values, amount: 900000 }
+      }),
+      tabs
+    )
+
+    expect(edited && 'row' in edited && cell(edited.row as string[], 'تقسیم')).toBe('equal')
+  })
+
   it('treats a delete of a missing ref as done', () => {
     expect(run(task('delete'), new Map([[base, [headers]]]))).toBeNull()
     expect(run(task('delete'))).toMatchObject({ type: 'delete', sheetName: archive, rowNumber: 3 })

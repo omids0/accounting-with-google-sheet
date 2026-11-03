@@ -111,6 +111,9 @@ async function flushPass(
     // Waits for «کدام بماند؟»; never retried or reverted on its own.
     if (entry.conflict) continue
     if (heldBack.has(normalizeSheetTitle(entry.operation.sheetName))) continue
+    // A newer write of the same record replaced this one after the pass listed the queue (see
+    // coalesceUpdate): the newer one carries the change, so sending this too would count it twice.
+    if (!getOutboxEntries(spreadsheetId).some(queued => queued.id === entry.id)) continue
 
     const startedAt = Date.now()
 

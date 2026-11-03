@@ -4,6 +4,7 @@ import { confirmSmsEntry, confirmSmsTransfer, type ConfirmableSms } from './bank
 import { balanceAdjustNotice } from './bankSmsBalance'
 import { updateBankSmsPrefs } from './bankSmsPrefs'
 import { clearStore, setSheetAllRows } from './spreadsheetStore'
+import { TRANSFERS_HEADERS, TRANSFERS_SHEET } from './transfersModel'
 import { WALLET_HEADERS, WALLET_SHEET } from './wallet'
 import { WALLET_LEDGER_HEADERS, WALLET_LEDGER_SHEET } from './walletLedger'
 import { formatSignedMoney } from '../utils/formatMoney'
@@ -14,6 +15,10 @@ vi.mock('./bankSmsNative', () => ({ markBankSmsHandled: vi.fn(async () => undefi
 vi.mock('./paymentTransactions', () => ({
   createLinkedExpenseRecord: vi.fn(async () => 'rec-1'),
   createLinkedIncomeRecord: vi.fn(async () => 'rec-2')
+}))
+vi.mock('./sheets', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  ensureSheetWithHeaders: vi.fn(async () => undefined)
 }))
 vi.mock('../utils/toast', () => ({ showError: vi.fn(), showInfo: vi.fn() }))
 
@@ -98,6 +103,7 @@ describe('applyBalance tells the user when the SMS «مانده» set the balanc
       ['two', '', 'دوم', '0']
     ])
     setSheetAllRows(ID, WALLET_LEDGER_SHEET, [WALLET_LEDGER_HEADERS])
+    setSheetAllRows(ID, TRANSFERS_SHEET, [TRANSFERS_HEADERS])
   })
 
   it('shows one info toast with the old and new balance', async () => {
@@ -149,5 +155,23 @@ describe('applyBalance tells the user when the SMS «مانده» set the balanc
 
     expect(showInfo).toHaveBeenCalledTimes(1)
     expect(showInfo).toHaveBeenCalledWith(expect.stringContaining('«دوم»'), 7000)
+  })
+
+  it('says a transfer moved the balance by the amount instead of setting it to the «مانده»', async () => {
+    await confirmSmsTransfer(ID, sms('s1', 'acc', 'debit', 700), sms('s2', 'two', 'credit', 5000))
+
+    expect(showInfo).toHaveBeenCalledWith(
+      `موجودی «دوم» بعد از انتقال ${formatSignedMoney(
+        300
+      )} شد، ولی «مانده» پیامک ${formatSignedMoney(5000)} است؛ تفاوت را در «گردش حساب» بررسی کن`,
+      7000
+    )
+    expect(showInfo).not.toHaveBeenCalledWith(expect.stringContaining('تنظیم شد'), 7000)
+  })
+
+  it('stays quiet for a transfer whose balances agree with both «مانده»', async () => {
+    await confirmSmsTransfer(ID, sms('s1', 'acc', 'debit', 700), sms('s2', 'two', 'credit', 300))
+
+    expect(showInfo).not.toHaveBeenCalled()
   })
 })

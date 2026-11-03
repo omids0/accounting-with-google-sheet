@@ -2,6 +2,7 @@ import type { SpreadsheetEntry } from '../types'
 import { getAllSheetSpecs } from './allSheetSpecs'
 import { waitForSessionSync } from './sessionSync'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
+import { clearSharedAccessLost, markSharedAccessLost } from './sharedAccessLost'
 import {
   createSpreadsheet,
   ensureManySheetsWithHeaders,
@@ -13,7 +14,7 @@ import { invalidateSheetTitlesCache, unmarkSheetsPrepared } from './sheetsMeta'
 import {
   clearInaccessibleSpreadsheet,
   markSpreadsheetInaccessible,
-  SPREADSHEET_NO_ACCESS_MESSAGE
+  SpreadsheetNoAccessError
 } from './spreadsheetAccess'
 import { formatSpreadsheetTitle } from './spreadsheetCatalog'
 import { syncSpreadsheetsFromDrive } from './spreadsheetDriveSync'
@@ -23,7 +24,7 @@ import {
   markPreparedRecently,
   takeFreshlyCreated
 } from './spreadsheetPreparedSession'
-import { resolveWorkspaceType } from './workspace'
+import { getWorkspaceType, resolveWorkspaceType } from './workspace'
 import { getJalaliParts } from '../utils/jalaliDate'
 
 export { getAllSheetSpecs, syncSpreadsheetsFromDrive }
@@ -92,6 +93,7 @@ export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionSta
 
   if (activeId && (await verifySpreadsheetExists(activeId))) {
     clearInaccessibleSpreadsheet()
+    clearSharedAccessLost(activeId)
 
     return { status: 'ready', spreadsheetId: activeId }
   }
@@ -105,6 +107,8 @@ export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionSta
         createdAt: ''
       }
     )
+    // The shared account's card and `/shared` read this too (a no-op for any other sheet kind).
+    if (getWorkspaceType(activeId) === 'shared') markSharedAccessLost(activeId)
   }
 
   const options = (await syncSpreadsheetsFromDrive()).filter(sheet => sheet.id !== activeId)
@@ -169,7 +173,7 @@ export async function activateSpreadsheet(
       throw new Error('شیت انتخاب‌شده پیدا نشد')
     }
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
-      throw new Error(SPREADSHEET_NO_ACCESS_MESSAGE)
+      throw new SpreadsheetNoAccessError()
     }
 
     // Known before the switch, so the first frame of the new sheet has its own menu and pages.

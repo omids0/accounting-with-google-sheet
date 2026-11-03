@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { GOAL_OVERDRAW_MESSAGE, goalMoveProblem } from './goalList'
 import type { GoalMoveMode } from './useSavingsGoals'
 import { exceedsGoalTarget } from '../../services/savingsGoals'
 import type { GoalMoveInput } from '../../services/savingsGoalsSheet'
@@ -14,6 +15,8 @@ import WalletAccountSelect from '../form/WalletAccountSelect'
 import FormModal from '../FormModal'
 import JalaliDatePicker from '../JalaliDatePicker'
 import { formHintClass } from '../ui/formStyles'
+import { transferOverdraftHint } from '../wallet/transfers/transferForm'
+import { useTransferAccounts } from '../wallet/transfers/useTransferAccounts'
 
 /**
  * «+ واریز به هدف» moves money from a wallet account into the goal; «برداشت از هدف»
@@ -47,6 +50,14 @@ export default function SavingsGoalMoveModal({
     !withdraw &&
     exceedsGoalTarget(move.goal.balance, move.goal.target, Number(amount) || 0)
 
+  const accounts = useTransferAccounts(move != null)
+  // The account may go below zero (a card used before the deposit is entered): a note, no block.
+  const overdraft = withdraw
+    ? ''
+    : transferOverdraftHint({ fromAccountId: accountId, amount }, accounts, 'واریز')
+  // A goal cannot go below zero, so a withdrawal above its balance is an error as the user types.
+  const overdrawn =
+    move?.mode === 'withdraw' && Number(amount) > move.goal.balance ? GOAL_OVERDRAW_MESSAGE : ''
   const [error, setError] = useState('')
 
   useEffect(() => setError(''), [move])
@@ -57,11 +68,7 @@ export default function SavingsGoalMoveModal({
 
     const value = Number(amount)
 
-    const problem = !(value > 0)
-      ? 'مبلغ را وارد کنید'
-      : withdraw && value > move.goal.balance
-      ? 'بیشتر از موجودی هدف نمی‌شود برداشت کرد'
-      : ''
+    const problem = goalMoveProblem(move.mode, value, move.goal.balance)
 
     setError(problem)
     if (problem) return showError(problem)
@@ -80,7 +87,7 @@ export default function SavingsGoalMoveModal({
       saving={saving}
       saveLabel={withdraw ? 'برداشت' : 'واریز'}
     >
-      <FormField label="مبلغ" required error={error}>
+      <FormField label="مبلغ" required error={error || overdrawn}>
         <AmountInput
           value={amount}
           onChange={value => {
@@ -90,11 +97,16 @@ export default function SavingsGoalMoveModal({
         />
       </FormField>
       <FormField label={withdraw ? 'به حساب' : 'از حساب'}>
-        <WalletAccountSelect value={accountId} onChange={setAccountId} />
+        <WalletAccountSelect value={accountId} onChange={setAccountId} accounts={accounts} />
       </FormField>
       <FormField label="تاریخ">
         <JalaliDatePicker value={date} onChange={setDate} />
       </FormField>
+      {overdraft ? (
+        <p className={cn(formHintClass, 'text-[var(--color-warning)]')} role="status">
+          {overdraft}
+        </p>
+      ) : null}
       {overTarget ? (
         <p className={cn(formHintClass, 'text-[var(--color-warning)]')} role="status">
           از مبلغ هدف بیشتر می‌شود؛ باز هم می‌توانی واریز کنی.

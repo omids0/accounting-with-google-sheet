@@ -17,6 +17,12 @@ export const AMOUNT_INTEGER_ONLY_HINT = amountIntegerHint('تومان')
 
 export const AMOUNT_MAX_MESSAGE = amountMaxMessage('تومان')
 
+/** A minus sign was typed or pasted; the field drops it, so the amount stays positive. */
+export const AMOUNT_NEGATIVE_MESSAGE = 'علامت منفی پذیرفته نمی‌شود؛ مبلغ را مثبت وارد کنید'
+
+/** Scientific notation («1e9») was typed or pasted; the field drops the letter. */
+export const AMOUNT_DIGITS_ONLY_MESSAGE = 'فقط رقم وارد کنید'
+
 export interface AmountInputResult {
   /** Plain ASCII digits that were accepted; empty when none. */
   digits: string
@@ -86,4 +92,22 @@ export function parseAmountInput(
   digits = digits.replace(/^0+(?=\d)/, '')
 
   return { digits, cutDecimal, overMax: digits !== '' && Number(digits) > max }
+}
+
+/** «-», «−» (U+2212) and «–» (en dash): the minus signs keyboards and pasted text carry. */
+const MINUS_SIGN = /[-−–]/
+
+/** «1e9», «1e», «e5»: an exponent next to a digit. */
+const SCIENTIFIC = /\d[eE]|[eE][+\-−–]?\d/
+
+/**
+ * What `parseAmountInput` drops without a word otherwise: a minus sign («-500» is saved as 500)
+ * or scientific notation («1e9» is read as 19). The field shows a notice and keeps the digits.
+ */
+export function amountInputRejection(raw: string): 'negative' | 'digits' | null {
+  const text = normalizeDigits(raw)
+
+  if (SCIENTIFIC.test(text)) return 'digits'
+
+  return MINUS_SIGN.test(text) ? 'negative' : null
 }

@@ -31,7 +31,10 @@ export const recordsRefreshBtnClass = 'min-w-[2.25rem] shrink-0'
 export const recordsTypeSegmentClass = cx(
   'mb-[0.85rem] flex gap-[3px] rounded-[var(--radius)] bg-bg p-[3px]',
   '[&_button]:flex-1 [&_button]:rounded-[calc(var(--radius)-2px)] [&_button]:px-2 [&_button]:py-[0.55rem] [&_button]:text-[0.82rem] [&_button]:font-semibold [&_button]:text-muted [&_button]:bg-transparent [&_button]:transition-[background,color,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger'
+  '[&_button.active]:bg-surface [&_button.active]:shadow-[0_1px_4px_rgba(0,0,0,0.08)] [&_button.active.income]:text-success [&_button.active.expense]:text-danger',
+  // button min height + the 3 px of padding above and below = the 44 px touch floor; the ::after hands the padding to the tap.
+  '[&_button]:relative [&_button]:min-h-[calc(var(--touch-min)-6px)] [&_button]:min-w-touch-min',
+  '[&_button]:after:absolute [&_button]:after:inset-x-0 [&_button]:after:-inset-y-[3px] [&_button]:after:content-[""]'
 )
 
 /**
@@ -94,7 +97,7 @@ export const recordsSummarySectionClass = 'mt-3 flex flex-col gap-2'
 export const recordsSummaryHintClass = 'm-0 text-center text-[0.72rem] font-medium text-muted'
 
 export const recordsSummaryTotalCardClass = cx(
-  'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--shadow)]',
+  'p-4 text-center transition-[transform,box-shadow] duration-[var(--duration-normal)] ease-[var(--ease-out)] hover:shadow-[var(--shadow)]',
   '[&.stat-card_.stat-card-value-row--wide]:justify-center'
 )
 
@@ -123,11 +126,11 @@ export const recordItemTitleAddonClass = 'inline-flex shrink-0 items-center gap-
 export const recordItemMetaClass = 'text-[0.75rem] text-muted'
 
 export const recordItemInteractiveClass = cx(
-  'relative -mx-[0.65rem] animate-[recordItemIn_0.4s_var(--ease-page)_both] rounded-sm border-b-transparent px-[0.65rem] py-[0.85rem] transition-[background,transform,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'relative -mx-[0.65rem] animate-[recordItemIn_0.4s_var(--ease-page)_both] rounded-sm border-b-transparent px-[0.65rem] py-[0.85rem] transition-[background,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
   '[&+&]:border-t [&+&]:border-border',
-  'hover:-translate-x-[3px] hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_65%,transparent)] hover:shadow-[inset_3px_0_0_color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
-  'active:scale-[0.995] active:-translate-x-px',
-  'motion-reduce:animate-none motion-reduce:transition-none motion-reduce:hover:translate-x-0'
+  'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_65%,transparent)] hover:shadow-[inset_3px_0_0_color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
+  'active:scale-[0.995]',
+  'motion-reduce:animate-none motion-reduce:transition-none'
 )
 
 /** A transparent button over the whole row; buttons inside it sit above with `relative z-[1]`. */
@@ -137,7 +140,7 @@ export const recordItemOpenClass = cx(
 )
 
 export const recordItemAccentClass = cx(
-  'pointer-events-none absolute top-1/2 right-0 h-0 w-[3px] -translate-y-1/2 rounded-full opacity-0 transition-[height,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
+  'pointer-events-none absolute top-1/2 start-0 h-0 w-[3px] -translate-y-1/2 rounded-full opacity-0 transition-[height,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out)]',
   '[.record-item--interactive:hover_&]:h-[60%] [.record-item--interactive:hover_&]:opacity-100',
   '[.record-item--income_&]:bg-[var(--color-income)]',
   '[.record-item--expense_&]:bg-[var(--color-expense)]',

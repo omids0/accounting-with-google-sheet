@@ -1,4 +1,9 @@
-import { monthlyReportFileName, monthlyReportTitle, type MonthlyReportData } from './monthlyReport'
+import {
+  monthlyReportFileName,
+  monthlyReportNetWorthNote,
+  monthlyReportTitle,
+  type MonthlyReportData
+} from './monthlyReport'
 import { reportWords } from './reportWording'
 import { isPersonalWorkspace } from './workspace'
 import { formatMoney, formatMoneyParts, formatPersianNumber } from '../utils/formatMoney'
@@ -89,7 +94,9 @@ export function monthlyReportFacts(
           )})`
         : ''
 
-    facts.push(`دارایی خالص ${formatMoney(report.netWorth)}${change}`)
+    const note = monthlyReportNetWorthNote(report)
+
+    facts.push(`دارایی خالص ${formatMoney(report.netWorth)}${change}${note ? `، ${note}` : ''}`)
   }
   facts.push(`تکرارهای ثبت‌شده ${formatPersianNumber(report.recurringPosted)}`)
 

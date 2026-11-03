@@ -40,7 +40,7 @@ export const categoryRowMetaClass = 'mt-0.5 block truncate text-[0.72rem] text-m
 export const categoryRowHintClass = 'font-semibold text-primary-dark'
 
 export const categoryBadgeClass = cx(
-  'inline-flex shrink-0 items-center rounded-full px-2 py-px text-[0.64rem] font-bold',
+  'inline-flex shrink-0 items-center rounded-full px-2 py-px text-[0.72rem] font-bold',
   'bg-[color-mix(in_srgb,var(--color-text)_8%,transparent)] text-muted'
 )
 

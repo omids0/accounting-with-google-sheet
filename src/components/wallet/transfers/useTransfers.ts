@@ -5,7 +5,13 @@ import { useTransferAccounts } from './useTransferAccounts'
 import { useDataRefresh } from '../../../hooks/useDataRefresh'
 import { useWorkspaceType } from '../../../hooks/useWorkspaceType'
 import { getSettings, isConfigured } from '../../../services/settings'
-import { deleteTransfer, fetchTransfers, type Transfer } from '../../../services/transfers'
+import {
+  deleteTransfer,
+  fetchTransferLegInfos,
+  fetchTransfers,
+  type Transfer,
+  type TransferLegInfo
+} from '../../../services/transfers'
 import { requireAuth } from '../../../utils/authGuard'
 import { confirmDelete } from '../../../utils/confirmDelete'
 import { handleSheetError } from '../../../utils/sheetError'
@@ -16,6 +22,8 @@ export function useTransfers() {
   const personal = useWorkspaceType() === 'personal'
   const accounts = useTransferAccounts(personal)
   const [transfers, setTransfers] = useState<Transfer[]>([])
+  // Which balance moves each transfer has; empty until read (then nothing is claimed about any).
+  const [legs, setLegs] = useState<Map<string, TransferLegInfo>>(new Map())
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const revision = useDataRefresh()
@@ -26,7 +34,10 @@ export function useTransfers() {
     if (!spreadsheetId || !personal) return setLoading(false)
 
     try {
-      setTransfers(await fetchTransfers(spreadsheetId))
+      const list = await fetchTransfers(spreadsheetId)
+
+      setTransfers(list)
+      setLegs(await fetchTransferLegInfos(spreadsheetId, list))
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در بارگذاری انتقال‌ها' })
     } finally {
@@ -44,7 +55,9 @@ export function useTransfers() {
 
       if (!spreadsheetId || !requireAuth()) return
 
-      const confirmed = await confirmDelete(transferDeleteQuestion(transfer, accounts))
+      const confirmed = await confirmDelete(
+        transferDeleteQuestion(transfer, accounts, legs.get(transfer.id))
+      )
 
       if (!confirmed) return
 
@@ -59,8 +72,8 @@ export function useTransfers() {
         setDeletingId(null)
       }
     },
-    [accounts, reload]
+    [accounts, legs, reload]
   )
 
-  return { transfers, accounts, loading, deletingId, reload, remove }
+  return { transfers, legs, accounts, loading, deletingId, reload, remove }
 }

@@ -5,6 +5,7 @@ import DashboardGoalCongratsCard from './DashboardGoalCongratsCard'
 import DashboardGuideCard from './DashboardGuideCard'
 import DashboardHero from './DashboardHero'
 import DashboardPeriodRow from './DashboardPeriodRow'
+import DashboardQuickActions from './DashboardQuickActions'
 import DashboardRecentBlock from './DashboardRecentBlock'
 import DashboardRecurringCard from './DashboardRecurringCard'
 import DashboardUpcomingBlock from './DashboardUpcomingBlock'
@@ -36,6 +37,7 @@ export interface DashboardNavigation {
   onOpenFilter: () => void
   onConfigureNetAvailable: () => void
   onViewDueDates: () => void
+  onOpenForecast: () => void
   onViewRecords: () => void
   onOpenCharts: () => void
   onViewBreakdown: () => void
@@ -104,14 +106,18 @@ export default function DashboardContent({
           totalExpense={data.totalExpense}
           periodNoun={period.noun}
           asOfLabel={asOfEndLabel(data.financial.walletAsOf)}
+          unquotedAssets={data.financial.treasuryUnquoted}
           onConfigure={nav.onConfigureNetAvailable}
           previousMonth={period.kind === 'month' ? data.previousMonth : undefined}
         />
+
+        <DashboardQuickActions />
 
         <DashboardUpcomingBlock
           className={dashboardCellClass.upcoming}
           items={upcomingReminders}
           onViewAll={nav.onViewDueDates}
+          onOpenForecast={nav.onOpenForecast}
         />
 
         <DashboardRecentBlock

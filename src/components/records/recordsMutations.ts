@@ -3,9 +3,14 @@ import { logRecordActivity } from '../../services/activityLog'
 import { readBridgePrefs } from '../../services/bridgePrefs'
 import { isBuildingExpenseValues } from '../../services/buildingExpenseSplit'
 import { refreshOpeningBalancesInBackground } from '../../services/openingBalanceRefresh'
+import {
+  clearRecordDeletePending,
+  markRecordDeletePending
+} from '../../services/pendingRecordDeletes'
 import { syncLinkedOnRecordDeleted, syncLinkedOnRecordUpdated } from '../../services/recordLinks'
 import {
   applyWalletChanges,
+  prepareWalletChanges,
   recordLedgerContext,
   walletEffectOf
 } from '../../services/recordWallet'
@@ -37,12 +42,15 @@ export async function submitRecordEdit({
   editingForm,
   formValues: marked,
   vehicleExpense,
+  revertOf,
   onSuccess
 }: {
   editingRecord: StoredRecord
   editingForm: CustomForm
   formValues: Record<string, string | number>
   vehicleExpense?: VehicleExpenseFormValues & { note?: string }
+  /** The edit is the «بازگردانی» of this activity-log row: it logs «بازگردانی شد», not «ویرایش». */
+  revertOf?: string
   onSuccess: () => Promise<void>
 }): Promise<boolean> {
   if (!isConfigured() || !requireAuth()) return false
@@ -124,6 +132,8 @@ export async function submitRecordEdit({
       }
     }
 
+    // An edit after an interrupted delete is the user's newer decision: the record stays.
+    clearRecordDeletePending(settings.spreadsheetId, editingRecord.id)
     await applyWalletChanges(
       settings.spreadsheetId,
       walletEffectOf(editingForm.type, editingRecord.values),
@@ -137,7 +147,14 @@ export async function submitRecordEdit({
       formValues
     ).catch(() => showError('تغییر ذخیره شد ولی سهم واحدها یا بدهی به‌روز نشد'))
     await syncBridgedEdit(editingForm, editingRecord.id, formValues)
-    logRecordActivity(settings.spreadsheetId, 'update', editingRecord.id, formValues)
+    logRecordActivity(
+      settings.spreadsheetId,
+      revertOf ? 'revert' : 'update',
+      editingRecord.id,
+      formValues,
+      revertOf ? { reverted: 'update' } : undefined,
+      { form: editingForm, before: editingRecord.values, revertOf }
+    )
     if (choice) {
       const was = editingRecord.values[SHARED_LINK_FIELD_ID] ?? ''
 
@@ -150,7 +167,7 @@ export async function submitRecordEdit({
         was
       )
     }
-    showSuccess('تراکنش ویرایش شد')
+    showSuccess(revertOf ? 'ویرایش بازگردانده شد' : 'تراکنش ویرایش شد')
     // A debt or receivable payment linked to this record follows its new amount and date.
     await syncLinkedOnRecordUpdated(
       settings.spreadsheetId,
@@ -173,34 +190,70 @@ export async function submitRecordEdit({
 /**
  * The sheet write behind an undoable delete. `record` must carry its current
  * row and tab. Throws on failure so the undo hook can report it and restore.
+ *
+ * Safe to run again for the same record after an interruption (reload, killed app): each step
+ * checks whether it is already done, so a retry finishes the missing parts only. The order makes
+ * every interrupted state recoverable:
+ *  0. a «delete confirmed» marker is stored first (`pendingRecordDeletes`); the start-up
+ *     `finishInterruptedRecordDeletes` completes every delete whose marker survived a reload;
+ *  1. every network read first, nothing written yet (a kill here changes nothing);
+ *  2. the refund (balance + «حذف» history line), skipped on a retry once its line exists;
+ *  3. the row delete, skipped when the row is gone. A deleted row therefore always has its refund,
+ *     and while the row is still listed the user (or a retry) can delete it again;
+ *  4. the payments linked to the record (instalment, check, debt…). These re-read the sheet, so
+ *     they are the only long step. If it is cut short, `healOrphanedRecordLinks` finishes it at
+ *     the next start.
  */
 export async function deleteStoredRecord({
   spreadsheetId,
   record,
   form,
-  sharedAnswer = 'one'
+  sharedAnswer = 'one',
+  leaving = false
 }: {
   spreadsheetId: string
   record: StoredRecord
   form: CustomForm
   /** A linked record: its shared copy goes too, or stays unlinked (`SharedDeleteChoiceSheet`). */
   sharedAnswer?: 'both' | 'one'
+  /** The app is being closed or hidden: no balance re-read, so the writes start at once. */
+  leaving?: boolean
 }): Promise<void> {
   const category = String(record.values.category ?? '')
 
-  if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
-    await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
-  }
+  // The user's confirmation, kept until the row is gone. Written before the first await, so a
+  // reload at any later point leaves it for `finishInterruptedRecordDeletes` at the next start.
+  markRecordDeletePending(spreadsheetId, record.id)
 
-  await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName)
-  logRecordActivity(spreadsheetId, 'delete', record.id, record.values)
-  if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
-  await applyWalletChanges(
-    spreadsheetId,
-    walletEffectOf(form.type, record.values),
-    null,
-    recordLedgerContext(record.values, 'حذف', record.id)
-  )
+  let removed: boolean
+
+  try {
+    const refund = await prepareWalletChanges(
+      spreadsheetId,
+      walletEffectOf(form.type, record.values),
+      null,
+      recordLedgerContext(record.values, 'حذف', record.id),
+      { refresh: !leaving }
+    )
+
+    if (form.type === 'expense' && isVehicleExpenseCategory(category)) {
+      await handleExpenseRecordDeleted(spreadsheetId, record.id, category)
+    }
+
+    await refund()
+
+    removed = await deleteRecord(spreadsheetId, form, record.rowNumber, record.sheetName, record.id)
+  } catch (err) {
+    // A failure the user is told about is not an interruption: no silent delete at the next start.
+    clearRecordDeletePending(spreadsheetId, record.id)
+    throw err
+  }
+  clearRecordDeletePending(spreadsheetId, record.id)
+
+  if (removed) {
+    logRecordActivity(spreadsheetId, 'delete', record.id, record.values, undefined, { form })
+    if (isLinked(record.values)) linkSharedDelete(spreadsheetId, form.type, record, sharedAnswer)
+  }
   // The delete is committed: payments of a debt or receivable that pointed at the record go with it.
   await syncLinkedOnRecordDeleted(spreadsheetId, record.id, form.type)
   if (form.type === 'expense' && isBuildingExpenseValues(record.values)) {

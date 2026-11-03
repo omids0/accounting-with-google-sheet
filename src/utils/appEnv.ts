@@ -20,4 +20,8 @@ export const IS_DEV_ENV = IS_DEV_BUILD || import.meta.env.DEV
 export const APP_NAME = IS_DEV_ENV ? 'حساب کتاب (dev)' : 'حساب کتاب'
 
 /** The version shown to people; logic that compares versions keeps using the raw one. */
-export const APP_VERSION_LABEL = IS_DEV_ENV ? `${version}-dev` : version
+const BUILD_NUMBER = import.meta.env.VITE_BUILD_NUMBER?.trim()
+
+export const APP_VERSION_LABEL = IS_DEV_ENV
+  ? `${version}-dev${BUILD_NUMBER ? `.${BUILD_NUMBER}` : ''}`
+  : version

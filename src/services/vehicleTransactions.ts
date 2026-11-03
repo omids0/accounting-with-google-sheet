@@ -8,6 +8,7 @@ import type { MonthlyFuelStats, VehicleTransactionItem } from '../types/vehicles
 import { getJalaliMonthKey } from '../utils/dateRange'
 import { parseNumeric } from '../utils/parseNumeric'
 import { isFuelExpenseType } from '../utils/vehicleExpenseUtils'
+import { computeFuelEfficiencyL100km } from '../utils/vehicleFuelEfficiency'
 
 const KIND_LABELS: Record<string, string> = {
   periodic: 'سرویس دوره‌ای',
@@ -33,10 +34,31 @@ export async function fetchVehicleTransactions(
   ])
 
   const expenseById = new Map(expenseRecords.map(record => [record.id, record]))
-  const linkedFromMeta = new Set(metaItems.map(item => item.expenseRecordId))
   const transactions: VehicleTransactionItem[] = []
+  // One expense record is one payment, however many rows point at it: a service done through
+  // «ثبت انجام سرویس» is written to the history AND the periodic-service row with the same id,
+  // a manual expense can renew a service, a mechanic visit has its history line. First row wins.
+  const counted = new Set<string>()
+  const claim = (expenseRecordId: string): boolean => {
+    if (counted.has(expenseRecordId)) return false
+    counted.add(expenseRecordId)
+
+    return true
+  }
+  // A row whose expense is no longer in the records (it was deleted) moves no money any more.
+  // Not checked while the expense form is not loaded.
+  const isGone = (expenseRecordId: string): boolean =>
+    expenseForm !== undefined && !expenseById.has(expenseRecordId)
+  // The record is what the books say; the copy kept on the service row can be older.
+  const amountOf = (expenseRecordId: string, kept: number): number => {
+    const record = expenseById.get(expenseRecordId)
+
+    return Math.max(0, record ? parseNumeric(record.values.amount) : kept)
+  }
 
   for (const meta of metaItems) {
+    if (meta.expenseRecordId && !claim(meta.expenseRecordId)) continue
+
     const record = expenseById.get(meta.expenseRecordId)
 
     transactions.push({
@@ -55,50 +77,46 @@ export async function fetchVehicleTransactions(
   }
 
   for (const item of history) {
-    if (!item.expenseRecordId || linkedFromMeta.has(item.expenseRecordId)) continue
+    if (!item.expenseRecordId || isGone(item.expenseRecordId) || !claim(item.expenseRecordId)) {
+      continue
+    }
 
     transactions.push({
       id: item.id,
       source: 'history',
       date: item.date,
       title: item.details || KIND_LABELS[item.recordKind] || 'هزینه خودرو',
-      amount: item.amount,
+      amount: amountOf(item.expenseRecordId, item.amount),
       expenseRecordId: item.expenseRecordId,
       mileage: item.mileage
     })
   }
 
   for (const item of periodics) {
-    if (!item.expenseRecordId || item.amount <= 0 || linkedFromMeta.has(item.expenseRecordId)) {
-      continue
-    }
+    if (!item.expenseRecordId || item.amount <= 0 || isGone(item.expenseRecordId)) continue
+    if (!claim(item.expenseRecordId)) continue
 
     transactions.push({
       id: item.id,
       source: 'periodic',
       date: item.createdAt.split(',')[0] ?? '',
       title: `سرویس دوره‌ای — ${item.serviceType}`,
-      amount: item.amount,
+      amount: amountOf(item.expenseRecordId, item.amount),
       expenseRecordId: item.expenseRecordId,
       mileage: item.currentMileage
     })
   }
 
   for (const visit of mechanicVisits) {
-    if (
-      !visit.expenseRecordId ||
-      visit.totalAmount <= 0 ||
-      linkedFromMeta.has(visit.expenseRecordId)
-    ) {
-      continue
-    }
+    if (!visit.expenseRecordId || visit.totalAmount <= 0 || isGone(visit.expenseRecordId)) continue
+    if (!claim(visit.expenseRecordId)) continue
 
     transactions.push({
       id: visit.id,
       source: 'mechanic',
       date: visit.date,
       title: 'مراجعه مکانیکی',
-      amount: visit.totalAmount,
+      amount: amountOf(visit.expenseRecordId, visit.totalAmount),
       expenseRecordId: visit.expenseRecordId,
       mileage: visit.mileage
     })
@@ -107,9 +125,9 @@ export async function fetchVehicleTransactions(
   return sortByDateDesc(transactions)
 }
 
-export function buildMonthlyFuelStats(
+function groupFuelByMonth(
   fuelTransactions: VehicleTransactionItem[]
-): MonthlyFuelStats[] {
+): Map<string, VehicleTransactionItem[]> {
   const byMonth = new Map<string, VehicleTransactionItem[]>()
 
   for (const item of fuelTransactions) {
@@ -123,15 +141,47 @@ export function buildMonthlyFuelStats(
     byMonth.set(monthKey, bucket)
   }
 
+  return byMonth
+}
+
+/** Each month measures from the highest odometer reading of the months before it. */
+function buildEfficiencyByMonth(
+  fuelTransactions: VehicleTransactionItem[]
+): Map<string, number | null> {
+  const byMonth = groupFuelByMonth(fuelTransactions)
+  const efficiency = new Map<string, number | null>()
+  let previousMileage: number | null = null
+
+  for (const monthKey of [...byMonth.keys()].sort()) {
+    const fills = byMonth.get(monthKey) ?? []
+    const monthTop = Math.max(0, ...fills.map(fill => fill.mileage ?? 0))
+
+    efficiency.set(monthKey, computeFuelEfficiencyL100km(fills, previousMileage))
+
+    if (monthTop > 0) previousMileage = Math.max(previousMileage ?? 0, monthTop)
+  }
+
+  return efficiency
+}
+
+/**
+ * `allFuelTransactions` is the unfiltered list: the consumption of a month needs the readings
+ * of the month before it even when a filter hides them from the cards.
+ */
+export function buildMonthlyFuelStats(
+  fuelTransactions: VehicleTransactionItem[],
+  allFuelTransactions: VehicleTransactionItem[] = fuelTransactions
+): MonthlyFuelStats[] {
+  const byMonth = groupFuelByMonth(fuelTransactions)
+  const efficiencyByMonth = buildEfficiencyByMonth(allFuelTransactions)
   const stats: MonthlyFuelStats[] = []
 
   for (const [monthKey, items] of byMonth) {
-    const sorted = [...items].sort((a, b) => (a.mileage ?? 0) - (b.mileage ?? 0))
     const priceMap = new Map<number, { liters: number; amount: number }>()
     let totalLiters = 0
     let totalAmount = 0
 
-    for (const item of sorted) {
+    for (const item of items) {
       const liters = item.fuelLiters ?? 0
       const amount = item.amount
       const price = item.fuelPricePerLiter ?? 0
@@ -149,17 +199,6 @@ export function buildMonthlyFuelStats(
       }
     }
 
-    let efficiencyL100km: number | null = null
-    const mileages = sorted.map(item => item.mileage ?? 0).filter(value => value > 0)
-
-    if (mileages.length >= 2) {
-      const distance = mileages[mileages.length - 1] - mileages[0]
-
-      if (distance > 0) {
-        efficiencyL100km = (totalLiters / distance) * 100
-      }
-    }
-
     stats.push({
       monthKey,
       totalLiters,
@@ -167,7 +206,7 @@ export function buildMonthlyFuelStats(
       byPrice: [...priceMap.entries()]
         .map(([price, values]) => ({ price, ...values }))
         .sort((a, b) => a.price - b.price),
-      efficiencyL100km,
+      efficiencyL100km: efficiencyByMonth.get(monthKey) ?? null,
       entries: [...items]
         .sort((a, b) => b.date.localeCompare(a.date))
         .map(item => ({

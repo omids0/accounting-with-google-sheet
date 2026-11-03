@@ -46,6 +46,7 @@ type ControlProps = {
   type?: string
   invalid?: boolean
   'aria-invalid'?: boolean
+  'aria-required'?: boolean
   'aria-describedby'?: string
 }
 
@@ -75,7 +76,8 @@ function enhanceControl(
   child: ReactNode,
   controlId: string,
   invalid: boolean,
-  describedBy?: string
+  describedBy?: string,
+  required = false
 ): ReactNode {
   if (!isValidElement(child)) {
     return child
@@ -96,6 +98,11 @@ function enhanceControl(
 
   if (describedBy) {
     patch['aria-describedby'] = describedBy
+  }
+
+  // The red * is aria-hidden, so the control itself says it is required.
+  if (required && (isNativeTextControl(element) || element.type === AmountInput)) {
+    patch['aria-required'] = true
   }
 
   if (isNativeTextControl(element)) {
@@ -176,7 +183,7 @@ export default function FormField({
   const invalid = Boolean(error)
   const describedBy = error ? errorId : undefined
   const controlChild = resolveControlChild(children)
-  const control = enhanceControl(controlChild, controlId, invalid, describedBy)
+  const control = enhanceControl(controlChild, controlId, invalid, describedBy, required)
   const controlShellClass = resolveControlWidthClass(controlChild, controlWidth)
   const shellRef = useRef<HTMLDivElement>(null)
 
@@ -212,7 +219,7 @@ export default function FormField({
   return (
     <div className={cn(formFieldClass, className)} style={style}>
       {label && (
-        <label className={formLabelClass} htmlFor={controlId}>
+        <label className={formLabelClass} htmlFor={controlId} id={`${controlId}-label`}>
           <span>{label}</span>
           {required && (
             <span className="text-danger" aria-hidden="true">
@@ -229,9 +236,8 @@ export default function FormField({
         <p id={errorId} className={formErrorClass} role="alert">
           {error}
         </p>
-      ) : hint ? (
-        <div className={formHintClass}>{hint}</div>
       ) : null}
+      {hint ? <div className={formHintClass}>{hint}</div> : null}
     </div>
   )
 }
