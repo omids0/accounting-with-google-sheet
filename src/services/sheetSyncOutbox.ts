@@ -1,3 +1,4 @@
+import { notifyRejectedWrite } from './failedWriteNotice'
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { withOutboxLock } from './outboxLock'
 import { RowEditConflictError } from './rowConflict'
@@ -166,7 +167,10 @@ async function flushPass(
         if (reverted) invalidateDerivedCaches(spreadsheetId)
         refreshPendingCount(spreadsheetId)
         refreshFailedCount(spreadsheetId)
-        setSyncState('error', `یک تغییر اعمال نشد: ${toUserMessage(err, 'خطای نامشخص')}`)
+        const reason = toUserMessage(err, 'خطای نامشخص')
+
+        setSyncState('error', `یک تغییر اعمال نشد: ${reason}`)
+        notifyRejectedWrite(entry.operation, reason, reverted)
         continue
       }
 
