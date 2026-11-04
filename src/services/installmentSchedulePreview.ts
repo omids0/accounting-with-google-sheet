@@ -32,7 +32,8 @@ export function installmentSchedulePreview(
 
 /**
  * The toast for a new plan whose due dates all miss the list's period, so it would otherwise
- * look like nothing was saved. Null when it shows in the list (or has no dates).
+ * look like nothing was saved. Null when it shows in the list (or has no dates). The page
+ * widens its period to the plan right after (`installmentDueSpan`), which the toast says.
  */
 export function installmentHiddenPlanMessage(
   dueDates: string[],
@@ -45,5 +46,25 @@ export function installmentHiddenPlanMessage(
 
   const first = dates.reduce((min, date) => (date < min ? date : min))
 
-  return `طرح ساخته شد؛ اولین قسط ${formatIsoDatePersian(first)} است و در بازهٔ فعلی دیده نمی‌شود`
+  return `طرح ساخته شد؛ اولین قسط ${formatIsoDatePersian(
+    first
+  )} است و بازهٔ فهرست برای نشان دادنش باز شد`
+}
+
+/** First to last due date of these plans, or null when none has a due date. */
+export function installmentDueSpan(plans: { payments: { dueDate: string }[] }[]): DateRange | null {
+  let start = ''
+  let end = ''
+
+  for (const plan of plans) {
+    for (const payment of plan.payments) {
+      const date = payment.dueDate.slice(0, 10)
+
+      if (!date) continue
+      if (!start || date < start) start = date
+      if (!end || date > end) end = date
+    }
+  }
+
+  return start ? { start, end } : null
 }

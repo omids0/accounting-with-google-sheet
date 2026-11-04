@@ -10,13 +10,15 @@ type UseInstallmentMutationsParams = {
   setPlans: React.Dispatch<React.SetStateAction<PlanWithRow[]>>
   loadPlans: () => Promise<void>
   activeRangeRef?: MutableRefObject<DateRange | null>
+  revealPlanRef?: MutableRefObject<((planId: string) => void) | null>
 }
 
 export function useInstallmentMutations({
   plans,
   setPlans,
   loadPlans,
-  activeRangeRef
+  activeRangeRef,
+  revealPlanRef
 }: UseInstallmentMutationsParams) {
   const payments = useInstallmentPaymentActions({ setPlans, plans })
 
@@ -24,6 +26,7 @@ export function useInstallmentMutations({
     plans,
     loadPlans,
     activeRangeRef,
+    revealPlanRef,
     setExpandedId: payments.setExpandedId
   })
 

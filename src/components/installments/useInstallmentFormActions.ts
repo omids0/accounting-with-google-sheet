@@ -31,13 +31,16 @@ type UseInstallmentFormActionsParams = {
   setExpandedId: React.Dispatch<React.SetStateAction<string | null>>
   /** The list's active period, kept by the page (the filters are built after this hook). */
   activeRangeRef?: MutableRefObject<DateRange | null>
+  /** Set by the page once its filters exist: widens the period to a plan just saved. */
+  revealPlanRef?: MutableRefObject<((planId: string) => void) | null>
 }
 
 export function useInstallmentFormActions({
   plans,
   loadPlans,
   setExpandedId,
-  activeRangeRef
+  activeRangeRef,
+  revealPlanRef
 }: UseInstallmentFormActionsParams) {
   const [showForm, setShowForm] = useState(false)
 
@@ -121,6 +124,7 @@ export function useInstallmentFormActions({
         }
         await updateInstallmentPlan(settings.spreadsheetId, editingPlan.rowNumber, reconciled)
         await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, editingPlan.id)
+        revealPlanRef?.current?.(editingPlan.id)
         showSuccess('قسط ویرایش شد')
       } else {
         const created = await createInstallmentPlan(settings.spreadsheetId, {
@@ -135,6 +139,7 @@ export function useInstallmentFormActions({
         })
 
         await attachments.commit(settings.spreadsheetId, INSTALLMENTS_SHEET, created.id)
+        revealPlanRef?.current?.(created.id)
         showSuccess(
           installmentHiddenPlanMessage(
             created.payments.map(payment => payment.dueDate),
