@@ -11,6 +11,7 @@ import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
+import { resetForeignSheetGuard } from './foreignSheetGuard'
 import { GOAL_CONGRATS_STORAGE_KEY } from './goalCongrats'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
@@ -58,6 +59,8 @@ const ACCOUNT_KEYS = [
   GOAL_CONGRATS_STORAGE_KEY,
   // Budget alert gate (budgetDigest.ts), named here to keep that module out of this chunk.
   'accounting_budget_alerts_v1',
+  // The children a parent follows read-only (childrenRegistry.ts), named here to keep that module out.
+  'accounting_children_v1',
   // «دسته‌های پیشنهادی» offer dismissal (categoryDefaults.ts), named here for the same reason.
   'accounting_category_defaults_offer_v1',
   // «پرتکرار» pins/hides (entryTemplates.ts), named here to keep that module out of this chunk.
@@ -205,6 +208,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   // Signed out: the home-screen widget falls back to «باز کن».
   void sendWidgetSnapshot()
   clearSpreadsheetPrepareSession()
+  // Sheets that passed the Drive ownership check belong to the old account's session.
+  resetForeignSheetGuard()
   clearAppLockSessionState()
   clearAllEntryDrafts()
   clearDataKey()

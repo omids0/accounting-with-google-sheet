@@ -23,7 +23,7 @@ import {
   stripRow
 } from './recurringSheet'
 import { appendRecord } from './sheets'
-import { isSharedWorkspace } from './workspace'
+import { isChildWorkspace, isSharedWorkspace } from './workspace'
 import { isNonFundPayer } from '../components/form/buildingFields'
 import type { AppSettings, CustomForm, RecurringItem } from '../types'
 import { getJalaliMonthKey } from '../utils/dateRange'
@@ -124,7 +124,8 @@ export async function postReminderItems(
   options: ReminderPostOptions = {}
 ): Promise<number> {
   // Nothing is automatic in a shared account (spec non-goals): its records need a payer and split.
-  if (isSharedWorkspace(settings.spreadsheetId)) return 0
+  if (isSharedWorkspace(settings.spreadsheetId) || isChildWorkspace(settings.spreadsheetId))
+    return 0
 
   return runSerial(recurringLockKey(settings.spreadsheetId), () =>
     postReminderLocked(settings, items, checkedIds, todayIso, options)
@@ -206,7 +207,9 @@ export interface AutoPosted {
  */
 export async function runAutoPost(settings: AppSettings, todayIso: string): Promise<AutoPosted[]> {
   // No recurring posts in a shared account (spec non-goals): a post would have no payer or split.
-  if (isSharedWorkspace(settings.spreadsheetId)) return []
+  // Nor in a child's account: a parent only reads it, so nothing may be posted there.
+  if (isSharedWorkspace(settings.spreadsheetId) || isChildWorkspace(settings.spreadsheetId))
+    return []
 
   const local = dueAutoItems(
     (await fetchRecurringItems(settings.spreadsheetId)).map(stripRow),

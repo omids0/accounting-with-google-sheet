@@ -15,6 +15,7 @@ import { useLaunchAction } from '../../hooks/useLaunchAction'
 import { useIsDesktop, useIsTablet } from '../../hooks/useMediaQuery'
 import { useWorkspaceType } from '../../hooks/useWorkspaceType'
 import { installSelectionHaptics } from '../../utils/haptics'
+import BankSmsQuickMount from '../bankSms/BankSmsQuickMount'
 import { useBuildingChargeMaintenance } from '../buildings/useBuildingChargeMaintenance'
 import { useClaimInvite } from '../buildings/useClaimInvite'
 import PageSpeedDial from '../PageSpeedDial'
@@ -69,7 +70,8 @@ export default function Layout() {
   const workspace = useWorkspaceType()
   const isBuilding = workspace === 'building'
   useBuildingChargeMaintenance(isBuilding)
-  useClaimInvite(workspace !== 'personal')
+  // Only a building or a shared account has members to claim an invite in; a child's does not.
+  useClaimInvite(workspace === 'building' || workspace === 'shared')
   const isDesktop = useIsDesktop()
   const isTablet = useIsTablet()
   const [toolbar, setToolbar] = useState<HTMLElement | null>(null)
@@ -147,6 +149,7 @@ export default function Layout() {
                 tab={tab}
                 onTabChange={handleTabChange}
                 shared={workspace === 'shared'}
+                child={workspace === 'child'}
               />
             )}
 
@@ -159,6 +162,7 @@ export default function Layout() {
           </div>
         </HeaderSlotsContext.Provider>
       </div>
+      <BankSmsQuickMount />
       <BusyOverlay />
     </div>
   )

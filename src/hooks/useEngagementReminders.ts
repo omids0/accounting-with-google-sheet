@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { isTokenValid } from '../services/auth'
 import { getSettings } from '../services/settings'
+import { isChildWorkspace } from '../services/workspace'
 
 const TOKEN_WAIT_MS = 60_000
 
@@ -28,6 +29,8 @@ export function useEngagementReminders(): void {
     const spreadsheetId = getSettings()?.spreadsheetId
 
     if (!spreadsheetId) return
+    // A child's account on a parent's device is read-only: no reminders, auto-posts or backups.
+    if (isChildWorkspace(spreadsheetId)) return
 
     void (async () => {
       try {

@@ -1,6 +1,11 @@
 import type { SpreadsheetEntry } from '../types'
-import { listAccountingSpreadsheetsFromDrive, type DriveSpreadsheetFile } from './drive'
+import {
+  isForeignReadOnlyFile,
+  listAccountingSpreadsheetsFromDrive,
+  type DriveSpreadsheetFile
+} from './drive'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
+import { isMemberSpreadsheetTitle } from './spreadsheetCatalog'
 
 function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
   return {
@@ -13,6 +18,10 @@ function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
 /**
  * Merges the sheets Drive reports with the ones this device already knows. Under
  * drive.file, Drive lists only sheets the app created or the user picked with it.
+ * A personal-looking sheet someone else owns and this user can only read (a child's account shared
+ * with a parent) is never added here: without the device-local child registry it would pass for
+ * the user's own books. It stays listed only when this device registered it. A building or shared
+ * account titled sheet is added even as a reader (board, viewer).
  */
 export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
   const settings = getSettings() ?? getDefaultSettings()
@@ -29,8 +38,14 @@ export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
     // device registered.
     const known = merged.get(file.id)
 
+    // A building or shared-account title is kept: its readers (board, viewer) are legitimate, and
+    // opening it checks the sheet's own marker row (assertCanOpenAsOwnSheet).
+    if (!known && isForeignReadOnlyFile(file) && !isMemberSpreadsheetTitle(file.name)) continue
+
     merged.set(file.id, {
       ...driveFileToEntry(file),
+      // A child's name is the one the parent gave it, not the child's own sheet title.
+      ...(known?.kind === 'child' ? { name: known.name } : {}),
       ...(known?.kind ? { kind: known.kind } : {}),
       ...(known?.active === false ? { active: false } : {})
     })

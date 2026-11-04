@@ -91,3 +91,20 @@ export const SHARED_ACCOUNT_SHEETS: readonly string[] = [
   RECURRING_SHEET,
   ACTIVITY_LOG_SHEET
 ]
+
+/**
+ * The tabs a parent's read-only view of a child's account («فرزندان من») downloads, besides the
+ * two record forms (income, expense): period settings (month anchor), categories, budgets, the
+ * opening balances and the wallet with its ledger. The leak guard: NEVER the push keys
+ * (`PUSH_SUBS_SHEET`), the app lock, the reminders (`REMINDERS_SHEET`, `PERSONAL_REMINDERS_SHEET`,
+ * `REMINDER_LOG_SHEET`), the activity tabs (`ACTIVITY_SHEET`, `ACTIVITY_LOG_SHEET`), the SMS
+ * templates or any other module tab. Add a tab here only when a parent page reads it.
+ */
+export const CHILD_VIEW_SHEETS: readonly string[] = [
+  PERIOD_SETTINGS_SHEET,
+  CATEGORIES_SHEET,
+  BUDGETS_SHEET,
+  MONTHLY_BALANCE_SHEET,
+  WALLET_SHEET,
+  WALLET_LEDGER_SHEET
+]

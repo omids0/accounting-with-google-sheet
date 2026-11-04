@@ -4,10 +4,26 @@ import { isAccountingSpreadsheetTitle } from './spreadsheetCatalog'
 
 export const DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
 
+export type DriveFileAccess = Pick<DriveSpreadsheetFile, 'ownedByMe' | 'capabilities'>
+
 export interface DriveSpreadsheetFile {
   id: string
   name: string
   modifiedTime: string
+  /** False for a file another user shares with this one. Missing = not reported (treated as owned). */
+  ownedByMe?: boolean
+  capabilities?: { canEdit?: boolean }
+}
+
+/**
+ * A file someone else owns and this user cannot edit: a child's account shared with a parent as
+ * reader. It is never one of the user's own books, so it must not be registered or offered as one
+ * just because its title says «حسابداری». Only a file Drive explicitly reports as both is one.
+ */
+export function isForeignReadOnlyFile(
+  file: DriveFileAccess & Partial<DriveSpreadsheetFile>
+): boolean {
+  return file.ownedByMe === false && file.capabilities?.canEdit === false
 }
 
 export async function driveRequest<T>(url: string): Promise<T> {
@@ -26,12 +42,23 @@ export async function driveRequest<T>(url: string): Promise<T> {
   return res.json() as Promise<T>
 }
 
+/** Who owns one file and whether this user can edit it (`files.get`): the check before a sheet is opened. */
+export function getDriveFileAccess(fileId: string): Promise<DriveFileAccess> {
+  const fields = encodeURIComponent('ownedByMe,capabilities/canEdit')
+
+  return driveRequest(
+    `${DRIVE_API}/${encodeURIComponent(fileId)}?fields=${fields}&supportsAllDrives=true`
+  )
+}
+
 export async function listAccountingSpreadsheetsFromDrive(): Promise<DriveSpreadsheetFile[]> {
   const query = encodeURIComponent(
     "mimeType='application/vnd.google-apps.spreadsheet' and trashed=false and name contains 'حسابداری'"
   )
 
-  const fields = encodeURIComponent('files(id,name,modifiedTime),nextPageToken')
+  const fields = encodeURIComponent(
+    'files(id,name,modifiedTime,ownedByMe,capabilities/canEdit),nextPageToken'
+  )
 
   const results: DriveSpreadsheetFile[] = []
 

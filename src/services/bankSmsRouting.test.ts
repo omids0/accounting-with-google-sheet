@@ -13,9 +13,11 @@ import {
   smsForActiveWorkspace,
   subscribeWorkspaceCards,
   walletRowsToCardSources,
+  WORKSPACE_CARDS_KEY,
   type RoutingWorkspace
 } from './bankSmsRouting'
 import { getDefaultSettings, saveSettings } from './settings'
+import { setItem } from './storage'
 import { setWorkspaceType } from './workspace'
 
 const personal: RoutingWorkspace = { id: 'personal', cards: ['6037997512345678'] }
@@ -163,6 +165,52 @@ describe('the card cache', () => {
       { title: 'ملت', cardNumber: '6104337812343210', accountNumber: '0101234567001', iban: '' },
       { title: '', cardNumber: '', accountNumber: '', iban: '' }
     ])
+  })
+})
+
+describe('a child account on a parent device', () => {
+  const account = {
+    title: 'کارت فرزند',
+    cardNumber: '6104337812343210',
+    accountNumber: '',
+    iban: ''
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'personal-1',
+      spreadsheets: [
+        { id: 'personal-1', name: 'a', createdAt: '' },
+        { id: 'child-1', name: 'فرزند', createdAt: '', kind: 'child' }
+      ]
+    })
+  })
+
+  it('never caches the child wallet cards', () => {
+    rememberWorkspaceCards('child-1', [account])
+
+    expect(routedCardAccounts('child-1')).toEqual([])
+  })
+
+  it('is no routing workspace, so a card it names stays in the parent queue', () => {
+    expect(routingWorkspaces().map(item => item.id)).toEqual(['personal-1'])
+    expect(smsForActiveWorkspace([fundDeposit])).toEqual([fundDeposit])
+  })
+
+  it('is left out even when stale cards of it were cached and while it is open', () => {
+    setItem(WORKSPACE_CARDS_KEY, { 'child-1': [{ title: 'x', cards: ['6104337812343210'] }] })
+    expect(routingWorkspaces().map(item => item.id)).toEqual(['personal-1'])
+
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'child-1',
+      spreadsheets: [{ id: 'child-1', name: 'فرزند', createdAt: '', kind: 'child' }]
+    })
+    expect(routingWorkspaces()).toEqual([])
+    // A child's account has no SMS queue.
+    expect(smsForActiveWorkspace([fundDeposit, personalWithdrawal])).toEqual([])
   })
 })
 

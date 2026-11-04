@@ -66,6 +66,21 @@ export const buildingTileValueClass = 'font-bold tabular-nums'
 export const buildingChipClass =
   'rounded-full border border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-2 py-0.5 text-sm font-bold text-[var(--color-warning)]'
 
+const chipBaseClass = 'rounded-full border px-2 py-0.5 text-sm font-bold'
+
+/** Status chips: «فعال» is green, «دسترسی قطع شد» red, «فقط‌خواندنی» / «تأییدنشده» neutral. */
+export const buildingChipToneClass = {
+  success: cn(
+    chipBaseClass,
+    'border-[var(--color-success-border)] bg-[var(--color-success-bg)] text-[var(--color-success)]'
+  ),
+  danger: cn(
+    chipBaseClass,
+    'border-[var(--color-danger-border)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]'
+  ),
+  neutral: cn(chipBaseClass, 'border-border bg-surface text-text')
+}
+
 export const checklistRowClass = 'flex items-center gap-2 text-sm text-text'
 
 /*

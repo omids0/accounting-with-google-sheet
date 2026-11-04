@@ -1,4 +1,5 @@
 import AppIcon from '../AppIcon'
+import { CHILD_BOTTOM_NAV_TABS, CHILD_NAV_LINKS } from './childTabs'
 import { PRIMARY_NAV_ICONS } from './navIcons'
 import { SHARED_BOTTOM_NAV_TABS, SHARED_NAV_LINKS } from './sharedTabs'
 import TabNavLink from './TabNavLink'
@@ -24,6 +25,8 @@ interface LayoutBottomNavProps {
   onTabChange: (tab: Tab) => void
   /** The shared account's bar: its four tabs side by side, no raised dashboard button. */
   shared?: boolean
+  /** A child's account (parent's read-only view): its three tabs, same shape. */
+  child?: boolean
 }
 
 /** Links are not `:enabled`, so the shared press feedback is restated for them. */
@@ -31,9 +34,12 @@ const bottomNavLinkPressClass = 'active:scale-[0.94] motion-reduce:active:scale-
 
 const sharedBottomNavClass = cn(bottomNavClass, 'grid-cols-1')
 
-const SHARED_NAV_ICONS: Partial<Record<Tab, AppIconName>> = Object.fromEntries(
-  SHARED_NAV_LINKS.map(link => [link.tab, link.icon])
-)
+const iconsOf = (links: { tab: Tab; icon: AppIconName }[]): Partial<Record<Tab, AppIconName>> =>
+  Object.fromEntries(links.map(link => [link.tab, link.icon]))
+
+const SHARED_NAV_ICONS = iconsOf(SHARED_NAV_LINKS)
+
+const CHILD_NAV_ICONS = iconsOf(CHILD_NAV_LINKS)
 
 interface BottomNavSideProps {
   tabs: Tab[]
@@ -80,17 +86,18 @@ export default function LayoutBottomNav({
   showSettings,
   tab,
   onTabChange,
-  shared
+  shared,
+  child
 }: LayoutBottomNavProps) {
-  if (shared) {
+  if (shared || child) {
     return (
       <nav className={sharedBottomNavClass} aria-label="ناوبری اصلی">
         <BottomNavSide
-          tabs={SHARED_BOTTOM_NAV_TABS}
+          tabs={child ? CHILD_BOTTOM_NAV_TABS : SHARED_BOTTOM_NAV_TABS}
           showSettings={showSettings}
           tab={tab}
           onTabChange={onTabChange}
-          icons={SHARED_NAV_ICONS}
+          icons={child ? CHILD_NAV_ICONS : SHARED_NAV_ICONS}
         />
       </nav>
     )

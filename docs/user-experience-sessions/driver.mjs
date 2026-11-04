@@ -85,6 +85,7 @@ if (backend) {
   sheetsMock = createSheetsMock(sheets, Object.keys(seed.sheets))
   await installSheetsMock(page, sheetsMock)
 }
+if (args['launch-url']) await page.addInitScript(u => localStorage.setItem('__qaLaunchUrl', u), String(args['launch-url']))
 if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(resolve(args.sms), 'utf8')))
 if (!backend) await seedMockAppState(page)
 if (sheets && !backend) await seedSheetStore(page, sheets)
@@ -263,8 +264,16 @@ async function installAndroidSmsBridge(pg, items) {
     ].map(name => ({ name, rtype: 'promise' }))
 
     window.Capacitor = {
-      PluginHeaders: [{ name: 'BankSms', methods }],
+      PluginHeaders: [
+        { name: 'BankSms', methods },
+        { name: 'App', methods: ['getLaunchUrl', 'addListener', 'removeListener'].map(name => ({ name, rtype: 'promise' })) }
+      ],
       nativePromise: async (plugin, method, options) => {
+        // Launch URL (notification action): --launch-url, or set localStorage.__qaLaunchUrl then reload.
+        if (plugin === 'App') {
+          const url = localStorage.getItem('__qaLaunchUrl')
+          return method === 'getLaunchUrl' && url ? { url } : {}
+        }
         if (plugin !== 'BankSms') return {}
         if (method === 'checkPermissions' || method === 'requestPermissions')
           return { sms: 'granted' }

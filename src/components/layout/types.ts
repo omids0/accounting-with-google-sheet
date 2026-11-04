@@ -1,9 +1,11 @@
+import { CHILD_TAB_TITLES, type ChildTab } from './childTabs'
 import { SHARED_SPEED_DIAL_TABS, SHARED_TAB_TITLES, type SharedTab } from './sharedTabs'
 
 export type Tab =
   /** A URL no page answers to: no tab is highlighted and no speed dial shows. */
   | 'not-found'
   | SharedTab
+  | ChildTab
   | 'dashboard'
   | 'charts'
   | 'entry'
@@ -228,7 +230,8 @@ export const TAB_TITLES: Record<Tab, string> = {
   'building-settings': 'تنظیمات ساختمان',
   'building-members': 'اعضا و دسترسی‌ها',
   'building-lists': 'فهرست‌ها',
-  ...SHARED_TAB_TITLES
+  ...SHARED_TAB_TITLES,
+  ...CHILD_TAB_TITLES
 }
 
 /** Pages of a building workspace; the personal workspace redirects them to its dashboard. */
@@ -271,9 +274,8 @@ export const BUILDING_SETTINGS_TABS: Tab[] = [
 /**
  * Personal pages a building does not have (installments, treasury, vehicles, timesheets, …) or
  * replaces with its own (dashboard, wallet → fund, dang, checks, counterparties, SMS); a building
- * workspace redirects them to its dashboard. «buildings-home» is not listed: a building reaches
- * it from the drawer's building switcher. Shared pages (entry, records, reports, about,
- * search, activity, calculators) are not listed.
+ * redirects them to its dashboard. «buildings-home» (a building reaches it from the drawer's
+ * switcher) and the shared pages (entry, records, reports, about, search, calculators) are not listed.
  */
 export const PERSONAL_ONLY_TABS: Tab[] = [
   'dashboard',

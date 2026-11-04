@@ -13,7 +13,7 @@ export const NOT_A_BUILDING_MESSAGE = 'این شیت ساختمان نیست'
  */
 export function registerConnectedSheet(
   spreadsheetId: string,
-  type: 'building' | 'shared',
+  type: 'building' | 'shared' | 'child',
   title: string
 ): void {
   setWorkspaceType(spreadsheetId, type)

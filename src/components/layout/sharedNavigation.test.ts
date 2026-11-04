@@ -89,7 +89,8 @@ describe('shared workspace redirect', () => {
     expect(WORKSPACE_HOME).toEqual({
       personal: 'dashboard',
       building: 'building-dashboard',
-      shared: 'shared-home'
+      shared: 'shared-home',
+      child: 'child-home'
     })
   })
 })

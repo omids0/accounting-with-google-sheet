@@ -1,4 +1,5 @@
 import { BUILDING_TAB_PATHS, buildingUnitPath, isBuildingUnitPath } from './buildingPaths'
+import { CHILD_TAB_PATHS } from './childPaths'
 import { SHARED_TAB_PATHS } from './sharedPaths'
 import type { Tab } from '../components/layout/types'
 import type { ModuleReportKind } from '../components/reports/ModuleReportPage'
@@ -86,7 +87,8 @@ const EXACT_TAB_PATHS: Partial<Record<Tab, string>> = {
   timesheets: '/timesheets',
   activity: '/settings/activity',
   ...BUILDING_TAB_PATHS,
-  ...SHARED_TAB_PATHS
+  ...SHARED_TAB_PATHS,
+  ...CHILD_TAB_PATHS
 }
 
 const PATH_TO_TAB = Object.fromEntries(

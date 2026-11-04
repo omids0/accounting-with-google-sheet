@@ -9,7 +9,7 @@ import { fetchWalletAccounts } from '../../services/wallet'
 import { isSharedWorkspace } from '../../services/workspace'
 import type { CustomForm } from '../../types'
 import { formatPersianNumber } from '../../utils/formatMoney'
-import { formatIsoDatePersian } from '../../utils/jalaliDate'
+import { formatIsoDatePersian, isRealIsoDate } from '../../utils/jalaliDate'
 import { JALALI_WEEKDAYS, saturdayFirstColumn } from '../../utils/jalaliMonthGrid'
 import { parseNumeric } from '../../utils/parseNumeric'
 import { sharedWriterRows } from '../../utils/sharedWriterRows'
@@ -68,7 +68,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function dateWithWeekday(iso: string): string {
   const day = iso.slice(0, 10)
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return formatIsoDatePersian(iso)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isRealIsoDate(day)) return formatIsoDatePersian(iso)
 
   return `${JALALI_WEEKDAYS[saturdayFirstColumn(day)].name}، ${formatIsoDatePersian(day)}`
 }
@@ -157,13 +157,13 @@ export default function RecordDetailFields({
             <WriterAvatar email={writerRows.edited.email} withName="plain" always />
           </Row>
         </>
-      ) : (
-        <Row label="ثبت‌کننده">
+      ) : record.createdAt || (shared && record.writer) ? (
+        <Row label={shared && record.writer ? 'ثبت‌کننده' : 'زمان ثبت'}>
           {shared && record.writer ? <WriterAvatar email={record.writer} withName="plain" /> : null}
           {shared && record.writer && record.createdAt ? ' · ' : null}
-          {record.createdAt || (!record.writer ? '—' : null)}
+          {record.createdAt ? <bdi dir="ltr">{record.createdAt}</bdi> : null}
         </Row>
-      )}
+      ) : null}
     </dl>
   )
 }

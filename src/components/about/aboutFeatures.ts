@@ -1,6 +1,7 @@
 import { ABOUT_BUILDING_FEATURE_GROUP } from './aboutFeatureGroupsBuilding'
 import { ABOUT_FEATURE_GROUPS_CORE } from './aboutFeatureGroupsCore'
 import { ABOUT_FEATURE_GROUPS_EXTENDED } from './aboutFeatureGroupsExtended'
+import { ABOUT_PARENTS_GROUP } from './aboutFeatureGroupsParents'
 import { ABOUT_PLATFORM_GROUP } from './aboutFeatureGroupsPlatform'
 import { ABOUT_SHARED_GROUP } from './aboutFeatureGroupsShared'
 import { ABOUT_SHARED_ACCOUNT_GROUP } from './aboutFeatureGroupsSharedAccount'
@@ -15,6 +16,7 @@ export const ABOUT_FEATURE_GROUPS: AboutFeatureGroup[] = [
   ...ABOUT_FEATURE_GROUPS_TOOLS,
   ABOUT_SHARED_GROUP,
   ABOUT_SHARED_ACCOUNT_GROUP,
+  ABOUT_PARENTS_GROUP,
   ABOUT_PLATFORM_GROUP,
   ABOUT_VEHICLE_FEATURE_GROUP
 ]

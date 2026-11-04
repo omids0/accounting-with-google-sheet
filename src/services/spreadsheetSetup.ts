@@ -1,5 +1,7 @@
 import type { SpreadsheetEntry } from '../types'
 import { getAllSheetSpecs } from './allSheetSpecs'
+import { isChildReadOnly } from './childReadOnly'
+import { assertCanOpenAsOwnSheet } from './foreignSheetGuard'
 import { waitForSessionSync } from './sessionSync'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import { clearSharedAccessLost, markSharedAccessLost } from './sharedAccessLost'
@@ -24,7 +26,7 @@ import {
   markPreparedRecently,
   takeFreshlyCreated
 } from './spreadsheetPreparedSession'
-import { getWorkspaceType, resolveWorkspaceType } from './workspace'
+import { getWorkspaceType, isChildEntry, isChildWorkspace, resolveWorkspaceType } from './workspace'
 import { getJalaliParts } from '../utils/jalaliDate'
 
 export { getAllSheetSpecs, syncSpreadsheetsFromDrive }
@@ -107,11 +109,17 @@ export async function resolveSpreadsheetSession(): Promise<SpreadsheetSessionSta
         createdAt: ''
       }
     )
-    // The shared account's card and `/shared` read this too (a no-op for any other sheet kind).
-    if (getWorkspaceType(activeId) === 'shared') markSharedAccessLost(activeId)
+    // The shared account's card, `/shared` and a parent's child list read this too (a no-op for
+    // any other sheet kind).
+    if (getWorkspaceType(activeId) === 'shared' || isChildWorkspace(activeId)) {
+      markSharedAccessLost(activeId)
+    }
   }
 
-  const options = (await syncSpreadsheetsFromDrive()).filter(sheet => sheet.id !== activeId)
+  // A child's account is a parent's read-only view, never a sheet to continue the user's own books in.
+  const options = (await syncSpreadsheetsFromDrive()).filter(
+    sheet => sheet.id !== activeId && !isChildEntry(sheet)
+  )
 
   if (options.length > 0) {
     return { status: 'need_selection', options }
@@ -126,6 +134,9 @@ async function finalizeSpreadsheetActivation(spreadsheetId: string, name: string
 
   // A spreadsheet this app just created has every tab and header already. The records are kept
   // for each spreadsheet, so going back to one opened earlier does not check it all again.
+  // A child's account (a parent's read-only view) is never touched: no tabs, headers or seeding.
+  if (isChildReadOnly(spreadsheetId)) return spreadsheetId
+
   const fresh = takeFreshlyCreated(spreadsheetId)
 
   if (fresh || isSessionPrepared(spreadsheetId)) {
@@ -175,6 +186,9 @@ export async function activateSpreadsheet(
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
       throw new SpreadsheetNoAccessError()
     }
+    // Before anything is registered or written: a child's sheet (someone else's, read-only) never
+    // becomes the user's own books through the picker or the list.
+    await assertCanOpenAsOwnSheet(spreadsheetId, listed)
 
     // Known before the switch, so the first frame of the new sheet has its own menu and pages.
     await resolveWorkspaceType(spreadsheetId)
@@ -244,6 +258,8 @@ export async function repairMissingSheets(
   spreadsheetId: string,
   sheetNames: string[]
 ): Promise<void> {
+  if (isChildReadOnly(spreadsheetId)) return
+
   const specs = getAllSheetSpecs(spreadsheetId).filter(spec => sheetNames.includes(spec.sheetName))
 
   if (!specs.length) return

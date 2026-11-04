@@ -120,3 +120,22 @@ describe('personal and building recurring stay as they were', () => {
     expect(io.reads).toContain(RECURRING_SHEET)
   })
 })
+
+describe('no recurring posts in a child account (a parent only reads it)', () => {
+  it('auto-post returns at once, without reading or writing', async () => {
+    setWorkspaceType('CH1', 'child')
+
+    expect(await runAutoPost(settingsOf('CH1'), '2026-10-25')).toEqual([])
+    expect(io.reads).toEqual([])
+    expect(io.writes).toEqual([])
+  })
+
+  it('the reminder card posts nothing', async () => {
+    setWorkspaceType('CH2', 'child')
+
+    expect(await postReminderItems(settingsOf('CH2'), [ITEM], new Set(['r1']), '2026-10-25')).toBe(
+      0
+    )
+    expect(io.writes).toEqual([])
+  })
+})

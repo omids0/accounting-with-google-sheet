@@ -24,6 +24,11 @@ export function useIsSharedWorkspace(): boolean {
   return useWorkspaceType() === 'shared'
 }
 
+/** A parent looking at a child's account: read-only, no write controls (childReadOnly.ts). */
+export function useIsChildWorkspace(): boolean {
+  return useWorkspaceType() === 'child'
+}
+
 /** Like `useWorkspaceType`, but `unknown` while the active sheet's type is still being read. */
 export function useWorkspaceResolution(): WorkspaceType | 'unknown' {
   useAppStore(state => state.spreadsheetKey)

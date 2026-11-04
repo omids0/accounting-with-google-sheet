@@ -5,12 +5,14 @@ import type { Tab } from '../components/layout/types'
  * What the app was opened for from outside: a home-screen shortcut, the share
  * sheet, or a native notification. Web shortcuts and the share target open the
  * start URL with a query (`?action=expense`, `?share=1&text=…`); the APK opens
- * `com.omids0.accounting://entry?action=…` or `://bank-sms` (shortcuts.xml,
- * BankSmsNotifier.OPEN_URL, NightlyDigest.ENTRY_URL).
+ * `com.omids0.accounting://entry?action=…`, `://bank-sms` or `://bank-sms/quick?id=…`
+ * (shortcuts.xml, BankSmsNotifier.OPEN_URL / QUICK_URL_PREFIX, NightlyDigest.ENTRY_URL).
  */
 export type LaunchAction =
   | { kind: 'entry'; formType?: 'income' | 'expense' }
   | { kind: 'sms' }
+  /** The notification's «ثبت سریع»: one pending SMS (its id) in a sheet over the current page. */
+  | { kind: 'smsQuick'; id: string }
   | { kind: 'share'; text: string }
   /** The home-screen widget's body (`…://dashboard`). */
   | { kind: 'dashboard' }
@@ -20,6 +22,9 @@ const QUERY_ACTIONS = new Map<string, LaunchAction>([
   ['income', { kind: 'entry', formType: 'income' }],
   ['sms', { kind: 'sms' }]
 ])
+
+/** The native queue's SMS id (a SHA-256 hex digest, or a short hex fallback). */
+const SMS_ID = /^[0-9a-f]{1,64}$/i
 
 /** `null` when the URL asks for nothing (or for something unknown). */
 export function parseLaunchUrl(url: string | null | undefined): LaunchAction | null {
@@ -37,6 +42,12 @@ export function parseLaunchUrl(url: string | null | undefined): LaunchAction | n
   const action = QUERY_ACTIONS.get(params.get('action') ?? '')
 
   if (action) return action
+  // Before the generic one: an old app build only sends `://bank-sms`, which stays the page.
+  if (base.includes('://bank-sms/quick')) {
+    const id = params.get('id')?.trim() ?? ''
+
+    return SMS_ID.test(id) ? { kind: 'smsQuick', id } : { kind: 'sms' }
+  }
   if (base.includes('://bank-sms')) return { kind: 'sms' }
   if (base.includes('://entry')) return { kind: 'entry' }
   if (base.includes('://dashboard')) return { kind: 'dashboard' }
@@ -74,4 +85,17 @@ export function readSharedSmsText(state: unknown): string {
   const text = (state as Record<string, unknown> | null)?.[SHARED_SMS_STATE_KEY]
 
   return typeof text === 'string' ? text.trim() : ''
+}
+
+/**
+ * While a parent is inside a child's account, a notification or shortcut is about the parent's
+ * OWN account (the bank SMS and the entry form belong to it), so nothing opens: the app says why
+ * and how to get back. `null` outside the child view.
+ */
+export function childLaunchNotice(action: LaunchAction, workspace: WorkspaceType): string | null {
+  if (workspace !== 'child') return null
+
+  return action.kind === 'sms' || action.kind === 'smsQuick' || action.kind === 'share'
+    ? 'پیامک مال حساب خودتان است؛ «بازگشت به حساب خودم» را بزنید'
+    : 'این میان‌بر مال حساب خودتان است؛ «بازگشت به حساب خودم» را بزنید'
 }
