@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 import type { DisplayPlanItem, PlanWithRow } from './types'
+import { useInstallmentPlanReveal } from './useInstallmentPlanReveal'
 import { useListSort, type SortDirection } from '../../hooks/useListSort'
 import { useMineFilter } from '../../hooks/useMineFilter'
 import {
@@ -29,6 +30,7 @@ import {
   INSTALLMENT_SORT_OPTIONS,
   type InstallmentSortId
 } from '../../utils/installmentSort'
+import type { DateRange } from '../../utils/jalaliDate'
 import { matchSearch } from '../../utils/search'
 import { distributionSparkline } from '../../utils/sparklineData'
 import { createDefaultDateRangeFilter } from '../DateRangeFilter'
@@ -77,25 +79,19 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     return formatDateRangeLabel(effectiveRange)
   }, [effectiveRange])
 
-  useEffect(() => {
-    const plan = highlightId ? plans.find(item => item.id === highlightId) : undefined
-
-    if (!plan || isInstallmentPlanVisible(plan, effectiveRange)) return
-
-    const dues = plan.payments
-      .map(payment => payment.dueDate.slice(0, 10))
-      .filter(Boolean)
-      .sort()
-
-    if (!dues.length) return
-
-    const range = { start: dues[0], end: dues[dues.length - 1] }
-
+  const showRange = useCallback((range: DateRange) => {
     setDatePreset('custom')
     setCustomRange(range)
     setDraftDatePreset('custom')
     setDraftCustomRange(range)
-  }, [highlightId, plans, effectiveRange])
+  }, [])
+
+  const { revealPlan, hiddenPlanCount, showAllPlans } = useInstallmentPlanReveal(
+    plans,
+    effectiveRange,
+    highlightId,
+    showRange
+  )
 
   const compare = useCallback(
     (a: PlanWithRow, b: PlanWithRow, sortId: InstallmentSortId, direction: SortDirection) =>
@@ -251,6 +247,9 @@ export function useInstallmentsFilters(plans: PlanWithRow[], highlightId?: strin
     setDraftCustomRange,
     monthLabel,
     effectiveRange,
+    revealPlan,
+    hiddenPlanCount,
+    showAllPlans,
     monthTotals,
     monthPlans,
     filteredPlans,

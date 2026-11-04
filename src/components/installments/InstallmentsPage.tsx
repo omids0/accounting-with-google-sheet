@@ -21,6 +21,7 @@ import PageFilterPanel from '../PageFilterPanel'
 import SettleFlowModals from '../settle/SettleFlowModals'
 import StatCard from '../StatCard'
 import InstallmentFormModal from './InstallmentFormModal'
+import InstallmentHiddenNotice from './InstallmentHiddenNotice'
 import InstallmentsList from './InstallmentsList'
 import type { InstallmentsPageProps } from './types'
 import { useInstallmentMutations } from './useInstallmentMutations'
@@ -35,11 +36,14 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
 
   const activeRangeRef = useRef<DateRange | null>(null)
 
+  const revealPlanRef = useRef<((planId: string) => void) | null>(null)
+
   const mutations = useInstallmentMutations({
     plans: allPlans,
     setPlans,
     loadPlans,
-    activeRangeRef
+    activeRangeRef,
+    revealPlanRef
   })
   const plans = mutations.visiblePlans
 
@@ -47,6 +51,7 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
   const filters = useInstallmentsFilters(plans, highlightId)
 
   activeRangeRef.current = filters.effectiveRange
+  revealPlanRef.current = filters.revealPlan
 
   const { handleExport, handleExportPdf, handleImport, importExportConfirmModal } =
     useSheetImportExport({
@@ -127,6 +132,10 @@ export default function InstallmentsPage({ active = true }: InstallmentsPageProp
           <ListSortSection {...filters.sortSectionProps} />
         </PageFilterPanel>
       </FilterModal>
+
+      {!loading && filters.hiddenPlanCount > 0 && (
+        <InstallmentHiddenNotice count={filters.hiddenPlanCount} onShowAll={filters.showAllPlans} />
+      )}
 
       <InstallmentsList
         plans={plans}
