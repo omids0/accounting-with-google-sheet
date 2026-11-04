@@ -8,10 +8,17 @@ const io = vi.hoisted(() => ({
   settings: [] as string[][]
 }))
 
+const markerFailures = vi.hoisted(() => ({ count: 0, calls: 0 }))
+
 vi.mock('./auth', () => ({ getUserEmail: () => io.email }))
 vi.mock('./spreadsheetStore', () => ({ getSheetDataRows: () => io.rows }))
 vi.mock('./periodSettings', () => ({
   setPeriodSetting: vi.fn(async (_id: string, key: string, value: string) => {
+    markerFailures.calls += 1
+    if (markerFailures.count > 0) {
+      markerFailures.count -= 1
+      throw new Error('write failed')
+    }
     io.settings.push([key, value])
   })
 }))
@@ -50,6 +57,8 @@ beforeEach(() => {
   io.drive = []
   io.shared = []
   io.settings = []
+  markerFailures.count = 0
+  markerFailures.calls = 0
   setItem(STORAGE_KEYS.SETTINGS, {
     spreadsheetId: 'P1',
     spreadsheets: [{ id: 'P1', name: 'من', createdAt: '' }],
@@ -99,6 +108,26 @@ describe('parent marker rows', () => {
     expect(activeParents(list)).toHaveLength(1)
   })
 
+  it('lists a Drive reader that has no marker row (a lost write) as active, since null', async () => {
+    io.rows = [[`${PARENT_ROW_PREFIX}mom@x.com`, '2026-11-03']]
+    io.drive = ['mom@x.com', 'uncle@x.com', 'uncle@x.com']
+
+    const list = await listParents('P1')
+
+    expect(list.map(parent => [parent.email, parent.status, parent.since])).toEqual([
+      ['mom@x.com', 'active', '2026-11-03'],
+      ['uncle@x.com', 'active', null]
+    ])
+  })
+
+  it('lists a reader with no marker row at all, and nothing extra when Drive cannot be asked', async () => {
+    io.drive = ['uncle@x.com']
+    expect((await listParents('P1')).map(parent => parent.email)).toEqual(['uncle@x.com'])
+
+    io.drive = null
+    expect(await listParents('P1')).toEqual([])
+  })
+
   it('exposes no function that removes a parent', () => {
     expect(
       Object.keys(parentAccess).filter(name => /remove|revoke|delete|unshare/i.test(name))
@@ -113,7 +142,37 @@ describe('grantParentAccess', () => {
     expect(io.shared).toHaveLength(1)
     expect(io.shared[0]).toMatchObject({ email: 'mom@x.com', role: 'reader' })
     expect(io.shared[0].message).toContain('سارا')
+    expect(io.shared[0].message).toContain('باز کردن شیت با گوگل')
     expect(io.settings).toEqual([[`${PARENT_ROW_PREFIX}mom@x.com`, expect.any(String)]])
+  })
+
+  it('retries a failed marker write and still reports granted when it keeps failing', async () => {
+    vi.useFakeTimers()
+    markerFailures.count = 99
+
+    const pending = grantParentAccess('mom@x.com')
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(await pending).toBe('granted')
+    expect(io.shared).toHaveLength(1)
+    expect(markerFailures.calls).toBe(3)
+
+    // the share is real: Drive lists the reader even though the row was lost
+    io.drive = ['mom@x.com']
+    expect((await listParents('P1')).map(parent => parent.email)).toEqual(['mom@x.com'])
+    vi.useRealTimers()
+  })
+
+  it('writes the marker on the second try after one failure', async () => {
+    vi.useFakeTimers()
+    markerFailures.count = 1
+
+    const pending = grantParentAccess('mom@x.com')
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(await pending).toBe('granted')
+    expect(io.settings).toEqual([[`${PARENT_ROW_PREFIX}mom@x.com`, expect.any(String)]])
+    vi.useRealTimers()
   })
 
   it('rejects a bad e-mail and the own e-mail without sharing', async () => {
@@ -166,6 +225,8 @@ describe('parent invite', () => {
     expect(text).toContain('https://app.example/acc/?parent=mom%40x.com')
     expect(text).toContain('https://app.example/apk')
     expect(text).toContain('والدین من')
+    expect(text).toContain('باز کردن شیت با گوگل')
+    expect(text).toContain('فرزندان من')
     expect(buildParentInviteText('mom@x.com', '')).not.toContain('http')
   })
 })

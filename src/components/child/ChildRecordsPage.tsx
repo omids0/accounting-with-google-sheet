@@ -5,6 +5,7 @@ import ChildMonthBar from './ChildMonthBar'
 import ChildPageFrame from './ChildPageFrame'
 import ChildRecordDetail from './ChildRecordDetail'
 import ChildRecordRow from './ChildRecordRow'
+import ChildUndatedNote from './ChildUndatedNote'
 import {
   categoryOptions,
   entriesNet,
@@ -14,8 +15,9 @@ import {
 } from './childViewModel'
 import { useChildMonth } from './useChildMonth'
 import { useChildRecords } from './useChildRecords'
-import { CHILD_CATEGORY_PARAM } from '../../routes/childPaths'
+import { parseChildRecordsParams } from '../../routes/childPaths'
 import { isConfigured } from '../../services/settings'
+import { roundMoney } from '../../utils/roundMoney'
 import FilterChipBar from '../buildings/FilterChipBar'
 import EmptyState from '../EmptyState'
 import { Select } from '../form'
@@ -33,19 +35,29 @@ type KindChoice = ChildKind | 'all'
 
 const ALL_CATEGORIES = ''
 
+/** «خالص» (income minus expense) is not a balance: the wallet card holds the balance. */
+const FOOTER_LABELS: Record<KindChoice, string> = {
+  all: 'خالص این فهرست',
+  expense: 'جمع هزینهٔ این فهرست',
+  income: 'جمع درآمد این فهرست'
+}
+
 /**
  * «تراکنش‌ها» of a child's account (a parent's read-only view): the records of one month (or all
  * of them) with a search box, a category filter and an income / expense filter. `?category=` opens
- * it on one category (the summary's and the category page's rows link here). A tap opens the
- * record's read-only details.
+ * it on one category (the summary's and the category page's rows link here), with `&month=` and
+ * `&kind=` when the card showed one month of one kind, so the list adds up to the card's number.
+ * A tap opens the record's read-only details.
  */
 export default function ChildRecordsPage() {
   const { entries, forms, loading, loadFailed, reload } = useChildRecords()
-  const month = useChildMonth()
   const [params] = useSearchParams()
-  const [scope, setScope] = useState<Scope>(params.get(CHILD_CATEGORY_PARAM) ? 'all' : 'month')
-  const [kind, setKind] = useState<KindChoice>('all')
-  const [category, setCategory] = useState(params.get(CHILD_CATEGORY_PARAM) ?? ALL_CATEGORIES)
+  const link = parseChildRecordsParams(params)
+  const month = useChildMonth(link.month ?? undefined)
+  // A category link without a month (an old link) lists every month; with one, that month.
+  const [scope, setScope] = useState<Scope>(link.category && !link.month ? 'all' : 'month')
+  const [kind, setKind] = useState<KindChoice>(link.kind ?? 'all')
+  const [category, setCategory] = useState(link.category || ALL_CATEGORIES)
   const [query, setQuery] = useState('')
   const [opened, setOpened] = useState<ChildEntry | null>(null)
 
@@ -62,7 +74,11 @@ export default function ChildRecordsPage() {
 
   const categories = useMemo(() => categoryOptions(entries), [entries])
 
-  const total = useMemo(() => entriesNet(shown), [shown])
+  // One kind chosen: its plain sum (the card's number); both kinds: income minus expense.
+  const total = useMemo(
+    () => (kind === 'expense' ? roundMoney(-entriesNet(shown)) : entriesNet(shown)),
+    [shown, kind]
+  )
 
   if (!isConfigured()) return <EmptyState icon="records" message="ابتدا با گوگل وارد شوید" />
 
@@ -121,9 +137,9 @@ export default function ChildRecordsPage() {
                 ))}
               </div>
               <p className={`${sharedMutedClass} mt-2 flex items-center justify-between gap-2`}>
-                <span>مانده این فهرست</span>
+                <span>{FOOTER_LABELS[kind]}</span>
                 <b className="numeric text-text">
-                  <MoneyText amount={total} signed />
+                  <MoneyText amount={total} signed={kind === 'all'} />
                 </b>
               </p>
             </Card>
@@ -133,6 +149,7 @@ export default function ChildRecordsPage() {
             <EmptyState icon="empty-inbox" message="هنوز تراکنشی ثبت نشده" />
           )}
 
+          <ChildUndatedNote entries={entries} />
           <ChildRecordDetail entry={opened} forms={forms} onClose={() => setOpened(null)} />
         </>
       )}

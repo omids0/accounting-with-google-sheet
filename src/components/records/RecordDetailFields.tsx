@@ -158,10 +158,10 @@ export default function RecordDetailFields({
           </Row>
         </>
       ) : record.createdAt || (shared && record.writer) ? (
-        <Row label="ثبت‌کننده">
+        <Row label={shared && record.writer ? 'ثبت‌کننده' : 'زمان ثبت'}>
           {shared && record.writer ? <WriterAvatar email={record.writer} withName="plain" /> : null}
           {shared && record.writer && record.createdAt ? ' · ' : null}
-          {record.createdAt}
+          {record.createdAt ? <bdi dir="ltr">{record.createdAt}</bdi> : null}
         </Row>
       ) : null}
     </dl>

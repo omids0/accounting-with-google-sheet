@@ -1,3 +1,4 @@
+import { isPositiveFinite } from './bankSmsAmount'
 import { SMS_RECORD_NOTE } from './bankSmsNote'
 import {
   findSplitTarget,
@@ -20,8 +21,7 @@ import { toIsoDate } from '../utils/jalaliDate'
 import { roundMoney } from '../utils/roundMoney'
 
 export type { LedgerEntry } from './recordDuplicates'
-export { LINKED_PAYMENT_DAYS }
-export type { LinkedPaymentInfo, LinkedRecords, SmsCoverage }
+export { LINKED_PAYMENT_DAYS, type LinkedPaymentInfo, type LinkedRecords, type SmsCoverage }
 export { reviewSms } from './bankSmsReview'
 export {
   initialCardAccount,
@@ -82,7 +82,7 @@ export const TRANSFER_WINDOW_MS = 10 * 60 * 1000
 
 /** Matched to one account with an amount in app currency, so it can be written. */
 export function isConfirmable(entry: ReviewedSms): entry is ConfirmableSms {
-  return entry.result.kind === 'matched' && entry.amount !== null
+  return entry.result.kind === 'matched' && isPositiveFinite(entry.amount)
 }
 
 /** What a recognised SMS would be written as: its direction, amount and day. */

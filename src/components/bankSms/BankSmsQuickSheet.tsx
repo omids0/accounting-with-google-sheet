@@ -8,6 +8,7 @@ import { getBankSmsPrefs } from '../../services/bankSmsPrefs'
 import { smsRangeStart } from '../../services/bankSmsRange'
 import { quickSmsState } from '../../services/launchActionSmsQuick'
 import { useSmsQuickStore } from '../../stores/smsQuickStore'
+import { showInfo } from '../../utils/toast'
 import PickerSheet from '../form/PickerSheet'
 import Spinner from '../ui/Spinner'
 
@@ -55,10 +56,27 @@ export default function BankSmsQuickSheet({ id }: { id: string }) {
 
   useEffect(() => {
     if (view.state === 'fallback') {
+      // The queue was read and the SMS is not in it (another book): say why the page opens. A queue
+      // that never arrived (offline) is not «not in this book».
+      if (sawLoading && !review.loading && review.accountsLoaded)
+        showInfo(
+          review.items.some(item => item.key === id)
+            ? 'این پیامک را باید خودتان بررسی کنید'
+            : 'این پیامک در این دفتر نیست'
+        )
       close()
       navigate(getPathForTab('bank-sms'))
     }
-  }, [view.state, close, navigate])
+  }, [
+    view.state,
+    close,
+    navigate,
+    sawLoading,
+    review.loading,
+    review.accountsLoaded,
+    review.items,
+    id
+  ])
 
   // Saved, dismissed or recorded elsewhere. A «نادیده» waits out its undo toast first: closing the
   // sheet now would write it at once and take the toast's «بازگردانی» away.

@@ -6,6 +6,7 @@ import { getPathForTab } from '../routes/paths'
 import { isNativePlatform } from '../services/googleAuthNative'
 import {
   buildSharedSmsState,
+  childLaunchNotice,
   launchTarget,
   parseLaunchUrl,
   type LaunchAction
@@ -14,8 +15,18 @@ import { quickSmsIdFor } from '../services/launchActionSmsQuick'
 import { pushWidgetSnapshot } from '../services/widgetNative'
 import { getActiveWorkspaceType } from '../services/workspace'
 import { useSmsQuickStore } from '../stores/smsQuickStore'
+import { showInfo } from '../utils/toast'
 
 function openAction(navigate: NavigateFunction, action: LaunchAction): void {
+  // Inside a child's account nothing of the parent's own opens: say why instead of doing nothing.
+  const notice = childLaunchNotice(action, getActiveWorkspaceType())
+
+  if (notice) {
+    showInfo(notice)
+
+    return
+  }
+
   // The notification's «ثبت سریع» opens a sheet over the current page; where it cannot (a building
   // or shared account) it is the plain «پیامک‌های بانکی» page, like the notification itself.
   const quickId = quickSmsIdFor(action, getActiveWorkspaceType())

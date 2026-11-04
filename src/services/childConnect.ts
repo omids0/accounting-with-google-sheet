@@ -1,6 +1,7 @@
 import { getUserEmail } from './auth'
 import { addChild, getChild, type ChildRecord } from './childrenRegistry'
 import { getDriveFileAccess } from './drive'
+import { isPickerAvailable } from './googlePicker'
 import { getSpreadsheets } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
 import { batchFetchSheetRangesFromApi } from './sheetsRows'
@@ -24,6 +25,16 @@ export function childConnectNoAccessMessage(email: string | null | undefined): s
   const who = email?.trim() ? ` (${isolateLatin(email.trim())})` : ''
 
   return `به این شیت دسترسی ندارید؛ فرزندتان باید ابتدا شیت را با ایمیل همین حساب گوگل${who} به اشتراک بگذارد.`
+}
+
+/**
+ * Under the app's narrow Drive scope a sheet someone else shared is invisible (a 404, not a 403)
+ * until it is opened once through the Google Picker, which exists on the web only.
+ */
+export function childConnectNotOpenedMessage(pickerAvailable = isPickerAvailable()): string {
+  const how = pickerAvailable ? 'دکمهٔ' : 'در نسخهٔ وب اپ'
+
+  return `این شیت هنوز برای اپ باز نشده؛ ${how} «باز کردن شیت با گوگل» را بزنید و شیت را از «به اشتراک گذاشته‌شده با من» انتخاب کنید`
 }
 
 /**
@@ -74,9 +85,12 @@ export async function connectChildAccount(
   try {
     fetched = await batchFetchSheetRangesFromApi(spreadsheetId, [PERIOD_SETTINGS_SHEET])
   } catch (err) {
-    if (toUserMessage(err, '') === USER_MESSAGES.noAccess) {
+    const message = toUserMessage(err, '')
+
+    if (message === USER_MESSAGES.noAccess) {
       throw new Error(childConnectNoAccessMessage(getUserEmail()))
     }
+    if (message === USER_MESSAGES.notFound) throw new Error(childConnectNotOpenedMessage())
     throw err
   }
 

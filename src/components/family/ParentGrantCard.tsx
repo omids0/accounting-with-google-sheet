@@ -56,7 +56,7 @@ export default function ParentGrantCard({
             <li key={line}>{line}</li>
           ))}
         </ul>
-        <p className="m-0 text-sm font-bold text-text">والد نمی‌بیند و نمی‌تواند:</p>
+        <p className="m-0 text-sm font-bold text-text">والد نمی‌بیند و انجام نمی‌دهد:</p>
         <ul className={listClass}>
           {PARENT_DOES_NOT_SEE.map(line => (
             <li key={line}>{line}</li>

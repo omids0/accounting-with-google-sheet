@@ -89,7 +89,7 @@ export default function ChildCategoriesPage() {
                 tone={kind}
                 insights={insights}
                 shareChip
-                onOpen={name => navigate(childRecordsPath(name))}
+                onOpen={name => navigate(childRecordsPath(name, { month: month.month, kind }))}
               />
             ) : (
               <p className={sharedMutedClass}>در این ماه چیزی ثبت نشده.</p>

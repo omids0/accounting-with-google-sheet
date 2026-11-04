@@ -59,6 +59,8 @@ describe('what the parent sees', () => {
   it('lists what is and is not visible and admits the raw sheet', () => {
     expect(PARENT_SEES.length).toBeGreaterThan(2)
     expect(PARENT_DOES_NOT_SEE.join(' ')).toContain('پین')
+    expect(PARENT_DOES_NOT_SEE.join(' ')).not.toContain('نمی‌تواند')
+    expect(PARENT_DOES_NOT_SEE).toContain('هیچ چیز را تغییر یا حذف نمی‌کند؛ فقط می‌بیند')
     expect(PARENT_RAW_SHEET_NOTE).toContain('گوگل‌درایو')
     expect(PARENT_SEES.join(' ')).not.toContain('نه شمارهٔ کارت')
     expect(PARENT_DRIVE_WARNING).toContain('شمارهٔ کارت')

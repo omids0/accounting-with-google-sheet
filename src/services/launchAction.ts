@@ -86,3 +86,16 @@ export function readSharedSmsText(state: unknown): string {
 
   return typeof text === 'string' ? text.trim() : ''
 }
+
+/**
+ * While a parent is inside a child's account, a notification or shortcut is about the parent's
+ * OWN account (the bank SMS and the entry form belong to it), so nothing opens: the app says why
+ * and how to get back. `null` outside the child view.
+ */
+export function childLaunchNotice(action: LaunchAction, workspace: WorkspaceType): string | null {
+  if (workspace !== 'child') return null
+
+  return action.kind === 'sms' || action.kind === 'smsQuick' || action.kind === 'share'
+    ? 'پیامک مال حساب خودتان است؛ «بازگشت به حساب خودم» را بزنید'
+    : 'این میان‌بر مال حساب خودتان است؛ «بازگشت به حساب خودم» را بزنید'
+}

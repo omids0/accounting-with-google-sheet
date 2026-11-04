@@ -26,7 +26,7 @@ export const PARENT_SEES = [
 
 export const PARENT_DOES_NOT_SEE = [
   'رمز یا پین اپ و قفل برنامه',
-  'هیچ چیز را نمی‌تواند تغییر دهد یا حذف کند؛ فقط می‌بیند'
+  'هیچ چیز را تغییر یا حذف نمی‌کند؛ فقط می‌بیند'
 ]
 
 export const PARENT_RAW_SHEET_NOTE =

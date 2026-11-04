@@ -10,7 +10,7 @@ import {
 import { MENU_MORE_LINKS } from './navMenuGroups'
 import { SHARED_TABS } from './sharedTabs'
 import { BUILDING_TABS, PERSONAL_ONLY_TABS, TAB_TITLES } from './types'
-import { CHILD_TAB_PATHS, childRecordsPath } from '../../routes/childPaths'
+import { CHILD_TAB_PATHS, childRecordsPath, parseChildRecordsParams } from '../../routes/childPaths'
 import { getPathForTab, getTabFromPath, isKnownPath } from '../../routes/paths'
 import { WORKSPACE_HOME, workspaceRedirect } from '../../routes/workspaceRedirect'
 
@@ -33,6 +33,27 @@ describe('child workspace paths', () => {
   it('opens the record list on a category through a query', () => {
     expect(childRecordsPath()).toBe('/child/records')
     expect(childRecordsPath('خوراک')).toBe(`/child/records?category=${encodeURIComponent('خوراک')}`)
+  })
+
+  it('carries the card’s month and kind, and reads them back', () => {
+    const path = childRecordsPath('کارت به کارت', { month: '1405-08', kind: 'expense' })
+
+    expect(path).toContain('&month=1405-08&kind=expense')
+
+    const params = new URLSearchParams(path.slice(path.indexOf('?')))
+
+    expect(parseChildRecordsParams(params)).toEqual({
+      category: 'کارت به کارت',
+      month: '1405-08',
+      kind: 'expense'
+    })
+  })
+
+  it('ignores a malformed month or kind, and a link without a category has no query', () => {
+    expect(
+      parseChildRecordsParams(new URLSearchParams('category=x&month=1405-13&kind=transfer'))
+    ).toEqual({ category: 'x', month: null, kind: null })
+    expect(childRecordsPath(undefined, { month: '1405-08', kind: 'income' })).toBe('/child/records')
   })
 })
 

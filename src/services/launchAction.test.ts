@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildSharedSmsState,
+  childLaunchNotice,
   launchTarget,
   parseLaunchUrl,
   readSharedSmsText
@@ -75,5 +76,26 @@ describe('shared SMS router state', () => {
     expect(readSharedSmsText(buildSharedSmsState(' متن '))).toBe('متن')
     expect(readSharedSmsText(null)).toBe('')
     expect(readSharedSmsText({ sharedSms: 5 })).toBe('')
+  })
+})
+
+describe('childLaunchNotice (a notification tapped inside a child’s account)', () => {
+  it('explains that the SMS is the parent’s own and how to get back', () => {
+    for (const action of [
+      { kind: 'sms' },
+      { kind: 'smsQuick', id: 'ab12' },
+      { kind: 'share', text: 'x' }
+    ] as const) {
+      expect(childLaunchNotice(action, 'child')).toBe(
+        'پیامک مال حساب خودتان است؛ «بازگشت به حساب خودم» را بزنید'
+      )
+    }
+  })
+
+  it('also says something for a shortcut, and stays silent in every other workspace', () => {
+    expect(childLaunchNotice({ kind: 'entry' }, 'child')).toContain('میان‌بر')
+    expect(childLaunchNotice({ kind: 'sms' }, 'personal')).toBeNull()
+    expect(childLaunchNotice({ kind: 'sms' }, 'building')).toBeNull()
+    expect(childLaunchNotice({ kind: 'sms' }, 'shared')).toBeNull()
   })
 })

@@ -5,6 +5,7 @@ import ChildMonthBar from './ChildMonthBar'
 import ChildPageFrame from './ChildPageFrame'
 import ChildRecordDetail from './ChildRecordDetail'
 import ChildRecordRow from './ChildRecordRow'
+import ChildUndatedNote from './ChildUndatedNote'
 import {
   categoryBreakdown,
   inMonth,
@@ -34,7 +35,7 @@ const LATEST = 5
 
 /**
  * «خلاصه» of a child's account (a parent's read-only view): the month's income, spending and
- * balance with the month stepper, the biggest spending categories, the latest records and the
+ * net (income minus expense, not a balance: the wallet card holds that) with the month stepper, the biggest spending categories, the latest records and the
  * wallet. Every number is computed from the child's records on this device (`childViewModel`).
  */
 export default function ChildHomePage() {
@@ -71,7 +72,7 @@ export default function ChildHomePage() {
             <StatCard label="درآمد" amount={summary.income} variant="income" />
             <StatCard label="هزینه" amount={summary.expense} variant="expense" />
             <StatCard
-              label="مانده"
+              label="خالص این ماه"
               amount={summary.balance}
               variant="flow"
               flowDirection={netDirection(summary.balance)}
@@ -101,7 +102,11 @@ export default function ChildHomePage() {
                       items={top}
                       tone="expense"
                       shareChip
-                      onOpen={category => navigate(childRecordsPath(category))}
+                      onOpen={category =>
+                        navigate(
+                          childRecordsPath(category, { month: month.month, kind: 'expense' })
+                        )
+                      }
                     />
                   ) : (
                     <p className="m-0 py-2 text-[0.8rem] text-muted">در این ماه هزینه‌ای نیست.</p>
@@ -136,6 +141,7 @@ export default function ChildHomePage() {
             </>
           )}
 
+          <ChildUndatedNote entries={entries} />
           <ChildWalletCard />
           <ChildRecordDetail entry={opened} forms={forms} onClose={() => setOpened(null)} />
         </>

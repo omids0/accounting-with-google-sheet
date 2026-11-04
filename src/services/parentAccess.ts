@@ -18,11 +18,13 @@ import { getTodayIso } from '../utils/jalaliDate'
  * Public API:
  * - `grantParentAccess(parentEmail, options?)` -> `'granted' | 'invalid' | 'self' | 'exists'`;
  *   throws an Error with a Persian message when Drive refuses (`shareErrorMessage`) or the open
- *   sheet is not a personal one. Share first, marker row second: a refused share leaves no row.
+ *   sheet is not a personal one. Share first, marker row second (retried):
+ *   a refused share leaves no row, a lost marker write still shows the parent in `listParents`.
  * - `localParents(spreadsheetId?)`: the marker rows, no network (instant list for the screen).
  * - `listParents(spreadsheetId?)`: the marker rows cross-checked with Drive's permission list.
  *   status `active` = Drive lists the e-mail; `revoked` = the row exists but Drive no longer lists
  *   it (the parent ended it); `unverified` = Drive could not be asked (offline, reader-only).
+ *   A Drive reader with no marker row is listed too (`since: null`, `active`).
  * - `activeParents(list)`: the entries that still see the account (`active` / `unverified`), for
  *   the always-visible transparency notice.
  * - `PARENT_ROW_PREFIX`, `parentEmailsFromRows(rows)`, `PARENT_GRANT_MESSAGES`.
@@ -86,20 +88,53 @@ export function localParents(
 
 export async function listParents(spreadsheetId = activeSheetId()): Promise<ParentAccess[]> {
   const rows = localParents(spreadsheetId)
-
-  if (!rows.length) return []
-
   const drive = await listSharedEmails(spreadsheetId).catch(() => null)
 
-  return rows.map(({ email, since }) => ({
+  const marked: ParentAccess[] = rows.map(({ email, since }) => ({
     email,
     since,
     status: !drive ? 'unverified' : drive.includes(email) ? 'active' : 'revoked'
   }))
+
+  if (!drive) return marked
+
+  // Drive is the truth about who can open the file: a reader whose marker row never got written
+  // (a lost write, a reload right after sharing) is still listed, so the teen sees everyone.
+  const known = new Set(rows.map(row => row.email))
+  const unmarked = [...new Set(drive)]
+    .filter(email => email && !known.has(email))
+    .map((email): ParentAccess => ({ email, since: null, status: 'active' }))
+
+  return [...marked, ...unmarked]
+}
+
+const MARKER_ATTEMPTS = 3
+const MARKER_RETRY_MS = 400
+
+/**
+ * The marker row, written after the share went out. A failed write is retried and, if it still
+ * fails, not thrown: the share succeeded and `listParents` lists the reader from Drive anyway.
+ */
+async function writeParentMarker(spreadsheetId: string, email: string): Promise<void> {
+  for (let attempt = 1; attempt <= MARKER_ATTEMPTS; attempt += 1) {
+    try {
+      await setPeriodSetting(spreadsheetId, `${PARENT_ROW_PREFIX}${email}`, getTodayIso())
+
+      return
+    } catch {
+      if (attempt < MARKER_ATTEMPTS) {
+        await new Promise(resolve => setTimeout(resolve, MARKER_RETRY_MS))
+      }
+    }
+  }
 }
 
 export const activeParents = (list: readonly ParentAccess[]): ParentAccess[] =>
   list.filter(parent => parent.status !== 'revoked')
+
+/** How the parent makes the shared sheet visible to the app (Drive's narrow scope hides it until then). */
+export const PARENT_OPEN_SHEET_HINT =
+  'نحوهٔ دیدن: «فرزندان من» را باز کنید، «باز کردن شیت با گوگل» را بزنید و شیتی را که با شما به اشتراک گذاشته شده انتخاب کنید.'
 
 /** The e-mail Drive sends the parent with the share. */
 function shareMessage({ childName, appUrl }: GrantParentOptions): string {
@@ -112,6 +147,7 @@ function shareMessage({ childName, appUrl }: GrantParentOptions): string {
     } حساب خود در اپ «حساب کتاب» را برای دیدن (فقط‌خواندنی) با شما به اشتراک گذاشته است.`,
     'شما فقط می‌بینید و چیزی را تغییر نمی‌دهید.',
     appUrl ? `\nبرای دیدن: از منوی «فرزندان من» در اپ، حساب را وصل کنید:\n${appUrl}` : '',
+    PARENT_OPEN_SHEET_HINT,
     '\nبا احترام'
   ]
     .filter(Boolean)
@@ -142,7 +178,7 @@ export async function grantParentAccess(
   } catch (err) {
     throw new Error(shareErrorMessage(err, 'ارسال دعوت ناموفق بود', 'حساب'))
   }
-  await setPeriodSetting(spreadsheetId, `${PARENT_ROW_PREFIX}${email}`, getTodayIso())
+  await writeParentMarker(spreadsheetId, email)
 
   return 'granted'
 }

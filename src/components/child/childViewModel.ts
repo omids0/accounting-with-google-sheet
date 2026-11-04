@@ -65,12 +65,30 @@ export function toChildEntries(
   })
 }
 
+/** Whether the entry's date is a real calendar day (`YYYY-MM-DD`); a hostile or broken row is not. */
+export function hasValidDate(entry: Pick<ChildEntry, 'date'>): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(entry.date)
+
+  if (!match) return false
+
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])]
+  const date = new Date(Date.UTC(year, month - 1, day))
+
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  )
+}
+
+/** How many entries have no valid date: they belong to no month, so no monthly figure counts them. */
+export const undatedCount = (entries: readonly Pick<ChildEntry, 'date'>[]): number =>
+  entries.filter(entry => !hasValidDate(entry)).length
+
 /**
  * Whether an entry falls in a Jalali month. The month of today counts only up to today
  * (month-to-date, like the personal dashboard); a past month counts whole.
  */
 export function inMonth(entry: ChildEntry, month: string, todayIso = getTodayIso()): boolean {
-  if (!entry.date) return false
+  if (!hasValidDate(entry)) return false
 
   const range = monthRangeOf(month)
 
@@ -165,7 +183,14 @@ export function filterEntries(entries: readonly ChildEntry[], filter: ChildFilte
       (filter.kind === 'all' || entry.kind === filter.kind) &&
       (filter.month === null || inMonth(entry, filter.month, today)) &&
       (!filter.category || (entry.category || NO_CATEGORY) === filter.category) &&
-      matchSearch(filter.query, entry.title, entry.category, entry.subCategory, entry.amount)
+      matchSearch(
+        filter.query,
+        entry.title,
+        entry.category,
+        entry.subCategory,
+        entry.amount,
+        String(entry.record.values.note ?? '')
+      )
   )
 }
 

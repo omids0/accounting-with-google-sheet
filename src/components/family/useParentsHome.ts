@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { rememberParentCount } from '../../hooks/useActiveParentCount'
 import { getUserName } from '../../services/auth'
@@ -36,6 +36,8 @@ export function useParentsHome(prefilledEmail: string) {
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [granting, setGranting] = useState(false)
+  // State lags a click: a triple click would otherwise send three Drive shares (and three e-mails).
+  const grantInFlight = useRef(false)
 
   const reload = useCallback(async () => {
     setChecking(true)
@@ -54,6 +56,8 @@ export function useParentsHome(prefilledEmail: string) {
   }, [reload, revision])
 
   const grant = async () => {
+    if (grantInFlight.current) return
+    grantInFlight.current = true
     setError(null)
     setGranting(true)
     try {
@@ -86,6 +90,7 @@ export function useParentsHome(prefilledEmail: string) {
       setError(message)
       showError(message)
     } finally {
+      grantInFlight.current = false
       setGranting(false)
     }
   }

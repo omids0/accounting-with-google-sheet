@@ -1,5 +1,7 @@
 import { connectChildAccount } from '../../services/childConnect'
 import { isPickerAvailable } from '../../services/googlePicker'
+import { APP_URL } from '../../utils/appLinks'
+import { isolateLatin } from '../../utils/bidiIsolate'
 import ConnectBuildingSheet, { type ConnectTarget } from '../buildings/ConnectBuildingSheet'
 
 const NOT_A_CHILD_MESSAGE = 'این شیت حساب شخصی یک فرد نیست'
@@ -8,7 +10,9 @@ const NOT_A_CHILD_MESSAGE = 'این شیت حساب شخصی یک فرد نیس�
 function childIntro(): string {
   const how = isPickerAvailable()
     ? 'حسابش را با «باز کردن شیت با گوگل» پیدا کنید یا لینک شیت را بچسبانید.'
-    : 'لینک شیت او را بچسبانید.'
+    : `در این دستگاه «باز کردن شیت با گوگل» نیست؛ یک بار شیت را در نسخهٔ وب اپ${
+        APP_URL ? ` (${isolateLatin(APP_URL)})` : ''
+      } با «باز کردن شیت با گوگل» باز کنید، بعد لینک شیت را اینجا بچسبانید.`
 
   return `بعد از این‌که فرزندتان از منوی «والدین من» به ایمیل شما اجازه داد، ${how} فقط می‌بینید و چیزی را تغییر نمی‌دهید.`
 }

@@ -6,12 +6,14 @@ import {
   categoryBreakdown,
   categoryOptions,
   filterEntries,
+  hasValidDate,
   inMonth,
   monthSummary,
   netDirection,
   NO_CATEGORY,
   stepMonth,
   toChildEntries,
+  undatedCount,
   withUnspentBudgets
 } from './childViewModel'
 import { sumByCategory } from '../../services/dashboardAggregation'
@@ -204,9 +206,21 @@ describe('filterEntries', () => {
     expect(filterEntries(entries, { ...base, query: '۳۰۰۰۰' })).toHaveLength(1)
   })
 
+  it('searches the record note too', () => {
+    const noted = toChildEntries(
+      [
+        rec('expense', { date: '2026-10-01', amount: '5', title: 'ناهار', note: 'با دوستان مدرسه' })
+      ],
+      forms
+    )
+
+    expect(filterEntries(noted, { ...base, query: 'دوستان' })).toHaveLength(1)
+    expect(filterEntries(noted, { ...base, query: 'دوستان تنها' })).toHaveLength(0)
+  })
+
   it('does not search raw ids or other hidden columns', () => {
     const hidden = toChildEntries(
-      [rec('expense', { date: '2026-10-01', amount: '5', note: 'پنهان‌شده' })],
+      [rec('expense', { date: '2026-10-01', amount: '5', secret: 'پنهان‌شده' })],
       forms
     )
 
@@ -228,5 +242,35 @@ describe('categoryOptions and month stepping', () => {
     expect(stepMonth('1405-12', 1)).toBe('1406-01')
     expect(canStepForward('1405-07', '1405-07')).toBe(false)
     expect(canStepForward('1405-06', '1405-07')).toBe(true)
+  })
+})
+
+describe('hostile rows without a valid date', () => {
+  const hostile = toChildEntries(
+    [
+      rec('expense', { date: '2026-10-01', amount: '100', category: 'خوراک' }),
+      rec('expense', { date: '', amount: '7', category: 'خوراک' }),
+      rec('expense', { date: '2026-10-40', amount: '9', category: 'خوراک' }),
+      rec('expense', { date: '2026-13-01', amount: '11', category: 'خوراک' }),
+      rec('income', { date: '2026-02-30', amount: '13', category: 'عیدی' })
+    ],
+    forms
+  )
+
+  it('knows a real calendar day from a broken one', () => {
+    expect(hasValidDate({ date: '2026-10-01' })).toBe(true)
+    expect(hasValidDate({ date: '2024-02-29' })).toBe(true)
+    expect(hasValidDate({ date: '2026-02-29' })).toBe(false)
+    expect(hasValidDate({ date: '' })).toBe(false)
+    expect(hasValidDate({ date: '2026-10-1' })).toBe(false)
+  })
+
+  it('counts them, keeps them out of every month, and still lists them under all months', () => {
+    expect(undatedCount(hostile)).toBe(4)
+    expect(monthSummary(hostile, '1405-07')).toMatchObject({ expense: 100, income: 0, count: 1 })
+    expect(monthSummary(hostile, '1405-08')).toMatchObject({ expense: 0, count: 0 })
+    expect(
+      filterEntries(hostile, { month: null, kind: 'all', category: '', query: '' })
+    ).toHaveLength(5)
   })
 })
