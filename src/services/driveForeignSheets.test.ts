@@ -40,6 +40,14 @@ const PARTNER_FILE = {
   capabilities: { canEdit: true }
 }
 
+const reader = (id: string, name: string) => ({
+  id,
+  name,
+  modifiedTime: '2026-10-04T00:00:00Z',
+  ownedByMe: false,
+  capabilities: { canEdit: false }
+})
+
 beforeEach(() => {
   localStorage.clear()
   io.urls = []
@@ -92,5 +100,38 @@ describe('a child sheet once the local registry is gone', () => {
 
     expect(kid).toMatchObject({ name: 'سارا', kind: 'child' })
     expect(personalSpreadsheet(synced)?.id).toBe('own')
+  })
+})
+
+describe('a building or shared account the user can only read', () => {
+  it('is listed for a reader of a building and of a shared account', async () => {
+    io.files = [
+      OWN,
+      reader('b', 'حسابداری · ساختمان نرگس'),
+      reader('s', 'حسابداری · مشترک خرج خانه'),
+      reader('s2', 'حسابداری مشترک خانه')
+    ]
+
+    const synced = await syncSpreadsheetsFromDrive()
+
+    expect(synced.map(sheet => sheet.id).sort()).toEqual(['b', 'own', 's', 's2'])
+  })
+
+  it('is listed for a viewer-only first sign-in, without any own sheet', async () => {
+    io.files = [reader('b', 'حسابداری · ساختمان نرگس')]
+
+    expect((await syncSpreadsheetsFromDrive()).map(sheet => sheet.id)).toEqual(['b'])
+  })
+
+  it('is listed for a writer of a building too', async () => {
+    io.files = [{ ...reader('b', 'حسابداری · ساختمان نرگس'), capabilities: { canEdit: true } }]
+
+    expect((await syncSpreadsheetsFromDrive()).map(sheet => sheet.id)).toEqual(['b'])
+  })
+
+  it('still hides a reader-only personal-titled child sheet next to them', async () => {
+    io.files = [reader('b', 'حسابداری · ساختمان نرگس'), reader('kid', 'حسابداری · سارا')]
+
+    expect((await syncSpreadsheetsFromDrive()).map(sheet => sheet.id)).toEqual(['b'])
   })
 })

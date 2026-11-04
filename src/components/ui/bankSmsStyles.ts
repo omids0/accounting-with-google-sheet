@@ -48,6 +48,9 @@ export const smsPreviewLabelClass = 'text-muted'
 
 export const smsActionsRowClass = 'flex flex-wrap items-center gap-2'
 
+/** The quick sheet is thumb-first: its action buttons get full 44px targets. */
+export const smsActionsRowThumbClass = '[&>button]:min-h-touch-min [&>button]:min-w-touch-min'
+
 export const smsIssueListClass = 'm-0 list-disc ps-5 text-[0.75rem] text-danger'
 
 export const smsInboxListClass =

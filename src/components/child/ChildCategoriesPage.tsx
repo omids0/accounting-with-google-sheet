@@ -1,17 +1,24 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import ChildCategoryRows from './ChildCategoryRows'
 import ChildMonthBar from './ChildMonthBar'
 import ChildPageFrame from './ChildPageFrame'
-import { categoryBreakdown, monthSummary, withBudgets, type ChildKind } from './childViewModel'
+import {
+  categoryBreakdown,
+  monthSummary,
+  withUnspentBudgets,
+  type ChildKind
+} from './childViewModel'
 import { useChildMonth } from './useChildMonth'
 import { useChildRecords } from './useChildRecords'
 import { useCategoryBudgets } from '../../hooks/useCategoryBudgets'
 import { childRecordsPath } from '../../routes/childPaths'
 import { isConfigured } from '../../services/settings'
 import FilterChipBar from '../buildings/FilterChipBar'
+import type { CategoryInsights } from '../charts/CategoryRowInsights'
+import CategoryShareList from '../charts/CategoryShareList'
 import EmptyState from '../EmptyState'
+import LoadErrorState from '../LoadErrorState'
 import MoneyText from '../MoneyText'
 import { DashboardSkeleton } from '../skeleton'
 import Card from '../ui/Card'
@@ -24,7 +31,7 @@ import { sharedCardHeadClass, sharedCardTitleClass, sharedMutedClass } from '../
  * category tab. A row opens the records of that category.
  */
 export default function ChildCategoriesPage() {
-  const { entries, loading } = useChildRecords()
+  const { entries, loading, loadFailed, reload } = useChildRecords()
   const { budgets } = useCategoryBudgets()
   const month = useChildMonth()
   const navigate = useNavigate()
@@ -35,8 +42,14 @@ export default function ChildCategoriesPage() {
   const rows = useMemo(() => {
     const list = categoryBreakdown(entries, month.month, kind)
 
-    return kind === 'expense' ? withBudgets(list, budgets) : list
+    return kind === 'expense' ? withUnspentBudgets(list, budgets) : list
   }, [entries, month.month, kind, budgets])
+
+  // The child's budgets are only looked at: the rows carry the budget line, never «تعیین بودجه».
+  const insights = useMemo<CategoryInsights | undefined>(
+    () => (kind === 'expense' && budgets.size ? { budgets, readOnly: true } : undefined),
+    [kind, budgets]
+  )
 
   if (!isConfigured()) return <EmptyState icon="records" message="ابتدا با گوگل وارد شوید" />
 
@@ -46,6 +59,8 @@ export default function ChildCategoriesPage() {
     <ChildPageFrame>
       {loading && !entries.length ? (
         <DashboardSkeleton />
+      ) : loadFailed && !entries.length ? (
+        <LoadErrorState onRetry={reload} />
       ) : (
         <>
           <ChildMonthBar month={month} />
@@ -69,7 +84,13 @@ export default function ChildCategoriesPage() {
               </b>
             </div>
             {rows.length ? (
-              <ChildCategoryRows rows={rows} onOpen={name => navigate(childRecordsPath(name))} />
+              <CategoryShareList
+                items={rows}
+                tone={kind}
+                insights={insights}
+                shareChip
+                onOpen={name => navigate(childRecordsPath(name))}
+              />
             ) : (
               <p className={sharedMutedClass}>در این ماه چیزی ثبت نشده.</p>
             )}

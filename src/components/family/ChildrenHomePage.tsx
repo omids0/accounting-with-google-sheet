@@ -9,7 +9,7 @@ import { useChildrenHome } from './useChildrenHome'
 import { useEnterWorkspace } from '../../hooks/useEnterWorkspace'
 import type { ChildRecord } from '../../services/childrenRegistry'
 import { getChild } from '../../services/childrenRegistry'
-import ConfirmDeleteModal from '../ConfirmDeleteModal'
+import ConfirmActionModal from '../ConfirmActionModal'
 import EmptyState from '../EmptyState'
 import SheetSwitchConfirmModal from '../settings/SheetSwitchConfirmModal'
 import Button from '../ui/Button'
@@ -97,12 +97,14 @@ export default function ChildrenHomePage() {
         onSaved={home.reload}
       />
 
-      <ConfirmDeleteModal
+      {/* Not a delete (the child's account is untouched), so the neutral confirm, not the red one. */}
+      <ConfirmActionModal
         open={removing !== null}
         title="حذف از فهرست"
         message={removing ? forgetChildQuestion(removing.name) : ''}
         confirmLabel="حذف از فهرست"
-        deleting={home.forgetting}
+        cancelLabel="انصراف"
+        confirming={home.forgetting}
         onClose={() => setRemoving(null)}
         onConfirm={() => {
           const child = removing

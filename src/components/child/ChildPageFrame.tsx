@@ -35,7 +35,7 @@ export default function ChildPageFrame({ children }: { children: ReactNode }) {
           icon="lock"
           message={childNoAccessMessage(activeChildName())}
           description="برای دیدن دوباره، از فرزندتان بخواهید حساب را دوباره با شما به اشتراک بگذارد."
-          action={{ label: 'بازگشت به حساب خودم', onClick: returnToPersonal }}
+          action={{ label: 'بازگشت به حساب خودم', icon: 'return', onClick: returnToPersonal }}
         />
       ) : (
         children

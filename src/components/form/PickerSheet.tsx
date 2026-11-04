@@ -22,6 +22,8 @@ interface PickerSheetProps {
   children: ReactNode
   footer?: ReactNode
   subtitle?: ReactNode
+  /** Extra classes for the panel, e.g. a `max-h-[…dvh]` cap that follows the on-screen keyboard. */
+  panelClassName?: string
 }
 
 export default function PickerSheet({
@@ -30,7 +32,8 @@ export default function PickerSheet({
   onClose,
   children,
   footer,
-  subtitle
+  subtitle,
+  panelClassName
 }: PickerSheetProps) {
   const { panelRef } = useModalLock({ open, onClose })
   const titleId = useId()
@@ -51,7 +54,10 @@ export default function PickerSheet({
         aria-label="بستن"
       />
 
-      <div ref={panelRef} className={cn(formModalPanelClass, pickerSheetPanelClass)}>
+      <div
+        ref={panelRef}
+        className={cn(formModalPanelClass, pickerSheetPanelClass, panelClassName)}
+      >
         <div className={formModalHeaderClass}>
           <div className="col-start-1 row-start-2 min-w-0">
             <h2 id={titleId} className={formModalTitleClass}>

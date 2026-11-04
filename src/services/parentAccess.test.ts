@@ -118,6 +118,7 @@ describe('grantParentAccess', () => {
 
   it('rejects a bad e-mail and the own e-mail without sharing', async () => {
     expect(await grantParentAccess('nope')).toBe('invalid')
+    expect(await grantParentAccess('۱۲۳@gmail.com')).toBe('invalid')
     expect(await grantParentAccess('Teen@x.com')).toBe('self')
     expect(io.shared).toEqual([])
     expect(io.settings).toEqual([])

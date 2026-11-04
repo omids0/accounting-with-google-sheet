@@ -1,6 +1,7 @@
 import type { SpreadsheetEntry } from '../types'
 import { getAllSheetSpecs } from './allSheetSpecs'
 import { isChildReadOnly } from './childReadOnly'
+import { assertCanOpenAsOwnSheet } from './foreignSheetGuard'
 import { waitForSessionSync } from './sessionSync'
 import { getDefaultSettings, getSettings, registerSpreadsheet } from './settings'
 import { clearSharedAccessLost, markSharedAccessLost } from './sharedAccessLost'
@@ -185,6 +186,9 @@ export async function activateSpreadsheet(
     if (!(await verifySpreadsheetExists(spreadsheetId))) {
       throw new SpreadsheetNoAccessError()
     }
+    // Before anything is registered or written: a child's sheet (someone else's, read-only) never
+    // becomes the user's own books through the picker or the list.
+    await assertCanOpenAsOwnSheet(spreadsheetId, listed)
 
     // Known before the switch, so the first frame of the new sheet has its own menu and pages.
     await resolveWorkspaceType(spreadsheetId)

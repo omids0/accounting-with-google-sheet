@@ -1,13 +1,26 @@
-import { budgetUsage, type BudgetUsage } from '../../services/budgets'
-import { monthKeyOfIso, nextMonthKey, previousMonthKey } from '../../services/buildingMonths'
-import { parseNumeric } from '../../utils/parseNumeric'
+import {
+  monthKeyOfIso,
+  monthRangeOf,
+  nextMonthKey,
+  previousMonthKey
+} from '../../services/buildingMonths'
+import { getDateFieldId, sumByCategory } from '../../services/dashboardAggregation'
+import type { CategoryShare, CustomForm } from '../../types'
+import { toCategoryShares } from '../../utils/categoryShares'
+import { isDateInRange } from '../../utils/dateRange'
+import { getTodayIso } from '../../utils/jalaliDate'
+import { roundMoney } from '../../utils/roundMoney'
 import { matchSearch } from '../../utils/search'
+import { normalizeSheetDate } from '../../utils/sheetValues'
 import { SUBCATEGORY_FIELD_ID } from '../form/fieldUtils'
-import type { StoredRecord } from '../records/recordsUtils'
+import { getRecordAmount, type StoredRecord } from '../records/recordsUtils'
 
 /**
  * The numbers of a parent's read-only view of a child's account, as pure functions over the
- * child's records (income and expense, newest first). The pages hold no arithmetic of their own.
+ * child's records (income and expense, newest first). The pages hold no arithmetic of their own,
+ * and the figures are computed exactly like the personal pages (the dashboard's month-to-date and
+ * `roundMoney` sums, `sumByCategory` + `toCategoryShares`, the records page's `getRecordAmount`),
+ * so a parent comparing them with what the teenager sees finds the same numbers.
  */
 export type ChildKind = 'income' | 'expense'
 
@@ -23,24 +36,27 @@ export interface ChildEntry {
   record: StoredRecord
 }
 
-/** The label of a record without a category. */
-export const NO_CATEGORY = 'بدون دسته'
+/** The label of a record without a category: the one `sumByCategory` gives it. */
+export const NO_CATEGORY = 'سایر'
 
-export function toChildEntries(records: readonly StoredRecord[]): ChildEntry[] {
+export function toChildEntries(
+  records: readonly StoredRecord[],
+  forms: CustomForm[]
+): ChildEntry[] {
   return records.flatMap(record => {
     if (record.formType !== 'income' && record.formType !== 'expense') return []
 
     const { values } = record
-    const amount = Math.abs(parseNumeric(values.amount))
-    const category = String(values.category ?? '').trim()
+    const form = forms.find(item => item.id === record.formId)
+    const category = String(values.category ?? '')
 
     return [
       {
         id: record.id,
         kind: record.formType,
-        date: String(values.date ?? '').trim(),
-        amount: Number.isFinite(amount) ? amount : 0,
-        title: String(values.title ?? '').trim() || category || record.formName,
+        date: normalizeSheetDate(values[getDateFieldId(form)] ?? ''),
+        amount: getRecordAmount(record, forms),
+        title: String(values.title ?? '').trim() || category.trim() || record.formName,
         category,
         subCategory: String(values[SUBCATEGORY_FIELD_ID] ?? '').trim(),
         record
@@ -49,8 +65,20 @@ export function toChildEntries(records: readonly StoredRecord[]): ChildEntry[] {
   })
 }
 
-export const inMonth = (entry: ChildEntry, month: string): boolean =>
-  !!entry.date && monthKeyOfIso(entry.date) === month
+/**
+ * Whether an entry falls in a Jalali month. The month of today counts only up to today
+ * (month-to-date, like the personal dashboard); a past month counts whole.
+ */
+export function inMonth(entry: ChildEntry, month: string, todayIso = getTodayIso()): boolean {
+  if (!entry.date) return false
+
+  const range = monthRangeOf(month)
+
+  return isDateInRange(entry.date, {
+    start: range.start,
+    end: monthKeyOfIso(todayIso) === month && todayIso < range.end ? todayIso : range.end
+  })
+}
 
 export interface MonthSummary {
   income: number
@@ -61,93 +89,63 @@ export interface MonthSummary {
 }
 
 export function monthSummary(entries: readonly ChildEntry[], month: string): MonthSummary {
+  const today = getTodayIso()
   let income = 0
   let expense = 0
   let count = 0
 
   for (const entry of entries) {
-    if (!inMonth(entry, month)) continue
+    if (!inMonth(entry, month, today)) continue
     count += 1
-    if (entry.kind === 'income') income += entry.amount
-    else expense += entry.amount
+    if (entry.kind === 'income') income = roundMoney(income + entry.amount)
+    else expense = roundMoney(expense + entry.amount)
   }
 
-  return { income, expense, balance: income - expense, count }
+  return { income, expense, balance: roundMoney(income - expense), count }
 }
 
 /** Income minus expense of a list of entries (the footer of the record list). */
 export const entriesNet = (entries: readonly ChildEntry[]): number =>
-  entries.reduce((sum, entry) => sum + (entry.kind === 'income' ? entry.amount : -entry.amount), 0)
+  roundMoney(
+    entries.reduce(
+      (sum, entry) => sum + (entry.kind === 'income' ? entry.amount : -entry.amount),
+      0
+    )
+  )
 
-export interface CategoryRow {
-  category: string
-  amount: number
-  count: number
-  /** 0-100, of the month's total of this kind. */
-  share: number
-  /** The monthly budget (expense categories only), when the child set one. */
-  budget?: number
-  usage?: BudgetUsage
-}
-
-/** The month's spending (or income) by category, biggest first. */
+/** The month's spending (or income) by category, biggest first, with each share (0-1). */
 export function categoryBreakdown(
   entries: readonly ChildEntry[],
   month: string,
   kind: ChildKind
-): CategoryRow[] {
-  const sums = new Map<string, { amount: number; count: number }>()
-  let total = 0
+): CategoryShare[] {
+  const today = getTodayIso()
 
-  for (const entry of entries) {
-    if (entry.kind !== kind || !inMonth(entry, month)) continue
-
-    const key = entry.category || NO_CATEGORY
-    const sum = sums.get(key) ?? { amount: 0, count: 0 }
-
-    sums.set(key, { amount: sum.amount + entry.amount, count: sum.count + 1 })
-    total += entry.amount
-  }
-
-  return [...sums.entries()]
-    .map(([category, { amount, count }]) => ({
-      category,
-      amount,
-      count,
-      share: total > 0 ? (amount / total) * 100 : 0
-    }))
-    .sort((a, b) => b.amount - a.amount || a.category.localeCompare(b.category, 'fa'))
+  return toCategoryShares(
+    sumByCategory(
+      entries
+        .filter(entry => entry.kind === kind && inMonth(entry, month, today))
+        .map(entry => entry.record)
+    )
+  )
 }
 
 /**
- * The expense rows with the child's budgets: a row with a budget carries its usage, and a budgeted
- * category with no spending this month is listed too (spent 0), so the parent sees the whole plan.
+ * The rows plus every budgeted category with no spending this month (spent 0), so the parent
+ * sees the whole plan the child set.
  */
-export function withBudgets(
-  rows: readonly CategoryRow[],
+export function withUnspentBudgets(
+  rows: readonly CategoryShare[],
   budgets: ReadonlyMap<string, number>
-): CategoryRow[] {
-  const known = new Set(rows.map(row => row.category))
-
-  const budgeted = rows.map(row => {
-    const budget = budgets.get(row.category)
-
-    return budget ? { ...row, budget, usage: budgetUsage(row.amount, budget) } : row
-  })
+): CategoryShare[] {
+  const known = new Set(rows.map(row => row.name))
 
   const unspent = [...budgets.entries()]
-    .filter(([category, budget]) => budget > 0 && !known.has(category))
-    .map(([category, budget]) => ({
-      category,
-      amount: 0,
-      count: 0,
-      share: 0,
-      budget,
-      usage: budgetUsage(0, budget)
-    }))
-    .sort((a, b) => a.category.localeCompare(b.category, 'fa'))
+    .filter(([name, budget]) => budget > 0 && !known.has(name))
+    .map(([name]) => ({ name, total: 0, share: 0 }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fa'))
 
-  return [...budgeted, ...unspent]
+  return [...rows, ...unspent]
 }
 
 export interface ChildFilter {
@@ -160,21 +158,20 @@ export interface ChildFilter {
 }
 
 export function filterEntries(entries: readonly ChildEntry[], filter: ChildFilter): ChildEntry[] {
+  const today = getTodayIso()
+
   return entries.filter(
     entry =>
       (filter.kind === 'all' || entry.kind === filter.kind) &&
-      (filter.month === null || inMonth(entry, filter.month)) &&
+      (filter.month === null || inMonth(entry, filter.month, today)) &&
       (!filter.category || (entry.category || NO_CATEGORY) === filter.category) &&
-      matchSearch(
-        filter.query,
-        entry.title,
-        entry.category,
-        entry.subCategory,
-        entry.amount,
-        ...Object.values(entry.record.values)
-      )
+      matchSearch(filter.query, entry.title, entry.category, entry.subCategory, entry.amount)
   )
 }
+
+/** The direction of a net figure for a stat card: the records summary's three states. */
+export const netDirection = (net: number): 'positive' | 'negative' | 'neutral' =>
+  net < 0 ? 'negative' : net > 0 ? 'positive' : 'neutral'
 
 /** The categories the child's records use, for the filter (the child's own category tab is not read). */
 export function categoryOptions(entries: readonly ChildEntry[]): string[] {

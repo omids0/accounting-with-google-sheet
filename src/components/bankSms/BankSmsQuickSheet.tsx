@@ -22,8 +22,8 @@ const GIVE_UP_MS = 8000
 export default function BankSmsQuickSheet({ id }: { id: string }) {
   const close = useSmsQuickStore(state => state.close)
   const navigate = useNavigate()
-  const { pathname } = useLocation()
-  const openPath = useRef(pathname)
+  const { key: locationKey } = useLocation()
+  const openKey = useRef(locationKey)
   // Same range as the notification counted (the page's «بازه»).
   const sinceMs = useMemo(() => smsRangeStart(getBankSmsPrefs().viewDays), [])
   const review = useBankSmsReview(sinceMs)
@@ -66,20 +66,30 @@ export default function BankSmsQuickSheet({ id }: { id: string }) {
     if (view.state === 'done' && !dismissing) close()
   }, [view.state, dismissing, close])
 
-  // «ثبت دستی» and the other redirects to the full form leave this page.
+  // «ثبت دستی» and the other redirects to the full form leave this page. The location key, not the
+  // path: a redirect to the page the sheet is already over (a form opened from /entry, a duplicate
+  // sent to /bank-sms) lands on the same path but is still a navigation, and the sheet must go.
   useEffect(() => {
-    if (pathname !== openPath.current) close()
-  }, [pathname, close])
+    if (locationKey !== openKey.current) close()
+  }, [locationKey, close])
 
   return (
     <PickerSheet
       open={view.state === 'show' || view.state === 'wait'}
       title="ثبت سریع پیامک بانکی"
+      // dvh follows the keyboard where the browser resizes the page for it.
+      panelClassName="max-h-[min(90dvh,680px)]"
       onClose={() => {
         if (review.busyKey === null) close()
       }}
     >
-      {view.state === 'show' && <BankSmsEntryCard item={view.item} review={review} />}
+      {view.state === 'show' && (
+        // The card's swipe row clips (overflow-hidden), so as a bare flex child it shrank to the
+        // sheet's height and its buttons could not be scrolled to; shrink-0 lets the body scroll.
+        <div className="shrink-0">
+          <BankSmsEntryCard item={view.item} review={review} swipeable={false} />
+        </div>
+      )}
       {view.state === 'wait' && (
         <div className="flex items-center justify-center gap-3 py-8 text-sm text-muted">
           <Spinner size="sm" decorative />

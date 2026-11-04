@@ -4,6 +4,8 @@ import { isAccountingSpreadsheetTitle } from './spreadsheetCatalog'
 
 export const DRIVE_API = 'https://www.googleapis.com/drive/v3/files'
 
+export type DriveFileAccess = Pick<DriveSpreadsheetFile, 'ownedByMe' | 'capabilities'>
+
 export interface DriveSpreadsheetFile {
   id: string
   name: string
@@ -18,7 +20,9 @@ export interface DriveSpreadsheetFile {
  * reader. It is never one of the user's own books, so it must not be registered or offered as one
  * just because its title says «حسابداری». Only a file Drive explicitly reports as both is one.
  */
-export function isForeignReadOnlyFile(file: DriveSpreadsheetFile): boolean {
+export function isForeignReadOnlyFile(
+  file: DriveFileAccess & Partial<DriveSpreadsheetFile>
+): boolean {
   return file.ownedByMe === false && file.capabilities?.canEdit === false
 }
 
@@ -36,6 +40,15 @@ export async function driveRequest<T>(url: string): Promise<T> {
   }
 
   return res.json() as Promise<T>
+}
+
+/** Who owns one file and whether this user can edit it (`files.get`): the check before a sheet is opened. */
+export function getDriveFileAccess(fileId: string): Promise<DriveFileAccess> {
+  const fields = encodeURIComponent('ownedByMe,capabilities/canEdit')
+
+  return driveRequest(
+    `${DRIVE_API}/${encodeURIComponent(fileId)}?fields=${fields}&supportsAllDrives=true`
+  )
 }
 
 export async function listAccountingSpreadsheetsFromDrive(): Promise<DriveSpreadsheetFile[]> {

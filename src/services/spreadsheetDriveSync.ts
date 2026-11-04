@@ -5,6 +5,7 @@ import {
   type DriveSpreadsheetFile
 } from './drive'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
+import { isMemberSpreadsheetTitle } from './spreadsheetCatalog'
 
 function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
   return {
@@ -17,9 +18,10 @@ function driveFileToEntry(file: DriveSpreadsheetFile): SpreadsheetEntry {
 /**
  * Merges the sheets Drive reports with the ones this device already knows. Under
  * drive.file, Drive lists only sheets the app created or the user picked with it.
- * A sheet someone else owns and this user can only read (a child's account shared with a parent)
- * is never added here: without the device-local child registry it would pass for the user's own
- * books. It stays listed only when this device registered it.
+ * A personal-looking sheet someone else owns and this user can only read (a child's account shared
+ * with a parent) is never added here: without the device-local child registry it would pass for
+ * the user's own books. It stays listed only when this device registered it. A building or shared
+ * account titled sheet is added even as a reader (board, viewer).
  */
 export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
   const settings = getSettings() ?? getDefaultSettings()
@@ -36,7 +38,9 @@ export async function syncSpreadsheetsFromDrive(): Promise<SpreadsheetEntry[]> {
     // device registered.
     const known = merged.get(file.id)
 
-    if (!known && isForeignReadOnlyFile(file)) continue
+    // A building or shared-account title is kept: its readers (board, viewer) are legitimate, and
+    // opening it checks the sheet's own marker row (assertCanOpenAsOwnSheet).
+    if (!known && isForeignReadOnlyFile(file) && !isMemberSpreadsheetTitle(file.name)) continue
 
     merged.set(file.id, {
       ...driveFileToEntry(file),

@@ -19,8 +19,10 @@ import { isConfigured } from '../../services/settings'
 import FilterChipBar from '../buildings/FilterChipBar'
 import EmptyState from '../EmptyState'
 import { Select } from '../form'
+import LoadErrorState from '../LoadErrorState'
 import MoneyText from '../MoneyText'
 import PageSearchInput from '../PageSearchInput'
+import SearchEmptyState from '../SearchEmptyState'
 import { RecordListSkeleton } from '../skeleton'
 import Card from '../ui/Card'
 import { sharedListClass, sharedMutedClass } from '../ui/sharedStyles'
@@ -38,7 +40,7 @@ const ALL_CATEGORIES = ''
  * record's read-only details.
  */
 export default function ChildRecordsPage() {
-  const { entries, forms, loading } = useChildRecords()
+  const { entries, forms, loading, loadFailed, reload } = useChildRecords()
   const month = useChildMonth()
   const [params] = useSearchParams()
   const [scope, setScope] = useState<Scope>(params.get(CHILD_CATEGORY_PARAM) ? 'all' : 'month')
@@ -68,6 +70,8 @@ export default function ChildRecordsPage() {
     <ChildPageFrame>
       {loading && !entries.length ? (
         <RecordListSkeleton />
+      ) : loadFailed && !entries.length ? (
+        <LoadErrorState onRetry={reload} />
       ) : (
         <>
           <FilterChipBar
@@ -117,22 +121,16 @@ export default function ChildRecordsPage() {
                 ))}
               </div>
               <p className={`${sharedMutedClass} mt-2 flex items-center justify-between gap-2`}>
-                <span>جمع این فهرست (تراز)</span>
+                <span>مانده این فهرست</span>
                 <b className="numeric text-text">
                   <MoneyText amount={total} signed />
                 </b>
               </p>
             </Card>
+          ) : entries.length ? (
+            <SearchEmptyState />
           ) : (
-            <EmptyState
-              icon="empty-inbox"
-              message={entries.length ? 'تراکنشی پیدا نشد' : 'هنوز تراکنشی ثبت نشده'}
-              description={
-                entries.length
-                  ? 'ماه، نوع یا دسته‌بندی را عوض کنید یا جستجو را پاک کنید.'
-                  : undefined
-              }
-            />
+            <EmptyState icon="empty-inbox" message="هنوز تراکنشی ثبت نشده" />
           )}
 
           <ChildRecordDetail entry={opened} forms={forms} onClose={() => setOpened(null)} />

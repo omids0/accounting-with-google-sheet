@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
-import ChildCategoryRows from './ChildCategoryRows'
 import ChildMonthBar from './ChildMonthBar'
 import ChildPageFrame from './ChildPageFrame'
 import ChildRecordDetail from './ChildRecordDetail'
 import ChildRecordRow from './ChildRecordRow'
-import { categoryBreakdown, inMonth, monthSummary, type ChildEntry } from './childViewModel'
+import {
+  categoryBreakdown,
+  inMonth,
+  monthSummary,
+  netDirection,
+  type ChildEntry
+} from './childViewModel'
 import ChildWalletCard from './ChildWalletCard'
 import { useChildMonth } from './useChildMonth'
 import { useChildRecords } from './useChildRecords'
@@ -14,13 +19,16 @@ import { childRecordsPath } from '../../routes/childPaths'
 import { getPathForTab } from '../../routes/paths'
 import { isConfigured } from '../../services/settings'
 import CalmBlock from '../CalmBlock'
+import CategoryShareList from '../charts/CategoryShareList'
 import EmptyState from '../EmptyState'
+import LoadErrorState from '../LoadErrorState'
 import { DashboardSkeleton } from '../skeleton'
 import StatCard from '../StatCard'
 import Card from '../ui/Card'
 import { statGridClass } from '../ui/chartStyles'
 
-const TOP_CATEGORIES = 5
+/** Like the personal dashboard's «تحلیل این ماه»; the categories page lists them all. */
+const TOP_CATEGORIES = 3
 
 const LATEST = 5
 
@@ -30,7 +38,7 @@ const LATEST = 5
  * wallet. Every number is computed from the child's records on this device (`childViewModel`).
  */
 export default function ChildHomePage() {
-  const { entries, forms, loading } = useChildRecords()
+  const { entries, forms, loading, loadFailed, reload } = useChildRecords()
   const month = useChildMonth()
   const navigate = useNavigate()
   const [opened, setOpened] = useState<ChildEntry | null>(null)
@@ -53,6 +61,8 @@ export default function ChildHomePage() {
     <ChildPageFrame>
       {loading && !entries.length ? (
         <DashboardSkeleton />
+      ) : loadFailed && !entries.length ? (
+        <LoadErrorState onRetry={reload} />
       ) : (
         <>
           <ChildMonthBar month={month} />
@@ -61,10 +71,10 @@ export default function ChildHomePage() {
             <StatCard label="درآمد" amount={summary.income} variant="income" />
             <StatCard label="هزینه" amount={summary.expense} variant="expense" />
             <StatCard
-              label="تراز"
+              label="مانده"
               amount={summary.balance}
               variant="flow"
-              flowDirection={summary.balance < 0 ? 'negative' : 'positive'}
+              flowDirection={netDirection(summary.balance)}
             />
           </div>
 
@@ -82,12 +92,15 @@ export default function ChildHomePage() {
                   icon="chart"
                   action={{
                     label: 'همهٔ دسته‌ها ←',
-                    onClick: () => navigate(getPathForTab('child-categories'))
+                    onClick: () => navigate(getPathForTab('child-categories')),
+                    touch: true
                   }}
                 >
                   {top.length ? (
-                    <ChildCategoryRows
-                      rows={top}
+                    <CategoryShareList
+                      items={top}
+                      tone="expense"
+                      shareChip
                       onOpen={category => navigate(childRecordsPath(category))}
                     />
                   ) : (
@@ -102,7 +115,8 @@ export default function ChildHomePage() {
                   icon="records"
                   action={{
                     label: 'همه ←',
-                    onClick: () => navigate(getPathForTab('child-records'))
+                    onClick: () => navigate(getPathForTab('child-records')),
+                    touch: true
                   }}
                 >
                   {latest.length ? (

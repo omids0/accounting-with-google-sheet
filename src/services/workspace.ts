@@ -1,6 +1,6 @@
-import { SHARED_NAME_PREFIX, WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
+import { WORKSPACE_SHARED_VALUE } from './sharedWorkspace'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
-import { SPREADSHEET_TITLE_PREFIX } from './spreadsheetCatalog'
+import { isMemberSpreadsheetTitle } from './spreadsheetCatalog'
 import { getItem, getStorageVersion, setItem, STORAGE_KEYS } from './storage'
 import type { WorkspaceKind } from '../types'
 
@@ -207,15 +207,12 @@ export function personalSpreadsheet<T extends { id: string; name?: string; kind?
   entries: T[]
 ): T | undefined {
   const isPersonal = (entry: T) => {
-    const name = (entry.name ?? '').replace(SPREADSHEET_TITLE_PREFIX, '')
-
     return (
       entry.kind !== 'building' &&
       entry.kind !== 'shared' &&
       entry.kind !== 'child' &&
       getWorkspaceType(entry.id) === 'personal' &&
-      !name.startsWith('ساختمان ') &&
-      !name.startsWith(SHARED_NAME_PREFIX)
+      !isMemberSpreadsheetTitle(entry.name ?? '')
     )
   }
 

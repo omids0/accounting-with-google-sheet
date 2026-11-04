@@ -5,11 +5,20 @@ const io = vi.hoisted(() => ({
   email: 'parent@x.com' as string | null,
   drive: [] as string[],
   exists: true,
-  unshared: [] as string[]
+  unshared: [] as string[],
+  access: {} as { ownedByMe?: boolean; capabilities?: { canEdit?: boolean } },
+  accessFails: false
 }))
 
 vi.mock('./sheetsRows', () => ({
   batchFetchSheetRangesFromApi: vi.fn(async () => new Map([['تنظیمات دوره', io.marker]]))
+}))
+vi.mock('./drive', () => ({
+  getDriveFileAccess: vi.fn(async () => {
+    if (io.accessFails) throw new Error('offline')
+
+    return io.access
+  })
 }))
 vi.mock('./sheets', () => ({ verifySpreadsheetExists: vi.fn(async () => io.exists) }))
 vi.mock('./auth', () => ({ getUserEmail: () => io.email }))
@@ -34,7 +43,11 @@ import {
   markChildAccessLostIfDenied,
   probeChildAccess
 } from './childAccessLost'
-import { connectChildAccount, OWN_SHEET_AS_CHILD_MESSAGE } from './childConnect'
+import {
+  connectChildAccount,
+  OWN_DRIVE_SHEET_MESSAGE,
+  OWN_SHEET_AS_CHILD_MESSAGE
+} from './childConnect'
 import { forgetChild } from './childForget'
 import {
   addChild,
@@ -65,6 +78,8 @@ beforeEach(() => {
   io.drive = []
   io.exists = true
   io.unshared = []
+  io.access = { ownedByMe: false, capabilities: { canEdit: false } }
+  io.accessFails = false
   vi.clearAllMocks()
   personalSettings()
 })
@@ -147,6 +162,28 @@ describe('connectChildAccount', () => {
 
   it('refuses a sheet this device already lists as its own', async () => {
     await expect(connectChildAccount('P1')).rejects.toThrow(OWN_SHEET_AS_CHILD_MESSAGE)
+  })
+
+  it('refuses a sheet Drive says the user owns, and registers nothing', async () => {
+    io.access = { ownedByMe: true, capabilities: { canEdit: true } }
+    await expect(connectChildAccount('C1', 'سارا')).rejects.toThrow(OWN_DRIVE_SHEET_MESSAGE)
+
+    expect(listChildren()).toEqual([])
+  })
+
+  it('still connects a sheet the parent was given edit access to', async () => {
+    io.access = { ownedByMe: false, capabilities: { canEdit: true } }
+    expect(await connectChildAccount('C1', 'سارا')).not.toBeNull()
+  })
+
+  it('still connects a read-only sheet, and one Drive says nothing about or cannot be asked', async () => {
+    expect(await connectChildAccount('C1', 'سارا')).not.toBeNull()
+
+    io.access = {}
+    expect(await connectChildAccount('C2', 'علی')).not.toBeNull()
+
+    io.accessFails = true
+    expect(await connectChildAccount('C3', 'رضا')).not.toBeNull()
   })
 })
 

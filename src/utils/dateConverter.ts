@@ -55,7 +55,7 @@ function getPartsFormatter(calendar: CalendarSystem): Intl.DateTimeFormat {
 }
 
 function getIntlParts(date: Date, calendar: CalendarSystem): CalendarDateParts {
-  const parts = getPartsFormatter(calendar).formatToParts(date)
+  const parts = getPartsFormatter(calendar).formatToParts(new Date(date.getTime() || Date.now()))
 
   const get = (type: string) => Number(parts.find(part => part.type === type)?.value ?? 0)
 
@@ -169,6 +169,7 @@ function formatFa(
   options: Intl.DateTimeFormatOptions
 ): string {
   const locale = numberLocale()
+  if (Number.isNaN(date.getTime())) return '—' // a bad sheet cell: `format` would throw
   const key = `${locale}|${calendar}|${Object.keys(options).join(',')}`
 
   let formatter = displayFormatters.get(key)

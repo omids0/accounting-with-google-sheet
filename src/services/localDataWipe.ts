@@ -11,6 +11,7 @@ import { setBankSmsCaptureEnabled } from './bankSmsNative'
 import { BANK_SMS_PREFS_KEY } from './bankSmsPrefs'
 import { invalidateDashboardCache } from './dashboardCache'
 import { DISCOVERY_STORAGE_KEY } from './featureDiscovery'
+import { resetForeignSheetGuard } from './foreignSheetGuard'
 import { GOAL_CONGRATS_STORAGE_KEY } from './goalCongrats'
 import { isNativePlatform, signOutNative } from './googleAuthNative'
 import { loadGoogleIdentityScript } from './googleIdentityScript'
@@ -207,6 +208,8 @@ export async function clearAllLocalData({ revokeAccess = true } = {}): Promise<v
   // Signed out: the home-screen widget falls back to «باز کن».
   void sendWidgetSnapshot()
   clearSpreadsheetPrepareSession()
+  // Sheets that passed the Drive ownership check belong to the old account's session.
+  resetForeignSheetGuard()
   clearAppLockSessionState()
   clearAllEntryDrafts()
   clearDataKey()

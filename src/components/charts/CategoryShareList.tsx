@@ -34,6 +34,10 @@ interface CategoryShareListProps {
   colors?: string[]
   /** Round 6: budget bars and lines, «↑ ۳۰٪ از شهریور», tap → budget sheet. */
   insights?: CategoryInsights
+  /** A row becomes a button that opens that category (a parent's view: its records). */
+  onOpen?: (category: string) => void
+  /** Shows the «۴۲٪» chip in the bar variant too (a parent's view has no donut to read it from). */
+  shareChip?: boolean
 }
 
 /** With a budget the bar measures spend against it (grey, red past 100%); else the share. */
@@ -54,7 +58,9 @@ export default function CategoryShareList({
   tone,
   variant = 'bar',
   colors = [],
-  insights
+  insights,
+  onOpen,
+  shareChip = false
 }: CategoryShareListProps) {
   const [grown, setGrown] = useState(() => prefersReducedMotion())
 
@@ -68,7 +74,13 @@ export default function CategoryShareList({
 
   const toneText = tone === 'income' ? 'text-success' : 'text-danger'
   const barColor = tone === 'income' ? 'var(--color-income)' : 'var(--color-expense)'
-  const budgetMode = Boolean(insights?.budgets && insights.onBudget)
+  const readOnly = Boolean(insights?.readOnly)
+  const budgetMode = Boolean(insights?.budgets && (insights.onBudget || readOnly))
+  const onBudget = budgetMode ? insights?.onBudget : undefined
+  const onSelect = onBudget ?? onOpen
+  const showChip = variant === 'dot' || shareChip
+  // The budget line already carries the amount on the dashboard rows.
+  const hideAmount = variant === 'bar' && budgetMode
 
   const renderMain = (item: CategoryShare) => {
     const budget = insights?.budgets?.get(item.name)
@@ -98,18 +110,19 @@ export default function CategoryShareList({
             />
           </span>
         ) : null}
-        {budgetMode ? <BudgetLine spent={item.total} budget={budget} /> : null}
+        {budgetMode ? <BudgetLine spent={item.total} budget={budget} readOnly={readOnly} /> : null}
       </>
     )
 
-    if (!budgetMode) return <span className={calmRowMainClass}>{content}</span>
+    if (!onSelect) return <span className={calmRowMainClass}>{content}</span>
 
     return (
       <button
         type="button"
         className={calmRowButtonClass}
-        onClick={() => insights?.onBudget?.(item.name)}
-        aria-haspopup="dialog"
+        onClick={() => onSelect(item.name)}
+        aria-haspopup={onBudget ? 'dialog' : undefined}
+        aria-label={onBudget ? undefined : `تراکنش‌های ${item.name}`}
       >
         {content}
       </button>
@@ -128,23 +141,22 @@ export default function CategoryShareList({
             />
           ) : null}
           {renderMain(item)}
-          {/* The budget line already carries the amount on the dashboard rows. */}
-          {variant === 'bar' && budgetMode ? null : (
+          {hideAmount && !showChip ? null : (
             <span
               className={cn(
                 calmRowEndClass,
                 variant === 'bar' && toneText,
-                variant === 'dot' && 'inline-flex items-center gap-2'
+                showChip && 'inline-flex items-center gap-2'
               )}
             >
               {/* A separate chip (like the donut legend), not «٪ · مبلغ»: that dot read as a Persian ۰. */}
-              {variant === 'dot' ? (
+              {showChip ? (
                 <span className={categoryDonutLegendPctClass}>
                   {formatPersianPercent(Math.round(item.share * 100))}
                 </span>
               ) : null}
-              <MoneyText amount={item.total} />
-              {variant === 'bar' ? (
+              {hideAmount ? null : <MoneyText amount={item.total} />}
+              {!showChip ? (
                 <span className="sr-only">{` · ${formatPersianPercent(
                   Math.round(item.share * 100)
                 )}`}</span>

@@ -81,7 +81,8 @@ export const calmChartFlatClass =
 /** A category row that opens its budget sheet: the whole name/bar column is the button. */
 export const calmRowButtonClass = cx(
   'focus-ring-inset min-w-0 flex-1 cursor-pointer rounded-md border-0 bg-transparent p-0',
-  'text-start text-inherit'
+  // A 44px tap row; the content stays centred in it, as it was in the 48px list row.
+  'flex min-h-touch-min flex-col justify-center text-start text-inherit'
 )
 
 export const calmRowHeadClass = 'flex min-w-0 items-baseline gap-1.5'

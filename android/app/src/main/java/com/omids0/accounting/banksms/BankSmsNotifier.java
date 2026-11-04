@@ -23,8 +23,8 @@ final class BankSmsNotifier {
     static final String QUICK_URL_PREFIX = "com.omids0.accounting://bank-sms/quick?id=";
 
     private static final int NOTIFICATION_ID = 7301;
-    /** 7302 belongs to BankSmsDailyCheck. */
-    private static final int QUICK_REQUEST_CODE = 7303;
+    /** 7302 belongs to BankSmsDailyCheck, 7303 and 7304 to NightlyDigest. */
+    private static final int QUICK_REQUEST_CODE = 7305;
 
     private BankSmsNotifier() {}
 

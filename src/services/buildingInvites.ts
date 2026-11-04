@@ -12,8 +12,13 @@ export const INVITE_ROW_PREFIX = 'دعوت:'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+/** Google accounts are plain ASCII: «۱۲۳@gmail.com» (Persian digits) is not an address Drive accepts. */
+const NON_ASCII = /[^ -~]/
+
 export function isValidEmail(email: string): boolean {
-  return EMAIL.test(email.trim())
+  const trimmed = email.trim()
+
+  return EMAIL.test(trimmed) && !NON_ASCII.test(trimmed)
 }
 
 /** Emails of the invited members in the rows of «تنظیمات دوره». */

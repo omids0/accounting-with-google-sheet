@@ -1,4 +1,4 @@
-import { collapseSharedPrefix } from './sharedWorkspace'
+import { collapseSharedPrefix, SHARED_NAME_PREFIX } from './sharedWorkspace'
 
 /** Standard title format: «حسابداری · 1406» — used to find sheets across devices in Google Drive */
 export const SPREADSHEET_TITLE_PREFIX = 'حسابداری · '
@@ -24,6 +24,19 @@ export function getSpreadsheetLabel(title: string): string {
   const legacy = title.match(/^حسابداری\s+(.+)$/)
 
   return collapseSharedPrefix(legacy ? legacy[1] : title)
+}
+
+/** The name part (after the title prefix) of a building's spreadsheet. */
+export const BUILDING_NAME_PREFIX = 'ساختمان '
+
+/**
+ * Whether a Drive title looks like a building («حسابداری · ساختمان …») or a shared account
+ * («حسابداری · مشترک …»). Only the title: the sheet's own «نوع فضا» row decides for real.
+ */
+export function isMemberSpreadsheetTitle(title: string): boolean {
+  const label = getSpreadsheetLabel(title)
+
+  return label.startsWith(BUILDING_NAME_PREFIX) || label.startsWith(SHARED_NAME_PREFIX)
 }
 
 export function isAccountingSpreadsheetTitle(title: string): boolean {

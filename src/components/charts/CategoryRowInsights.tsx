@@ -20,6 +20,8 @@ export interface CategoryInsights {
   comparisons?: Map<string, MonthComparison>
   /** «شهریور». */
   previousMonthName?: string
+  /** A view that only looks (a parent's): the budget line never invites «تعیین بودجه». */
+  readOnly?: boolean
 }
 
 /** «↑ ۳۰٪ از شهریور»: red when spending grows (green for income), grey when about equal. */
@@ -48,7 +50,15 @@ export function ComparisonBadge({
 }
 
 /** «۸۹۰٬۰۰۰ از بودجه ۸۰۰٬۰۰۰ · ۹۰ هزار بیشتر», or «۱۲۰٬۰۰۰ · بدون بودجه · تعیین بودجه». */
-export function BudgetLine({ spent, budget }: { spent: number; budget: number | undefined }) {
+export function BudgetLine({
+  spent,
+  budget,
+  readOnly = false
+}: {
+  spent: number
+  budget: number | undefined
+  readOnly?: boolean
+}) {
   if (budget) {
     return (
       <span className={cn(calmRowSubAmountClass, spent > budget && calmRowSubDangerClass)}>
@@ -60,8 +70,8 @@ export function BudgetLine({ spent, budget }: { spent: number; budget: number | 
   return (
     <span className={calmRowSubClass}>
       <MaskedAmount>{formatPersianNumber(spent)}</MaskedAmount>
-      {' · بدون بودجه · '}
-      <span className={calmBudgetLinkClass}>تعیین بودجه</span>
+      {readOnly ? ' · بدون بودجه' : ' · بدون بودجه · '}
+      {readOnly ? null : <span className={calmBudgetLinkClass}>تعیین بودجه</span>}
     </span>
   )
 }
