@@ -1,4 +1,5 @@
 import { assertNotChildReadOnly, isChildReadOnly } from './childReadOnly'
+import { notifyRejectedWrite } from './failedWriteNotice'
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { withOutboxLock } from './outboxLock'
 import { RowEditConflictError } from './rowConflict'
@@ -168,7 +169,9 @@ async function flushPass(
         if (reverted) invalidateDerivedCaches(spreadsheetId)
         refreshPendingCount(spreadsheetId)
         refreshFailedCount(spreadsheetId)
-        setSyncState('error', `یک تغییر اعمال نشد: ${toUserMessage(err, 'خطای نامشخص')}`)
+        const reason = toUserMessage(err, 'خطای نامشخص')
+        setSyncState('error', `یک تغییر اعمال نشد: ${reason}`)
+        notifyRejectedWrite(entry.operation, reason, reverted)
         continue
       }
 
@@ -244,8 +247,7 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
 
 export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
   if (!spreadsheetId || isChildReadOnly(spreadsheetId)) return true
-  if (isOffline()) return false
-  if (isQuotaBlocked()) return false
+  if (isOffline() || isQuotaBlocked()) return false
 
   const running = flushesInFlight.get(spreadsheetId)
 

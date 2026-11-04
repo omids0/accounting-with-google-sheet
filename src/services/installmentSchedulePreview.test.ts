@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  installmentDueSpan,
   installmentHiddenPlanMessage,
   installmentSchedulePreview
 } from './installmentSchedulePreview'
@@ -32,6 +33,25 @@ describe('installmentSchedulePreview', () => {
   })
 })
 
+describe('installmentDueSpan', () => {
+  const plan = (...dues: string[]) => ({ payments: dues.map(dueDate => ({ dueDate })) })
+
+  it('spans the earliest to the latest due date across plans', () => {
+    const early = jalaliToIso(1405, 9, 15)
+    const late = jalaliToIso(1406, 2, 15)
+
+    expect(installmentDueSpan([plan(late, early), plan(jalaliToIso(1405, 10, 1))])).toEqual({
+      start: early,
+      end: late
+    })
+  })
+
+  it('is null without any due date', () => {
+    expect(installmentDueSpan([])).toBeNull()
+    expect(installmentDueSpan([plan()])).toBeNull()
+  })
+})
+
 describe('installmentHiddenPlanMessage', () => {
   const range = { start: jalaliToIso(1405, 8, 1), end: jalaliToIso(1405, 8, 30) }
   const dues = [jalaliToIso(1405, 9, 15), jalaliToIso(1405, 10, 15)]
@@ -41,7 +61,7 @@ describe('installmentHiddenPlanMessage', () => {
 
     expect(message).toContain('طرح ساخته شد')
     expect(message).toContain(`اولین قسط ${day(9, 15)} است`)
-    expect(message).toContain('در بازهٔ فعلی دیده نمی‌شود')
+    expect(message).toContain('بازهٔ فهرست برای نشان دادنش باز شد')
   })
 
   it('stays silent when one installment is inside the period', () => {
