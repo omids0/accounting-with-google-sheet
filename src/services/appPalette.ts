@@ -1,7 +1,8 @@
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
 import { PERIOD_SETTINGS_SHEET } from './sheetNames'
-import { isPersonalWorkspace, personalSpreadsheet } from './workspace'
-import { paletteOrDefault, type PaletteId } from '../utils/appPalettes'
+import { getSheetAllRows } from './spreadsheetStore'
+import { isPersonalWorkspace } from './workspace'
+import { DEFAULT_PALETTE_ID, paletteOrDefault, type PaletteId } from '../utils/appPalettes'
 import { getPalette, reapplyTheme, type ResolvedTheme } from '../utils/theme'
 
 /**
@@ -9,6 +10,10 @@ import { getPalette, reapplyTheme, type ResolvedTheme } from '../utils/theme'
  * personal spreadsheet's key/value tab «تنظیمات دوره» (two rows, ids not labels) and is cached in
  * `accounting_settings` so the first paint needs no network. The mode itself (light/dark/system)
  * stays per device: the sidebar switch flips it.
+ *
+ * Every personal sheet carries the rows (a new year's sheet is a new personal sheet), so the colour
+ * follows the sheet the user has open on every device: the phone app and the web app agree as long
+ * as both are on the same sheet.
  */
 export const PALETTE_LIGHT_ROW = 'رنگ تم روشن'
 
@@ -20,29 +25,31 @@ function rowKeyOf(mode: ResolvedTheme): string {
   return mode === 'dark' ? PALETTE_DARK_ROW : PALETTE_LIGHT_ROW
 }
 
-/** The two palettes the data rows of «تنظیمات دوره» name; a missing or unknown value = default. */
+/**
+ * The two palettes the data rows of «تنظیمات دوره» name. A mode whose row is missing or blank is
+ * `null` (the sheet has no opinion yet); a row naming an unknown id means the default.
+ */
 export function palettesOfRows(
   rows: readonly (readonly unknown[])[]
-): Record<ResolvedTheme, PaletteId> {
+): Record<ResolvedTheme, PaletteId | null> {
   const valueOf = (key: string) =>
     String(rows.find(row => String(row[0] ?? '').trim() === key)?.[1] ?? '').trim()
 
-  return {
-    light: paletteOrDefault(valueOf(PALETTE_LIGHT_ROW)),
-    dark: paletteOrDefault(valueOf(PALETTE_DARK_ROW))
+  const paletteOf = (key: string) => {
+    const value = valueOf(key)
+
+    return value ? paletteOrDefault(value) : null
   }
+
+  return { light: paletteOf(PALETTE_LIGHT_ROW), dark: paletteOf(PALETTE_DARK_ROW) }
 }
 
 /**
- * Only the manager's own spreadsheet holds the palette. A building, shared account or child sheet
- * is read by other people, and a child is read-only: there the cached choice just applies.
+ * Any personal sheet holds the palette. A building, shared account or child sheet is read by
+ * other people, and a child is read-only: there the cached choice just applies.
  */
 export function isPaletteSheet(spreadsheetId: string): boolean {
-  if (!spreadsheetId || !isPersonalWorkspace(spreadsheetId)) return false
-
-  const own = personalSpreadsheet(getSettings()?.spreadsheets ?? [])
-
-  return !own || own.id === spreadsheetId
+  return Boolean(spreadsheetId) && isPersonalWorkspace(spreadsheetId)
 }
 
 const listeners = new Set<() => void>()
@@ -109,9 +116,11 @@ export async function changePalette(mode: ResolvedTheme, id: PaletteId): Promise
 }
 
 /**
- * After every pull of the personal sheet: the sheet's palettes replace the cached ones (the
- * sheet wins, as for the workspace type). A pick still pending from another sheet goes out first.
- * A failed read changes nothing, so going offline never resets the colours.
+ * After every pull of a personal sheet (changed or not, so a start-up check is enough): the sheet's
+ * palettes replace the cached ones (the sheet wins, as for the workspace type). It reads the local
+ * mirror the pull just filled, so it costs no request. A mode the sheet has no row for keeps the
+ * device's choice and writes it to the sheet, so a new year's sheet inherits the colours instead of
+ * starting at the default. A pick still pending goes out first.
  */
 export async function syncPalettesFromSheet(spreadsheetId: string): Promise<void> {
   if (!isPaletteSheet(spreadsheetId)) return
@@ -126,15 +135,23 @@ export async function syncPalettesFromSheet(spreadsheetId: string): Promise<void
     return
   }
 
-  try {
-    const { fetchSheetRows } = await import('./sheets')
-    const remote = palettesOfRows(await fetchSheetRows(spreadsheetId, PERIOD_SETTINGS_SHEET))
+  const rows = getSheetAllRows(spreadsheetId, PERIOD_SETTINGS_SHEET)
 
-    if (remote.light === getPalette('light') && remote.dark === getPalette('dark')) return
+  // The tab was not downloaded (yet): keep what is shown.
+  if (!rows) return
 
-    saveSettings({ ...settings, paletteLight: remote.light, paletteDark: remote.dark })
+  const remote = palettesOfRows(rows)
+  const light = remote.light ?? getPalette('light')
+  const dark = remote.dark ?? getPalette('dark')
+
+  if (light !== getPalette('light') || dark !== getPalette('dark')) {
+    saveSettings({ ...settings, paletteLight: light, paletteDark: dark })
     notifyPalettes()
-  } catch {
-    // Offline or the tab is missing: keep what is shown.
   }
+
+  const unwritten = MODES.filter(
+    mode => remote[mode] === null && (mode === 'dark' ? dark : light) !== DEFAULT_PALETTE_ID
+  )
+
+  if (unwritten.length) await pushPalettes(unwritten)
 }
