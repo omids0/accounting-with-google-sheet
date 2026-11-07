@@ -146,6 +146,7 @@ export async function fullSyncFromRemote(
         return
       }
 
+      void import('./childAccessLost').then(c => c.markOpenChildLostIfDenied(spreadsheetId, err))
       const message = toUserMessage(err, 'خطا در دریافت داده')
 
       logSync('pull:failed', err instanceof Error ? err.message : message)

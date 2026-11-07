@@ -123,11 +123,11 @@ export const recordItemTitleTextClass = 'max-w-full truncate'
 
 export const recordItemTitleAddonClass = 'inline-flex shrink-0 items-center gap-1'
 
-export const recordItemMetaClass = 'text-[0.75rem] text-muted'
+export const recordItemMetaClass = 'text-[0.75rem] text-muted [overflow-wrap:anywhere]'
 
 export const recordItemInteractiveClass = cx(
   'relative -mx-[0.65rem] animate-[recordItemIn_0.4s_var(--ease-page)_both] rounded-sm border-b-transparent px-[0.65rem] py-[0.85rem] transition-[background,box-shadow] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
-  '[&+&]:border-t [&+&]:border-border',
+  '[&+&]:rounded-t-none [&+&]:border-t [&+&]:border-border',
   'hover:bg-[color-mix(in_srgb,var(--color-accent-soft)_65%,transparent)] hover:shadow-[inset_3px_0_0_color-mix(in_srgb,var(--color-primary)_35%,transparent)]',
   'active:scale-[0.995]',
   'motion-reduce:animate-none motion-reduce:transition-none'

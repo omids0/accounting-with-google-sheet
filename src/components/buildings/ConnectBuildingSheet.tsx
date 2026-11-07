@@ -9,10 +9,15 @@ import {
   registerConnectedSheet
 } from '../../services/buildingConnect'
 import { isJourneyUnfinished, readJourney } from '../../services/buildingJourney'
+import { isPickerAvailable, pickSpreadsheetWithGoogle } from '../../services/googlePicker'
 import { getSettings, getSpreadsheets } from '../../services/settings'
 import { anotherSharedExists, undoPickedSheet } from '../../services/sharedConnect'
 import { ONE_SHARED_ACCOUNT_MESSAGE } from '../../services/sharedWorkspace'
-import { getSpreadsheetLabel, parseSpreadsheetIdFromUrl } from '../../services/spreadsheetCatalog'
+import {
+  getSpreadsheetLabel,
+  mentionsAccounting,
+  parseSpreadsheetIdFromUrl
+} from '../../services/spreadsheetCatalog'
 import { moveSyncToSpreadsheet } from '../../services/spreadsheetSwitch'
 import {
   getWorkspaceType,
@@ -34,9 +39,9 @@ import {
 import Button from '../ui/Button'
 import { formErrorClass } from '../ui/formStyles'
 
-/** What the sheet connects: a building (default) or the shared account. */
+/** What the sheet connects: a building (default), the shared account or a child's account. */
 export interface ConnectTarget {
-  type: 'building' | 'shared'
+  type: 'building' | 'shared' | 'child'
   title: string
   intro: string
   notMessage: string
@@ -44,6 +49,11 @@ export interface ConnectTarget {
   connect: (spreadsheetId: string, title?: string) => Promise<boolean>
   /** The page the «باز کردن شیت با گوگل» path opens once the picked sheet is listed. */
   landing: (spreadsheetId: string) => Tab
+  /**
+   * Google's picker only grants access: the picked sheet is read with `connect` and never opened
+   * or prepared here (a child's account, which this device may only read).
+   */
+  pickOnly?: boolean
 }
 
 const BUILDING_TARGET: ConnectTarget = {
@@ -82,6 +92,7 @@ export default function ConnectBuildingSheet({
   const [link, setLink] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [picking, setPicking] = useState(false)
 
   const connect = async (spreadsheetId: string, title?: string) => {
     setBusy(true)
@@ -127,7 +138,34 @@ export default function ConnectBuildingSheet({
     if (previousId) bumpSpreadsheetKey()
   })
 
+  const pickAndConnect = async () => {
+    setPicking(true)
+    setError(null)
+    try {
+      const picked = await pickSpreadsheetWithGoogle()
+
+      if (!picked) return
+      if (!mentionsAccounting(picked.name)) {
+        setError(
+          'این فایل شیت حسابداری به نظر نمی‌رسد؛ شیتی را انتخاب کنید که نامش «حسابداری» دارد'
+        )
+
+        return
+      }
+      await connect(picked.id, picked.name)
+    } catch (err) {
+      setError(toUserMessage(err, 'باز کردن شیت با گوگل ناموفق بود'))
+    } finally {
+      setPicking(false)
+    }
+  }
+
   const openPicker = () => {
+    if (target.pickOnly) {
+      void pickAndConnect()
+
+      return
+    }
     previousRef.current = getSettings()?.spreadsheetId ?? ''
     if (previousRef.current && getWorkspaceType(previousRef.current) === 'personal') {
       rememberPersonalSheet(previousRef.current)
@@ -179,13 +217,13 @@ export default function ConnectBuildingSheet({
           autoComplete="off"
         />
       </FormField>
-      {picker.available ? (
+      {(target.pickOnly ? isPickerAvailable() : picker.available) ? (
         <Button
           type="button"
           variant="secondary"
           size="sm"
           className="min-h-11 text-sm"
-          loading={picker.opening}
+          loading={picker.opening || picking}
           onClick={openPicker}
         >
           باز کردن شیت با گوگل

@@ -69,7 +69,9 @@ const LOCKED_SETS: Record<WorkspaceType, Record<'income' | 'expense', ReadonlySe
     income: BUILDING_LOCKED_INCOME_CATEGORIES,
     expense: BUILDING_LOCKED_EXPENSE_CATEGORIES
   },
-  shared: { income: NO_LOCKED_CATEGORIES, expense: NO_LOCKED_CATEGORIES }
+  shared: { income: NO_LOCKED_CATEGORIES, expense: NO_LOCKED_CATEGORIES },
+  // A child's books are personal ones, only read.
+  child: { income: LOCKED_INCOME_CATEGORIES, expense: LOCKED_EXPENSE_CATEGORIES }
 }
 
 /** The categories forced into a form's list: another set in a building or a shared account. */

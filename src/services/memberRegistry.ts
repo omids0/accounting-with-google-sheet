@@ -192,7 +192,8 @@ export function registryOf(kind: MemberKind): MemberRegistry {
 export function memberKindOf(spreadsheetId?: string): MemberKind | null {
   const type = workspaceTypeOf(spreadsheetId)
 
-  return type === 'personal' ? null : type
+  // A child account (parent's read-only view) has no members: the sheet is the child's personal one.
+  return type === 'personal' || type === 'child' ? null : type
 }
 
 /** The kind whose rules apply to the members of a sheet; a personal sheet keeps the building's. */

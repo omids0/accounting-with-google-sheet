@@ -18,6 +18,8 @@ export function useBankSmsContext() {
   const [ledger, setLedger] = useState<LedgerEntry[]>([])
   const [recurring, setRecurring] = useState<RecurringItem[]>([])
   const [transfers, setTransfers] = useState<Transfer[]>([])
+  /** The first read ended (also when it failed or the account has no wallet accounts). */
+  const [loaded, setLoaded] = useState(false)
 
   const reload = useCallback(async () => {
     const settings = getSettings()
@@ -41,6 +43,8 @@ export function useBankSmsContext() {
       setTransfers(transferRows)
     } catch (err) {
       handleSheetError(err, { fallbackMessage: 'خطا در خواندن حساب‌ها' })
+    } finally {
+      setLoaded(true)
     }
   }, [])
 
@@ -51,5 +55,5 @@ export function useBankSmsContext() {
     void reload()
   }, [reload, dataRevision])
 
-  return { accounts, ledger, recurring, transfers, reload }
+  return { accounts, ledger, recurring, transfers, loaded, reload }
 }

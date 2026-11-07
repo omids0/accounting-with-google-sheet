@@ -27,7 +27,7 @@ export const formModalPanelClass = cx(
 export const formModalPanelWideClass = 'md:max-w-[40rem]'
 
 export const formModalHeaderClass = cx(
-  'grid flex-shrink-0 grid-cols-[1fr_auto] grid-rows-[auto_auto] items-center gap-x-3',
+  'grid flex-shrink-0 grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-3',
   'border-b border-border px-[1.15rem] pb-[0.85rem] pt-[0.45rem]',
   'bg-[color-mix(in_srgb,var(--color-accent-soft)_40%,var(--color-surface))]',
   'before:col-span-full before:mb-[0.6rem] before:h-[0.28rem] before:w-10 before:justify-self-center',
@@ -38,7 +38,7 @@ export const formModalHeaderClass = cx(
 )
 
 export const formModalTitleClass = cx(
-  'col-start-1 row-start-2 m-0 min-w-0 flex-1 text-[1.02rem] font-extrabold tracking-[-0.02em] text-primary-dark'
+  'col-start-1 row-start-2 m-0 min-w-0 flex-1 text-[1.02rem] font-extrabold tracking-[-0.02em] text-primary-dark [overflow-wrap:anywhere]'
 )
 
 export const formModalCloseClass = cx(

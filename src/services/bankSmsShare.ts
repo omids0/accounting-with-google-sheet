@@ -1,4 +1,4 @@
-import { toAppCurrency } from './bankSmsAmount'
+import { toAppCurrency, usableSmsAmount } from './bankSmsAmount'
 import { SMS_RECORD_NOTE } from './bankSmsApply'
 import { smsRecordDate } from './bankSmsDate'
 import { matchSms, type LearnedSmsRefs } from './bankSmsMatch'
@@ -33,7 +33,7 @@ export function routeSharedText(
 
   if (result.kind !== 'matched' && result.kind !== 'ambiguous') return { kind: 'unknown' }
 
-  const amount = toAppCurrency(result.amount, result.unit, currency)
+  const amount = usableSmsAmount(toAppCurrency(result.amount, result.unit, currency), currency)
 
   if (!amount) return { kind: 'unknown' }
 

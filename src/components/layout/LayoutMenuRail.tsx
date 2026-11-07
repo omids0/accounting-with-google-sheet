@@ -1,9 +1,11 @@
 import { Fragment, type ReactNode } from 'react'
 
 import { BUILDING_SWITCHER_LABEL } from './buildingSwitcher'
+import { CHILD_NAV_LINKS } from './childTabs'
 import type { LayoutMenuNavProps } from './LayoutMenuNav'
 import {
   BUILDING_RETURN_LABEL,
+  CHILD_RETURN_LABEL,
   MENU_ABOUT_LINK,
   MENU_BANK_SMS_LINK,
   MENU_COMMITMENT_LINKS,
@@ -47,28 +49,38 @@ function RailLabel({ icon, label }: { icon: AppIconName; label: string }) {
   )
 }
 
-function RailReturnItem({ onClick }: { onClick: () => void }) {
+function RailReturnItem({
+  onClick,
+  label = BUILDING_RETURN_LABEL
+}: {
+  onClick: () => void
+  label?: string
+}) {
   return (
-    <button
-      type="button"
-      className={appRailItemClass(false)}
-      aria-label={BUILDING_RETURN_LABEL}
-      onClick={onClick}
-    >
-      <RailLabel icon="return" label={BUILDING_RETURN_LABEL} />
+    <button type="button" className={appRailItemClass(false)} aria-label={label} onClick={onClick}>
+      <RailLabel icon="return" label={label} />
     </button>
   )
 }
 
-/** The rail inside the shared account: the way back to the personal books, then its four pages. */
-function SharedRailItems({ link }: { link: (entry: MenuLinkEntry) => ReactNode }) {
+/**
+ * The rail inside the shared account (four pages) or a child's account (three): the way back to
+ * the personal books first.
+ */
+function SharedRailItems({
+  link,
+  child = false
+}: {
+  link: (entry: MenuLinkEntry) => ReactNode
+  child?: boolean
+}) {
   const { returnToPersonal, modalProps } = useReturnToPersonal()
 
   return (
     <>
-      <RailReturnItem onClick={returnToPersonal} />
+      <RailReturnItem onClick={returnToPersonal} label={child ? CHILD_RETURN_LABEL : undefined} />
       <span className={appRailDividerClass} />
-      {SHARED_NAV_LINKS.map(link)}
+      {(child ? CHILD_NAV_LINKS : SHARED_NAV_LINKS).map(link)}
       <SheetSwitchConfirmModal {...modalProps} />
     </>
   )
@@ -172,8 +184,8 @@ export default function LayoutMenuRail(props: LayoutMenuRailProps) {
       </button>
       {workspace === 'building' ? (
         <BuildingRailItems link={link} onOpenMenu={onOpenMenu} />
-      ) : workspace === 'shared' ? (
-        <SharedRailItems link={link} />
+      ) : workspace === 'shared' || workspace === 'child' ? (
+        <SharedRailItems link={link} child={workspace === 'child'} />
       ) : (
         <>
           <span className={appRailDividerClass} />

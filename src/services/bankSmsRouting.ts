@@ -4,7 +4,7 @@ import { getSettings } from './settings'
 import { WALLET_SHEET } from './sheetNames'
 import { getSheetDataRows } from './spreadsheetStore'
 import { getItem, setItem } from './storage'
-import { getWorkspaceType } from './workspace'
+import { getWorkspaceType, isChildEntry } from './workspace'
 import type { WalletAccount } from '../types'
 import { toPersianDigits } from '../utils/normalizeDigits'
 
@@ -81,9 +81,12 @@ export function readWorkspaceCards(): CardStore {
   return getItem<CardStore>(WORKSPACE_CARDS_KEY) ?? {}
 }
 
-/** Stores a workspace's cards; nothing is written (or announced) when they did not change. */
+/**
+ * Stores a workspace's cards; nothing is written (or announced) when they did not change. A
+ * child's account (a parent's read-only view) never owns a card: its SMS are the child's own.
+ */
 export function rememberWorkspaceCards(spreadsheetId: string, accounts: CardAccountSource[]): void {
-  if (!spreadsheetId) return
+  if (!spreadsheetId || getWorkspaceType(spreadsheetId) === 'child') return
 
   const next = toCardAccounts(accounts)
   const store = readWorkspaceCards()
@@ -135,18 +138,21 @@ export interface RoutingWorkspace {
 
 /**
  * Every registered workspace (personal and buildings) with the cards this device knows;
- * the open one is always included.
+ * the open one is always included. A child's account is never one: a card it names stays in the
+ * parent's own queue.
  */
 export function routingWorkspaces(): RoutingWorkspace[] {
   const settings = getSettings()
   const store = readWorkspaceCards()
   // An archived building no longer owns a card: its SMS stay in the personal queue.
-  const ids = new Set([
-    ...(settings?.spreadsheets ?? [])
-      .filter(entry => !isArchivedEntry(entry))
-      .map(entry => entry.id),
-    ...(settings?.spreadsheetId ? [settings.spreadsheetId] : [])
-  ])
+  const ids = new Set(
+    [
+      ...(settings?.spreadsheets ?? [])
+        .filter(entry => !isArchivedEntry(entry) && !isChildEntry(entry))
+        .map(entry => entry.id),
+      ...(settings?.spreadsheetId ? [settings.spreadsheetId] : [])
+    ].filter(id => getWorkspaceType(id) !== 'child')
+  )
 
   return [...ids].map(id => ({ id, cards: (store[id] ?? []).flatMap(account => account.cards) }))
 }
@@ -201,6 +207,7 @@ export function smsForActiveWorkspace<T extends { body: string }>(items: T[]): T
     routingWorkspaces(),
     activeId,
     getWorkspaceType(activeId) === 'building',
-    getWorkspaceType(activeId) === 'shared'
+    // A shared account and a child's account have no SMS queue.
+    getWorkspaceType(activeId) === 'shared' || getWorkspaceType(activeId) === 'child'
   )
 }

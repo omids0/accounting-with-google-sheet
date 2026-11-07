@@ -70,6 +70,11 @@ import {
   loadBuildingUnitPage,
   loadBuildingUnitsPage,
   loadSearchPage,
+  loadChildCategoriesPage,
+  loadChildHomePage,
+  loadChildRecordsPage,
+  loadChildrenHomePage,
+  loadParentsHomePage,
   loadSharedHomePage,
   loadSharedMembersPage,
   loadSharedRecordsPage,
@@ -146,6 +151,11 @@ export const LazyBuildingUnitPage = lazy(loadBuildingUnitPage)
 export const LazyBuildingChargesPage = lazy(loadBuildingChargesPage)
 export const LazyBuildingExpensesPage = lazy(loadBuildingExpensesPage)
 export const LazyBuildingResidentsPage = lazy(loadBuildingResidentsPage)
+export const LazyChildHomePage = lazy(loadChildHomePage)
+export const LazyChildRecordsPage = lazy(loadChildRecordsPage)
+export const LazyChildCategoriesPage = lazy(loadChildCategoriesPage)
+export const LazyChildrenHomePage = lazy(loadChildrenHomePage)
+export const LazyParentsHomePage = lazy(loadParentsHomePage)
 export const LazySharedHomePage = lazy(loadSharedHomePage)
 export const LazySharedRecordsPage = lazy(loadSharedRecordsPage)
 export const LazySharedSettlePage = lazy(loadSharedSettlePage)

@@ -2,6 +2,7 @@ import type { CustomForm } from '../types'
 import { ACTIVITY_LOG_FORM, ACTIVITY_LOG_KEEP, planActivitySweepYears } from './activityLogSweep'
 import { addArchiveTab } from './archiveRegistry'
 import { prepareArchiveTab, readTabs } from './archiveTabs'
+import { isChildReadOnly } from './childReadOnly'
 import { archiveSheetName, planYearSweep, type YearSweepOptions } from './recordArchive'
 import { copyRowsToArchive, deleteArchivedRows, idOf } from './recordArchiveMove'
 import { forgetSeenSheets, stampSheetRevisions } from './sheetRevisions'
@@ -143,6 +144,8 @@ export async function sweepArchivesAfterPull(
   forms: CustomForm[]
 ): Promise<void> {
   if (sweeping || !spreadsheetId || hasPendingOutbox(spreadsheetId)) return
+  // A child's account is read-only here: its rows are never moved into archive tabs.
+  if (isChildReadOnly(spreadsheetId)) return
 
   const currentYear = isoToJalali(getTodayIso()).year
 

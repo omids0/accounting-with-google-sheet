@@ -144,11 +144,11 @@ export function buildingForms(): CustomForm[] {
   return withBuildingFields(getDefaultForms())
 }
 
-/** Lists the spreadsheet as a building or a shared account without making it the active one. */
+/** Lists the spreadsheet as a building, a shared account or a child's account without making it the active one. */
 export function registerWorkspaceSpreadsheet(
   id: string,
   name: string,
-  kind: 'building' | 'shared'
+  kind: 'building' | 'shared' | 'child'
 ): void {
   const settings = getSettings() ?? getDefaultSettings()
 

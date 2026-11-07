@@ -189,6 +189,18 @@ export const loadSharedSettlePage: PageLoader = () =>
 export const loadSharedMembersPage: PageLoader = () =>
   import('../components/shared/SharedMembersRoute')
 
+export const loadChildHomePage: PageLoader = () => import('../components/child/ChildHomePage')
+
+export const loadChildRecordsPage: PageLoader = () => import('../components/child/ChildRecordsPage')
+
+export const loadChildCategoriesPage: PageLoader = () =>
+  import('../components/child/ChildCategoriesPage')
+
+export const loadChildrenHomePage: PageLoader = () =>
+  import('../components/family/ChildrenHomePage')
+
+export const loadParentsHomePage: PageLoader = () => import('../components/family/ParentsHomePage')
+
 export const loadBankSmsPage: PageLoader = () => import('../components/bankSms/BankSmsPage')
 
 export const loadSearchPage: PageLoader = () => import('../components/search/SearchPage')

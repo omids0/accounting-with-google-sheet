@@ -1,5 +1,6 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 
+import BankSmsAccountPick from './BankSmsAccountPick'
 import BankSmsCardHead from './BankSmsCardHead'
 import BankSmsChoiceRow from './BankSmsChoiceRow'
 import { BankSmsDuplicateBadge, BankSmsDuplicateHint, BankSmsSameButton } from './BankSmsDuplicate'
@@ -15,12 +16,12 @@ import {
   smsEntryType,
   type BankSmsReviewItem
 } from '../../services/bankSmsQueue'
+import { cn } from '../../utils/cn'
 import { toPersianDigits } from '../../utils/normalizeDigits'
 import AppIcon from '../AppIcon'
 import SwipeableRow from '../SwipeableRow'
-import ToggleChipGroup from '../ToggleChipGroup'
 import Alert from '../ui/Alert'
-import { smsActionsRowClass, smsHintClass, smsQueueCardClass } from '../ui/bankSmsStyles'
+import { smsActionsRowClass, smsActionsRowThumbClass, smsQueueCardClass } from '../ui/bankSmsStyles'
 import Button from '../ui/Button'
 import Card from '../ui/Card'
 
@@ -30,6 +31,8 @@ const UnitPaymentSheet = lazy(() => import('../buildings/UnitPaymentSheet'))
 type BankSmsEntryCardProps = {
   item: Extract<BankSmsReviewItem, { kind: 'single' }>
   review: BankSmsReview
+  /** False in the quick sheet: no hint there says a sideways drag saves or ignores. */
+  swipeable?: boolean
 }
 
 const ACTION_LABEL = { expense: 'ثبت هزینه', income: 'ثبت درآمد' } as const
@@ -38,7 +41,11 @@ const ACTION_LABEL = { expense: 'ثبت هزینه', income: 'ثبت درآمد'
  * A recognised SMS: amount, account, suggested category and one main action matching
  * its direction. Swipe right = that action, left = «نادیده» (touch only).
  */
-export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps) {
+export default function BankSmsEntryCard({
+  item,
+  review,
+  swipeable = true
+}: BankSmsEntryCardProps) {
   const { entry, probableDuplicate, duplicateMovedBalance, duplicatePayment, key } = item
   const { result } = entry
   const candidates = result.kind === 'ambiguous' ? result.candidates : []
@@ -121,6 +128,7 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
         leftLabel="نادیده"
         onSwipeRight={canAct && !busy ? swipe : undefined}
         onSwipeLeft={busy ? undefined : dismiss}
+        disabled={!swipeable}
       >
         <Card className={smsQueueCardClass}>
           <BankSmsCardHead
@@ -142,22 +150,11 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
           <BankSmsDuplicateHint item={item} />
 
           {candidates.length > 1 && (
-            <>
-              <ToggleChipGroup
-                ariaLabel="حساب این پیامک"
-                options={candidates.map(candidate => ({
-                  id: candidate.accountId,
-                  label: titleOf(candidate.accountId)
-                }))}
-                selected={{ [accountId]: true }}
-                onToggle={setAccountId}
-              />
-              <p className={smsHintClass}>
-                {accountId
-                  ? 'حساب این پیامک را خودتان انتخاب کردید؛ اگر درست نیست عوضش کنید.'
-                  : 'رقم کارت این پیامک به چند حساب می‌خورد؛ اول حساب را انتخاب کنید.'}
-              </p>
-            </>
+            <BankSmsAccountPick
+              options={candidates.map(c => ({ id: c.accountId, label: titleOf(c.accountId) }))}
+              accountId={accountId}
+              onPick={setAccountId}
+            />
           )}
 
           {offer && (
@@ -183,7 +180,8 @@ export default function BankSmsEntryCard({ item, review }: BankSmsEntryCardProps
             />
           )}
 
-          <div className={smsActionsRowClass}>
+          {/* The quick sheet (not swipeable) is thumb-first: its buttons get full 44px rows. */}
+          <div className={cn(smsActionsRowClass, !swipeable && smsActionsRowThumbClass)}>
             {duplicatePayment && (
               <BankSmsSameButton
                 item={item}

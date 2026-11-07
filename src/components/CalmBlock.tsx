@@ -14,6 +14,8 @@ import {
 export interface CalmBlockAction {
   label: string
   onClick: () => void
+  /** A full 44px tap row (new thumb-first screens); the default keeps the compact 32px link. */
+  touch?: boolean
 }
 
 export interface CalmBlockProps {
@@ -60,7 +62,11 @@ export default function CalmBlock({
           </h2>
         </div>
         {action ? (
-          <button type="button" className={calmBlockLinkClass} onClick={action.onClick}>
+          <button
+            type="button"
+            className={cn(calmBlockLinkClass, action.touch && 'min-h-touch-min')}
+            onClick={action.onClick}
+          >
             {action.label}
           </button>
         ) : null}

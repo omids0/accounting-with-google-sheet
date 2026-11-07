@@ -8,6 +8,7 @@ import PrivacyScreen from './components/appLock/PrivacyScreen'
 import AppToaster from './components/AppToaster'
 import ConfirmDeleteHost from './components/ConfirmDeleteHost'
 import { AppLoadingSkeleton } from './components/skeleton'
+import { leaveChildOnColdStart } from './services/coldStartWorkspace'
 import { initializeNativeGoogleAuth, isNativePlatform } from './services/googleAuthNative'
 import { APP_NAME, IS_DEV_ENV } from './utils/appEnv'
 import { initDisplayPrefs } from './utils/displayPrefs'
@@ -24,6 +25,8 @@ initDisplayPrefs()
 // Lets the stylesheet drop effects the Android WebView renders far more slowly than a browser.
 if (isNativePlatform()) document.documentElement.classList.add('native')
 void initializeNativeGoogleAuth()
+// A parent never wakes up inside a child's read-only account: their own books open first.
+leaveChildOnColdStart()
 // A newcomer opened the app from an invite link: remember the code until they sign in.
 captureInviteRefFromUrl()
 

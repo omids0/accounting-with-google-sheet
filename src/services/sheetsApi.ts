@@ -1,4 +1,5 @@
 import { getAccessToken, isTokenValid } from './auth'
+import { assertSheetsWriteAllowed } from './childReadOnly'
 
 export const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets'
 
@@ -93,6 +94,9 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   allowAuthRetry = true
 ): Promise<T> {
+  // A child's account is read-only on the parent's device: refused before any token or network.
+  assertSheetsWriteAllowed(url, options.method)
+
   if (!isTokenValid()) {
     const { ensureFreshAccessToken } = await import('./tokenRefresh')
 

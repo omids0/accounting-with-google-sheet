@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router'
 import { getTabFromPath } from './paths'
 import { workspaceRedirect } from './workspaceRedirect'
 import EmptyState from '../components/EmptyState'
+import { CHILD_TABS } from '../components/layout/childTabs'
 import { SHARED_TABS } from '../components/layout/sharedTabs'
 import { BUILDING_TABS } from '../components/layout/types'
 import { AppLoadingSkeleton } from '../components/skeleton'
@@ -23,14 +24,17 @@ function PermissionGate({ permission }: { permission: BuildingPermission }) {
  * signed-in role may not use renders «دسترسی ندارید»; the shared account's «اعضا» stays open to
  * every role (a viewer gets the read-only list, the page itself hides management without
  * `members`). While the active sheet's type is still unread, a building or shared page waits
- * (skeleton) instead of being sent to the personal dashboard.
+ * (skeleton) instead of being sent to the personal dashboard; a child's account waits the same way.
  */
 export default function WorkspaceRouteGuard() {
   const { pathname, state } = useLocation()
   const resolution = useWorkspaceResolution()
   const tab = getTabFromPath(pathname)
 
-  if (resolution === 'unknown' && (BUILDING_TABS.includes(tab) || SHARED_TABS.includes(tab))) {
+  const workspaceTab =
+    BUILDING_TABS.includes(tab) || SHARED_TABS.includes(tab) || CHILD_TABS.includes(tab)
+
+  if (resolution === 'unknown' && workspaceTab) {
     return <AppLoadingSkeleton variant="inline" />
   }
 

@@ -28,6 +28,13 @@ vi.mock('./spreadsheetStore', () => ({ clearStore: (id: string) => clearStore(id
 
 vi.mock('./spreadsheetSetup', () => ({ clearSpreadsheetPrepareSession: vi.fn() }))
 
+const resetForeignSheetGuard = vi.fn()
+
+vi.mock('./foreignSheetGuard', async importOriginal => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  resetForeignSheetGuard: () => resetForeignSheetGuard()
+}))
+
 vi.mock('./dashboardCache', () => ({ invalidateDashboardCache: vi.fn() }))
 
 const deleteDatabase = vi.fn((name: string) => {
@@ -124,6 +131,15 @@ describe('clearAllLocalData', () => {
     expect(clearStore).toHaveBeenCalledWith('sheet-1')
     expect(deleteDatabase).toHaveBeenCalledWith('accounting_sheet_store')
     expect(revoke).toHaveBeenCalledWith('tok', expect.any(Function))
+  })
+
+  it('forgets the sheets that passed the foreign read-only check', async () => {
+    const { clearAllLocalData } = await import('./localDataWipe')
+
+    seed()
+    await clearAllLocalData()
+
+    expect(resetForeignSheetGuard).toHaveBeenCalledTimes(1)
   })
 
   it('forgets which shared account this device could not open', async () => {

@@ -1,4 +1,5 @@
 import { syncCategoriesFromSheet } from './categories'
+import { isChildReadOnly } from './childReadOnly'
 import { migrateActivityTrailColumns } from './migrateActivityTrailColumns'
 import { migrateCheckDirectionColumn } from './migrateCheckDirectionColumn'
 import { migrateLegacyMachineExpenseCategory } from './migrateLegacyMachineExpenseCategory'
@@ -16,6 +17,8 @@ export { syncCategoriesFromSheet }
  * building differ from a personal spreadsheet's, and both are applied by the category sync.
  */
 export async function refreshSpreadsheetContents(spreadsheetId: string): Promise<void> {
+  if (isChildReadOnly(spreadsheetId)) return
+
   const type = await syncWorkspaceTypeFromSheet(spreadsheetId)
 
   // A building opened before its type was known on this device (shared with the board, say)
@@ -32,6 +35,8 @@ export async function refreshSpreadsheetContents(spreadsheetId: string): Promise
 
 /** First-time work on a spreadsheet after its tabs exist: categories, one-off migrations. */
 export async function prepareSpreadsheetContents(spreadsheetId: string): Promise<void> {
+  if (isChildReadOnly(spreadsheetId)) return
+
   await refreshSpreadsheetContents(spreadsheetId)
   // The activity tab exists in every workspace kind, so its new columns are added in all of them.
   await migrateActivityTrailColumns(spreadsheetId).catch(() => undefined)
@@ -52,6 +57,7 @@ export async function prepareSpreadsheetContents(spreadsheetId: string): Promise
 
 /** Same migrations, fire-and-forget, for a spreadsheet that was already prepared. */
 export function runBackgroundMigrations(spreadsheetId: string): void {
+  if (isChildReadOnly(spreadsheetId)) return
   // A sheet first seen on this device (shared with the board, say): learn its workspace type.
   if (!hasWorkspaceType(spreadsheetId)) void syncWorkspaceTypeFromSheet(spreadsheetId)
   void migrateActivityTrailColumns(spreadsheetId).catch(() => undefined)

@@ -53,6 +53,8 @@ describe('invites', () => {
     expect(isValidEmail('sara@gmail.com')).toBe(true)
     expect(isValidEmail('sara@')).toBe(false)
     expect(isValidEmail('')).toBe(false)
+    expect(isValidEmail('۱۲۳@gmail.com')).toBe(false)
+    expect(isValidEmail('sara@gmaïl.com')).toBe(false)
   })
 
   it('writes a ready-made invitation with the role and the sheet link', () => {

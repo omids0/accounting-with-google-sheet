@@ -21,6 +21,7 @@ import { TAB_TITLES, type Tab } from './types'
 import { SETTINGS_PATH } from '../../routes/paths'
 import { isBankSmsAvailable } from '../../services/bankSmsNative'
 import AppIcon from '../AppIcon'
+import ParentsMenuBadge from '../family/ParentsMenuBadge'
 import {
   appMenuItemClass,
   appMenuItemIconClass,
@@ -68,7 +69,12 @@ export default function LayoutMenuNav(props: LayoutMenuNavProps) {
 
       <LayoutMenuSection label={MENU_MORE_LABEL}>
         {MENU_MORE_LINKS.map(entry => (
-          <LayoutMenuLink key={entry.tab} entry={entry} {...linkProps} />
+          <LayoutMenuLink
+            key={entry.tab}
+            entry={entry}
+            {...linkProps}
+            trailing={entry.tab === 'parents-home' ? <ParentsMenuBadge /> : undefined}
+          />
         ))}
         <LayoutMenuGroup
           label="گزارشات"

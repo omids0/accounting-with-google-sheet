@@ -5,7 +5,7 @@
 //   npm run build
 //   node .cursor/skills/qa/scripts/qa-shoot.mjs --steps steps.json [--out dir]
 //        [--base http://127.0.0.1:4180] [--port 4180] [--viewport 375x812]
-//        [--dark] [--reduced-motion] [--data sheets.json] [--sms sms.json] [--init init.js] [--log-requests] [--headed]
+//        [--dark] [--reduced-motion] [--data sheets.json] [--sms sms.json] [--launch-url url] [--init init.js] [--log-requests] [--headed]
 //
 // Run from the repo root. Without --base it starts `vite preview` on --port
 // (never 4173 — the e2e suite owns it). See references/visual-verify.md.
@@ -71,7 +71,11 @@ try {
   })
   await mockGoogleApis(page)
   if (data) await mockSheetData(page, data)
-  if (args.sms) await installAndroidSmsBridge(page, JSON.parse(readFileSync(args.sms, 'utf8')))
+  if (args.sms) {
+    const launchUrl = typeof args['launch-url'] === 'string' ? args['launch-url'] : ''
+
+    await installAndroidSmsBridge(page, JSON.parse(readFileSync(args.sms, 'utf8')), launchUrl)
+  }
   await seedMockAppState(page)
   if (data) await seedSheetStore(page, data)
   // The app picks its theme from the saved settings, not from the browser's colour scheme.
@@ -273,9 +277,11 @@ function visible(page, selector) {
  * Makes the app believe it runs in the Android app with these pending bank SMS (a JSON array of
  * { id, sender, body, receivedAt, source }). Only the BankSms plugin answers; other native
  * plugins resolve with {}. `window.__qaHandled` collects the ids the app marked handled.
+ * `launchUrl` is what the App plugin reports as the URL the app was opened with (a notification
+ * action such as `com.omids0.accounting://bank-sms/quick?id=<sms id>`).
  */
-async function installAndroidSmsBridge(page, items) {
-  await page.addInitScript(pending => {
+async function installAndroidSmsBridge(page, items, launchUrl = '') {
+  await page.addInitScript(({ pending, launch }) => {
     window.__qaSms = pending
     window.__qaHandled = []
     window.androidBridge = { postMessage() {} }
@@ -297,8 +303,18 @@ async function installAndroidSmsBridge(page, items) {
     ].map(name => ({ name, rtype: 'promise' }))
 
     window.Capacitor = {
-      PluginHeaders: [{ name: 'BankSms', methods }],
+      PluginHeaders: [
+        { name: 'BankSms', methods },
+        {
+          name: 'App',
+          methods: ['getLaunchUrl', 'addListener', 'removeListener'].map(name => ({
+            name,
+            rtype: 'promise'
+          }))
+        }
+      ],
       nativePromise: async (plugin, method, options) => {
+        if (plugin === 'App') return method === 'getLaunchUrl' && launch ? { url: launch } : {}
         if (plugin !== 'BankSms') return {}
         if (method === 'checkPermissions' || method === 'requestPermissions')
           return { sms: 'granted' }
@@ -316,7 +332,7 @@ async function installAndroidSmsBridge(page, items) {
       'accounting_bank_sms',
       JSON.stringify({ enabled: true, lastScanAt: Date.now() })
     )
-  }, items)
+  }, { pending: items, launch: launchUrl })
 }
 
 /** The app reads tabs from its local sheet store first, so `data` is seeded there as well. */

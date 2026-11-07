@@ -1,4 +1,5 @@
 import { findAttachmentColumn } from './attachmentColumn'
+import { assertNotChildReadOnly } from './childReadOnly'
 import { ACTIVITY_SHEET } from './sheetNames'
 import { apiRequest, SHEETS_API, SheetsApiError } from './sheetsApi'
 import { normalizeSheetTitle, parseSheetNameFromRange, quoteSheetName } from './sheetsMeta'
@@ -133,6 +134,8 @@ export async function appendSheetRow(
   row: string[],
   options?: SheetWriteOptions
 ): Promise<void> {
+  // Before the local mirror changes: a refused write must leave no phantom row behind.
+  assertNotChildReadOnly(spreadsheetId)
   row = stampWriter(spreadsheetId, sheetName, row)
   appendSheetDataRow(spreadsheetId, sheetName, row)
   if (!options?.skipRevision) {
@@ -188,6 +191,8 @@ export async function updateSheetRow(
   options?: SheetWriteOptions,
   exact = false
 ): Promise<void> {
+  assertNotChildReadOnly(spreadsheetId)
+
   const built = typeof rowOrBuilder === 'function' ? rowOrBuilder() : rowOrBuilder
 
   rowNumber = currentRowNumberFor(spreadsheetId, sheetName, rowNumber, built)
@@ -224,6 +229,8 @@ export async function deleteSheetRow(
   sheetName: string,
   rowNumber: number
 ): Promise<void> {
+  assertNotChildReadOnly(spreadsheetId)
+
   const expectedRow = getSheetRow(spreadsheetId, sheetName, rowNumber) ?? undefined
 
   deleteSheetDataRow(spreadsheetId, sheetName, rowNumber)
@@ -246,6 +253,7 @@ export async function replaceSheetDataRows(
   columnCount = 2,
   headerRow?: string[]
 ): Promise<void> {
+  assertNotChildReadOnly(spreadsheetId)
   replaceSheetDataRowsInStore(spreadsheetId, sheetName, rows, headerRow)
   notifySpreadsheetDataChanged(spreadsheetId)
 

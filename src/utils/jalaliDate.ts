@@ -52,6 +52,18 @@ export function daysInJalaliMonth(jy: number, jm: number): number {
   return jalaliMonthLength(jy, jm)
 }
 
+/** `YYYY-MM-DD` naming a day the calendar has; a sheet row may hold «2026-10-32» or «2026-13-01». */
+export function isRealIsoDate(dateOnly: string): boolean {
+  if (!ISO_DATE_PATTERN.test(dateOnly)) return false
+
+  const month = Number(dateOnly.slice(5, 7))
+  const day = Number(dateOnly.slice(8, 10))
+
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false
+
+  return !Number.isNaN(new Date(`${dateOnly}T12:00:00`).getTime())
+}
+
 const isoDateToJalali = memoizeByKey(
   (dateOnly: string): JalaliParts => dateToJalali(new Date(`${dateOnly}T12:00:00`)),
   dateOnly => dateOnly
@@ -62,7 +74,7 @@ export function isoToJalali(iso: string): JalaliParts {
 
   // Only calendar dates are cached; the "today" fallbacks below must stay live
   // so a session that spans midnight does not keep reporting yesterday.
-  if (ISO_DATE_PATTERN.test(dateOnly)) return isoDateToJalali(dateOnly)
+  if (isRealIsoDate(dateOnly)) return isoDateToJalali(dateOnly)
 
   if (iso) {
     const parsed = new Date(iso)
@@ -114,7 +126,8 @@ export const formatIsoDatePersian = memoizeByKey(
 
     const d = iso.slice(0, 10)
 
-    if (!ISO_DATE_PATTERN.test(d)) return iso
+    // Never throws: `Intl` raises a RangeError for an impossible date, which blanked the app.
+    if (!isRealIsoDate(d)) return iso
 
     return persianDateFormatter.format(new Date(`${d}T12:00:00`))
   },
@@ -142,7 +155,7 @@ const memoizedJalaliMonthsAhead = memoizeByKey(
 
 export function addJalaliMonths(baseIso: string, monthsToAdd: number, day: number): string {
   // Same reasoning as `isoToJalali`: results relative to "today" stay uncached.
-  if (!ISO_DATE_PATTERN.test(baseIso.slice(0, 10))) {
+  if (!isRealIsoDate(baseIso.slice(0, 10))) {
     return computeJalaliMonthsAhead(baseIso, monthsToAdd, day)
   }
 

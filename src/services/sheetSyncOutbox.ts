@@ -1,3 +1,4 @@
+import { assertNotChildReadOnly, isChildReadOnly } from './childReadOnly'
 import { notifyRejectedWrite } from './failedWriteNotice'
 import { invalidateInstallmentsCache } from './installmentsConstants'
 import { withOutboxLock } from './outboxLock'
@@ -76,6 +77,7 @@ export function dismissFailedWrites(spreadsheetId: string): void {
 }
 
 export function queueOutboxWrite(spreadsheetId: string, operation: OutboxOperation): void {
+  assertNotChildReadOnly(spreadsheetId)
   addOutboxEntry(spreadsheetId, coalesceUpdate(spreadsheetId, operation))
   refreshPendingCount(spreadsheetId)
   refreshFailedCount(spreadsheetId)
@@ -168,7 +170,6 @@ async function flushPass(
         refreshPendingCount(spreadsheetId)
         refreshFailedCount(spreadsheetId)
         const reason = toUserMessage(err, 'خطای نامشخص')
-
         setSyncState('error', `یک تغییر اعمال نشد: ${reason}`)
         notifyRejectedWrite(entry.operation, reason, reverted)
         continue
@@ -245,9 +246,8 @@ async function runFlush(spreadsheetId: string): Promise<boolean> {
 }
 
 export async function flushOutbox(spreadsheetId: string): Promise<boolean> {
-  if (!spreadsheetId) return true
-  if (isOffline()) return false
-  if (isQuotaBlocked()) return false
+  if (!spreadsheetId || isChildReadOnly(spreadsheetId)) return true
+  if (isOffline() || isQuotaBlocked()) return false
 
   const running = flushesInFlight.get(spreadsheetId)
 

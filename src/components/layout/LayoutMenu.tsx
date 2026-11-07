@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 
 import LayoutBuildingMenuNav from './LayoutBuildingMenuNav'
+import LayoutChildMenuNav from './LayoutChildMenuNav'
 import LayoutMenuFooter from './LayoutMenuFooter'
 import LayoutMenuNav, { type LayoutMenuNavProps } from './LayoutMenuNav'
 import LayoutMenuRail from './LayoutMenuRail'
@@ -85,6 +86,13 @@ export default function LayoutMenu(props: LayoutMenuProps) {
         <div ref={scrollRef} className={appMenuScrollBodyClass}>
           {workspace === 'building' ? (
             <LayoutBuildingMenuNav
+              tab={navProps.tab}
+              showSettings={navProps.showSettings}
+              onTabChange={navProps.onTabChange}
+              onCloseMenu={onCloseMenu}
+            />
+          ) : workspace === 'child' ? (
+            <LayoutChildMenuNav
               tab={navProps.tab}
               showSettings={navProps.showSettings}
               onTabChange={navProps.onTabChange}
