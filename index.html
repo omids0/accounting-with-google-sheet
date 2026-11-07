@@ -13,7 +13,7 @@
     -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'sha256-KVQe2+VP/IoD3BT+bDtrDcN5MdejWwy8YKzUsOD2fak=' 'sha256-uGcX2Ayw//PjYxg6jj0ZCYORF0CS/VswjZiT1ZQmP1U=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client https://apis.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounting-auth-refresh.omido.workers.dev https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/ https://docs.google.com https://drive.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+      content="default-src 'self'; script-src 'self' 'sha256-4elWymVWa0+enDUqBuintjsDQJsmw9HOxy5dJqHbBSw=' 'sha256-1ocbZfMMkKGh8FAIX1psRwOA+YPmYwFR+uwqaYy9Ql8=' 'sha256-/AO8vAagk08SqUGxY96ci/dGyTDsuoetPOJYMn7sc+E=' https://accounts.google.com/gsi/client https://apis.google.com; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style; font-src 'self' data:; img-src 'self' data: blob: https://*.googleusercontent.com https://tile.openstreetmap.org; connect-src 'self' https://sheets.googleapis.com https://www.googleapis.com https://oauth2.googleapis.com https://accounting-auth-refresh.omido.workers.dev https://accounts.google.com/gsi/ https://call5.tgju.org https://nominatim.openstreetmap.org; frame-src https://accounts.google.com/gsi/ https://docs.google.com https://drive.google.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
     />
     <!-- Self-hosted Vazirmatn text face (src/styles/fonts.css); Vite rewrites the hashed URL. -->
     <link
@@ -38,14 +38,29 @@
           var root = document.documentElement
           var store = window.localStorage
           var raw = store.getItem('accounting_settings')
-          var theme = raw ? JSON.parse(raw).theme : null
+          var saved = raw ? JSON.parse(raw) : null
+          var theme = saved ? saved.theme : null
           var media = function (query) {
             return !!window.matchMedia && window.matchMedia(query).matches
           }
-          if (theme === 'dark' || (theme === 'system' && media('(prefers-color-scheme: dark)'))) {
+          var dark =
+            theme === 'dark' || (theme === 'system' && media('(prefers-color-scheme: dark)'))
+          if (dark) {
             root.setAttribute('data-theme', 'dark')
             root.style.colorScheme = 'dark'
           }
+          // Colour palette of the mode on screen (same rule as applyPalette in utils/theme.ts).
+          var palette = saved ? (dark ? saved.paletteDark : saved.paletteLight) : null
+          // No signed-in account on this device: neutral until the account (and its palette) is known.
+          var account = store.getItem('accounting_session')
+          var known = false
+          try {
+            var who = account ? JSON.parse(account) : null
+            known = !!(who && who.email && who.accessToken)
+          } catch (e) {}
+          if (!known) palette = 'graphite'
+          if (typeof palette === 'string' && /^[a-z]+$/.test(palette) && palette !== 'emerald')
+            root.setAttribute('data-palette-' + (dark ? 'dark' : 'light'), palette)
           var size = store.getItem('accounting_text_size')
           if (size === 'sm' || size === 'lg' || size === 'xl')
             root.setAttribute('data-text-size', size)
@@ -63,6 +78,11 @@
       })()
     </script>
     <style>
+      /*
+        Fixed and neutral on purpose: the splash is painted before anyone knows the account, so it
+        must not wear a palette (it would flash green, then the theme, then the app). The logo
+        keeps the brand teal. Nothing here may read the palette tokens.
+      */
       .boot-splash {
         display: flex;
         min-height: 100dvh;
@@ -70,26 +90,26 @@
         align-items: center;
         justify-content: center;
         gap: 0.9rem;
-        background: linear-gradient(160deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
+        background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%);
         font-family: Vazirmatn, Tahoma, sans-serif;
       }
       [data-theme='dark'] .boot-splash {
-        background: linear-gradient(160deg, #0a0a09 0%, #141412 50%, #1f1b14 100%);
+        background: linear-gradient(160deg, #0a0a09 0%, #141412 100%);
       }
       .boot-logo {
         width: 4rem;
         height: 4rem;
         border-radius: 1rem;
-        box-shadow: 0 10px 28px rgba(15, 118, 110, 0.25);
+        box-shadow: 0 10px 28px rgba(15, 118, 110, 0.2);
       }
       .boot-title {
         margin: 0;
         font-size: 1.25rem;
         font-weight: 800;
-        color: #0d5d57;
+        color: #1e293b;
       }
       [data-theme='dark'] .boot-title {
-        color: #e8c57a;
+        color: #e2e8f0;
       }
       .boot-dots {
         display: flex;
@@ -99,11 +119,11 @@
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 50%;
-        background: #0f766e;
+        background: #64748b;
         animation: boot-blink 1.2s ease-in-out infinite;
       }
       [data-theme='dark'] .boot-dots span {
-        background: #c99a3f;
+        background: #94a3b8;
       }
       .boot-dots span:nth-child(2) {
         animation-delay: 0.2s;

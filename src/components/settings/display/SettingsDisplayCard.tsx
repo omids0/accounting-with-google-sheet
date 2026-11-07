@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core'
 import { useState } from 'react'
 
+import DisplayPalette from './DisplayPalette'
 import DisplaySwitchRow from './DisplaySwitchRow'
 import DisplayTextSize from './DisplayTextSize'
 import { useAppThemeMode } from '../../../hooks/useAppThemeMode'
@@ -51,6 +52,8 @@ export default function SettingsDisplayCard() {
         </span>
         <SegmentedRadio label="تم" options={THEME_OPTIONS} value={theme} onChange={changeTheme} />
       </div>
+
+      <DisplayPalette />
 
       <DisplaySwitchRow
         title="کاهش انیمیشن"

@@ -1,0 +1,131 @@
+/* Dark-mode palette blocks; how they apply is explained in palettes-light.css. */
+
+/* shared: everything derived from the palette colours (--palette-* are only read here) */
+[data-theme='dark']:where([data-palette-dark]) {
+  --color-primary-dark: color-mix(in srgb, var(--color-primary) 70%, white);
+  --color-primary-light: color-mix(in srgb, var(--color-primary) 50%, white);
+  --color-accent-mid: color-mix(in srgb, var(--color-accent-soft) 85%, var(--color-primary));
+  --color-surface-gradient-start: color-mix(in srgb, var(--color-accent-soft) 80%, #1a1813);
+  --focus-ring: var(--color-primary);
+  --focus-ring-on-brand: var(--color-primary);
+  --meta-theme-color: var(--palette-h1);
+  --header-bg: linear-gradient(135deg, var(--palette-h1) 0%, var(--palette-h2) 100%);
+  --hero-bg: radial-gradient(120% 140% at 85% 0%, var(--palette-glow) 0%, transparent 55%),
+    linear-gradient(135deg, var(--palette-h1) 0%, var(--palette-h2) 100%);
+  --hero-ring: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --btn-primary-bg: linear-gradient(135deg, var(--color-primary), var(--palette-b2));
+  --btn-primary-bg-hover: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary) 85%, white),
+    var(--color-primary)
+  );
+  --nav-fab-bg: linear-gradient(145deg, var(--color-primary) 0%, var(--palette-b2) 100%);
+  --nav-fab-bg-active: linear-gradient(
+    145deg,
+    var(--palette-b2) 0%,
+    color-mix(in srgb, var(--palette-b2) 75%, black) 100%
+  );
+  --nav-fab-ring: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --nav-fab-shadow: 0 0 22px color-mix(in srgb, var(--color-primary) 22%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.55);
+  --page-glow: radial-gradient(
+    90% 60% at 50% -10%,
+    color-mix(in srgb, var(--color-primary) 8%, transparent) 0%,
+    transparent 60%
+  );
+  --form-card-bg: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--color-accent-soft) 80%, #1a1813) 0%,
+    #131210 100%
+  );
+}
+
+/* ocean */
+[data-theme='dark']:where([data-palette-dark='ocean']) {
+  --color-primary: #38bdf8;
+  --color-accent-soft: #101c30;
+  --palette-h1: #0a1630;
+  --palette-h2: #0c3558;
+  --palette-b2: #0ea5e9;
+  --palette-glow: rgba(56, 189, 248, 0.3);
+}
+
+/* violet */
+[data-theme='dark']:where([data-palette-dark='violet']) {
+  --color-primary: #c084fc;
+  --color-accent-soft: #1c1530;
+  --palette-h1: #140f22;
+  --palette-h2: #2a1247;
+  --palette-b2: #a855f7;
+  --palette-glow: rgba(232, 121, 249, 0.3);
+}
+
+/* rose */
+[data-theme='dark']:where([data-palette-dark='rose']) {
+  --color-primary: #f472b6;
+  --color-accent-soft: #2a1622;
+  --palette-h1: #1a0d15;
+  --palette-h2: #3a1030;
+  --palette-b2: #ec4899;
+  --palette-glow: rgba(192, 132, 252, 0.3);
+}
+
+/* navygold */
+[data-theme='dark']:where([data-palette-dark='navygold']) {
+  --color-primary: #fbbf24;
+  --color-accent-soft: #1c1a12;
+  --palette-h1: #0a0f1e;
+  --palette-h2: #14224a;
+  --palette-b2: #f59e0b;
+  --palette-glow: rgba(251, 191, 36, 0.26);
+}
+
+/* indigo */
+[data-theme='dark']:where([data-palette-dark='indigo']) {
+  --color-primary: #818cf8;
+  --color-accent-soft: #171830;
+  --palette-h1: #0f1020;
+  --palette-h2: #1f2358;
+  --palette-b2: #7479f4;
+  --palette-glow: rgba(129, 140, 248, 0.3);
+}
+
+/* caspian */
+[data-theme='dark']:where([data-palette-dark='caspian']) {
+  --color-primary: #22d3ee;
+  --color-accent-soft: #0e1d22;
+  --palette-h1: #08171c;
+  --palette-h2: #0c3340;
+  --palette-b2: #06b6d4;
+  --palette-glow: rgba(34, 211, 238, 0.28);
+}
+
+/* orchid */
+[data-theme='dark']:where([data-palette-dark='orchid']) {
+  --color-primary: #e879f9;
+  --color-accent-soft: #261329;
+  --palette-h1: #1a0d1c;
+  --palette-h2: #3b0f45;
+  --palette-b2: #d946ef;
+  --palette-glow: rgba(240, 171, 252, 0.3);
+}
+
+/* brown */
+[data-theme='dark']:where([data-palette-dark='brown']) {
+  --color-primary: #e0a96d;
+  --color-accent-soft: #221810;
+  --palette-h1: #140e08;
+  --palette-h2: #3a2410;
+  --palette-b2: #c98a45;
+  --palette-glow: rgba(224, 169, 109, 0.28);
+}
+
+/* graphite */
+[data-theme='dark']:where([data-palette-dark='graphite']) {
+  --color-primary: #cbd5e1;
+  --color-accent-soft: #181b20;
+  --palette-h1: #0f1115;
+  --palette-h2: #1f2937;
+  --palette-b2: #94a3b8;
+  --palette-glow: rgba(148, 163, 184, 0.25);
+}

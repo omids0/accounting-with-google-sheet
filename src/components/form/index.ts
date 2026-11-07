@@ -11,6 +11,8 @@ export { default as FormRow } from './FormRow'
 export { default as FormSelect } from './FormSelect'
 export { default as FieldInput } from './FieldInput'
 export { default as CheckboxField } from './CheckboxField'
+export { default as SwatchRadioGroup } from './SwatchRadioGroup'
+export type { SwatchOption } from './SwatchRadioGroup'
 export {
   buildFormInitialValues,
   COUNTERPARTY_FIELD_ID,

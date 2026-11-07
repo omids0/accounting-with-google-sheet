@@ -172,6 +172,10 @@ export async function pullRemoteSheets(
   if (changed) {
     invalidateDerivedCaches(spreadsheetId)
     queueMicrotask(() => notifySpreadsheetDataChanged(spreadsheetId))
+    // «رنگ تم» follows the account: the personal sheet's two rows replace the cached palettes.
+    void import('./appPalette')
+      .then(({ syncPalettesFromSheet }) => syncPalettesFromSheet(spreadsheetId))
+      .catch(() => undefined)
   } else if (!hasPendingOutbox(spreadsheetId)) {
     setSyncState('idle')
   }
