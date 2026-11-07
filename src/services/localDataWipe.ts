@@ -27,6 +27,7 @@ import { TREASURY_CLASS_STORAGE_KEY } from './treasuryClassPref'
 import { sendWidgetSnapshot } from './widgetNative'
 import { WORKSPACE_STORAGE_KEY } from './workspace'
 import { clearAllEntryDrafts } from '../utils/entryDraft'
+import { reapplyTheme } from '../utils/theme'
 
 /** Per-spreadsheet keys: unsynced writes, legacy mirrors and sync timestamps. */
 const ACCOUNT_KEY_PREFIXES = [
@@ -131,7 +132,10 @@ function removeKeysWithPrefixes(prefixes: readonly string[]): void {
   for (const key of keys) removeItem(key)
 }
 
-/** Keeps device preferences (theme, currency); everything tied to the account goes. */
+/**
+ * Keeps device preferences (theme mode, currency); everything tied to the account goes, the colour
+ * palettes (`paletteLight`, `paletteDark`) included: they follow the account, not the device.
+ */
 function resetAccountSettings(): void {
   const settings = getSettings()
 
@@ -142,6 +146,7 @@ function resetAccountSettings(): void {
     theme: settings.theme,
     currency: settings.currency
   })
+  reapplyTheme()
 }
 
 function withTimeout(task: Promise<void>): Promise<void> {

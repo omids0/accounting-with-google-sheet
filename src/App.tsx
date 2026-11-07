@@ -40,6 +40,7 @@ import {
 } from './services/tokenRefresh'
 import { registerWebUpdates } from './services/webUpdate'
 import type { SpreadsheetEntry } from './types'
+import { setNeutralBeforeAccount } from './utils/theme'
 import { toUserMessage } from './utils/userMessage'
 
 export default function App() {
@@ -56,6 +57,13 @@ export default function App() {
   const [ready, setReady] = useState(false)
 
   const [sheetError, setSheetError] = useState('')
+
+  // Sign-in and the sheet pick come before the account is known: neutral colours, not its palette.
+  const beforeAccount = ready && (!loggedIn || needsReauth || needsSheetSetup)
+
+  useEffect(() => {
+    setNeutralBeforeAccount(beforeAccount)
+  }, [beforeAccount])
 
   // While start-up is still renewing the token, an early 401 from a page must
   // not flash the re-login screen; start-up decides that itself.

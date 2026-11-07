@@ -1,5 +1,11 @@
 import { getDefaultSettings, getSettings, saveSettings } from '../services/settings'
 import type { ThemeMode } from '../types'
+import {
+  DEFAULT_PALETTE_ID,
+  NEUTRAL_PALETTE_ID,
+  paletteOrDefault,
+  type PaletteId
+} from './appPalettes'
 
 export type ResolvedTheme = Exclude<ThemeMode, 'system'>
 
@@ -36,17 +42,60 @@ function followSystem(follow: boolean): void {
   systemListenerCleanup = () => query.removeEventListener?.('change', onChange)
 }
 
+/** The palette chosen for a mode («زمرد» when none, or when the stored id is unknown). */
+export function getPalette(mode: ResolvedTheme): PaletteId {
+  const settings = getSettings()
+
+  return paletteOrDefault(mode === 'dark' ? settings?.paletteDark : settings?.paletteLight)
+}
+
+let neutralBeforeAccount = false
+
+/**
+ * Sign-in and the sheet pick come before the account (and so its palette) is known: they wear the
+ * neutral palette, so the colour the user then lands in is not a jolt. App.tsx flips this.
+ */
+export function setNeutralBeforeAccount(on: boolean): void {
+  if (neutralBeforeAccount === on) return
+
+  neutralBeforeAccount = on
+  reapplyTheme()
+}
+
+/**
+ * Only the palette of the mode on screen is put on <html> (data-palette-light or -dark, absent for
+ * the default), so a light palette can never leak into the dark theme; see styles/palettes-light.css.
+ */
+function applyPalette(theme: ResolvedTheme): void {
+  const root = document.documentElement
+  const id = neutralBeforeAccount ? NEUTRAL_PALETTE_ID : getPalette(theme)
+
+  root.removeAttribute('data-palette-light')
+  root.removeAttribute('data-palette-dark')
+
+  if (id !== DEFAULT_PALETTE_ID) root.setAttribute(`data-palette-${theme}`, id)
+}
+
 function applyResolvedTheme(theme: ResolvedTheme): void {
   const root = document.documentElement
 
   root.setAttribute('data-theme', theme)
   root.style.colorScheme = theme
+  applyPalette(theme)
 
   const meta = document.querySelector('meta[name="theme-color"]')
 
   if (meta) {
-    meta.setAttribute('content', theme === 'dark' ? '#131210' : '#0f766e')
+    // The browser bar follows the header colour of the palette on screen (a token in theme.css).
+    const color = getComputedStyle(root).getPropertyValue('--meta-theme-color').trim()
+
+    meta.setAttribute('content', color || (theme === 'dark' ? '#131210' : '#0f766e'))
   }
+}
+
+/** Re-applies the stored mode and palettes, e.g. after a palette changed (here or by a sync). */
+export function reapplyTheme(): void {
+  applyResolvedTheme(resolveTheme(getTheme()))
 }
 
 export function applyTheme(theme: ThemeMode): void {

@@ -108,7 +108,8 @@ export function useChartTheme(): ChartTheme {
 
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme']
+      // The palette (data-palette-*) recolours the tokens the charts read, like the mode does.
+      attributeFilter: ['data-theme', 'data-palette-light', 'data-palette-dark']
     })
 
     return () => observer.disconnect()

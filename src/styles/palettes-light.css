@@ -1,0 +1,157 @@
+/*
+ * Colour palettes (Settings › نمایش › رنگ تم). The default «زمرد» has no block: it is the tokens in
+ * theme.css. Every other palette has one block per mode (this file: light; palettes-dark.css: dark).
+ *
+ * How it reaches the page: src/utils/theme.ts puts the palette of the CURRENT mode on <html>, as
+ * data-palette-light="<id>" or data-palette-dark="<id>" (never both, never the default id).
+ * The selectors keep the specificity of the theme.css rules (:where adds none) and load after
+ * them, so a palette wins over the teal/gold defaults, but display.css «کنتراست بالا» (higher
+ * specificity) still wins over a palette. Do not move a palette into an inline style.
+ *
+ * A palette owns only its key colours; shadows, focus rings and gradients are derived once in the
+ * shared block from var(--color-primary). Contrast of every block is pinned by palettes.test.ts:
+ * edit a colour, keep that test green. --meta-theme-color feeds <meta name="theme-color">.
+ */
+
+/* shared: everything derived from the palette colours */
+:root:where([data-palette-light]) {
+  --color-primary-light: color-mix(in srgb, var(--color-primary) 65%, white);
+  --color-accent-mid: var(--color-border);
+  --color-surface-gradient-start: color-mix(in srgb, var(--color-bg) 40%, white);
+  --focus-ring: var(--color-primary);
+  --focus-ring-on-brand: #ffffff;
+  --meta-theme-color: var(--color-primary);
+  --shadow: 0 4px 24px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --shadow-lg: 0 12px 40px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  --shadow-card-hover: 0 8px 28px color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --form-input-border: color-mix(in srgb, var(--color-border) 70%, var(--color-text-muted));
+  --form-input-border-hover: color-mix(in srgb, var(--color-border) 55%, var(--color-primary));
+  --form-input-shadow: 0 1px 2px color-mix(in srgb, var(--color-primary) 5%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --form-input-focus-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --form-label-color: var(--color-text-muted);
+  --form-card-bg: linear-gradient(
+    165deg,
+    #ffffff 0%,
+    color-mix(in srgb, var(--color-bg) 40%, white) 100%
+  );
+  --hero-shadow: 0 8px 28px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --btn-primary-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --btn-primary-shadow-hover: 0 6px 20px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  --nav-fab-shadow: 0 10px 28px color-mix(in srgb, var(--color-primary) 48%, transparent),
+    0 4px 12px color-mix(in srgb, var(--color-primary) 28%, transparent);
+  --nav-fab-bg-active: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--color-primary-dark) 80%, black) 0%,
+    var(--color-primary-dark) 50%,
+    var(--color-primary) 100%
+  );
+}
+
+/* ocean */
+:root:where([data-palette-light='ocean']) {
+  --color-primary: #1d4ed8;
+  --color-primary-dark: #1e3a8a;
+  --brand-gradient-end: #0369a1;
+  --color-bg: #eff6ff;
+  --color-border: #bfdbfe;
+  --color-text: #172554;
+  --color-text-muted: #475f8f;
+  --color-accent-soft: #dbeafe;
+}
+
+/* violet */
+:root:where([data-palette-light='violet']) {
+  --color-primary: #7c3aed;
+  --color-primary-dark: #5b21b6;
+  --brand-gradient-end: #a21caf;
+  --color-bg: #f5f3ff;
+  --color-border: #ddd6fe;
+  --color-text: #2e1065;
+  --color-text-muted: #6b5a99;
+  --color-accent-soft: #ede9fe;
+}
+
+/* rose */
+:root:where([data-palette-light='rose']) {
+  --color-primary: #be185d;
+  --color-primary-dark: #9d174d;
+  --brand-gradient-end: #9333ea;
+  --color-bg: #fdf2f8;
+  --color-border: #fbcfe8;
+  --color-text: #500724;
+  --color-text-muted: #8f4a68;
+  --color-accent-soft: #fce7f3;
+}
+
+/* navygold */
+:root:where([data-palette-light='navygold']) {
+  --color-primary: #1e3a8a;
+  --color-primary-dark: #0f172a;
+  --brand-gradient-end: #1e40af;
+  --color-bg: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-muted: #52607a;
+  --color-accent-soft: #e0e7ff;
+}
+
+/* indigo */
+:root:where([data-palette-light='indigo']) {
+  --color-primary: #4338ca;
+  --color-primary-dark: #312e81;
+  --brand-gradient-end: #4f46e5;
+  --color-bg: #eef2ff;
+  --color-border: #c7d2fe;
+  --color-text: #1e1b4b;
+  --color-text-muted: #5b5f99;
+  --color-accent-soft: #e0e7ff;
+}
+
+/* caspian */
+:root:where([data-palette-light='caspian']) {
+  --color-primary: #155e75;
+  --color-primary-dark: #083344;
+  --brand-gradient-end: #0e7490;
+  --color-bg: #ecfeff;
+  --color-border: #a5f3fc;
+  --color-text: #083344;
+  --color-text-muted: #3f6b78;
+  --color-accent-soft: #cffafe;
+}
+
+/* orchid */
+:root:where([data-palette-light='orchid']) {
+  --color-primary: #a21caf;
+  --color-primary-dark: #701a75;
+  --brand-gradient-end: #c026d3;
+  --color-bg: #fdf4ff;
+  --color-border: #f5d0fe;
+  --color-text: #4a044e;
+  --color-text-muted: #86508f;
+  --color-accent-soft: #fae8ff;
+}
+
+/* brown */
+:root:where([data-palette-light='brown']) {
+  --color-primary: #78350f;
+  --color-primary-dark: #451a03;
+  --brand-gradient-end: #92400e;
+  --color-bg: #fdf8f3;
+  --color-border: #e7d5c3;
+  --color-text: #3a2008;
+  --color-text-muted: #7a5a3c;
+  --color-accent-soft: #f5e9dc;
+}
+
+/* graphite */
+:root:where([data-palette-light='graphite']) {
+  --color-primary: #334155;
+  --color-primary-dark: #1e293b;
+  --brand-gradient-end: #475569;
+  --color-bg: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-muted: #52607a;
+  --color-accent-soft: #e2e8f0;
+}
