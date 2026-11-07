@@ -30,6 +30,13 @@ async function fetchSheetsBatchFromApi(
   return batchFetchSheetRangesFromApi(spreadsheetId, sheetNames)
 }
 
+/** «رنگ تم» follows the account: the personal sheet's two rows replace the cached palettes. */
+function syncPalettes(spreadsheetId: string): void {
+  void import('./appPalette')
+    .then(({ syncPalettesFromSheet }) => syncPalettesFromSheet(spreadsheetId))
+    .catch(() => undefined)
+}
+
 function recordPullOutcome(
   spreadsheetId: string,
   plan: SheetFetchPlan,
@@ -106,6 +113,8 @@ export async function pullRemoteSheets(
     setStoreLastSyncedAt(spreadsheetId, now)
     setLastSyncedAt(now)
     if (!hasPendingOutbox(spreadsheetId)) setSyncState('idle')
+    // Nothing downloaded, but the mirror may hold palettes this device has not applied yet.
+    syncPalettes(spreadsheetId)
 
     return
   }
@@ -158,6 +167,7 @@ export async function pullRemoteSheets(
     if (!hasPendingOutbox(spreadsheetId)) {
       setSyncState('idle')
     }
+    syncPalettes(spreadsheetId)
 
     return
   }
@@ -172,11 +182,9 @@ export async function pullRemoteSheets(
   if (changed) {
     invalidateDerivedCaches(spreadsheetId)
     queueMicrotask(() => notifySpreadsheetDataChanged(spreadsheetId))
-    // «رنگ تم» follows the account: the personal sheet's two rows replace the cached palettes.
-    void import('./appPalette')
-      .then(({ syncPalettesFromSheet }) => syncPalettesFromSheet(spreadsheetId))
-      .catch(() => undefined)
   } else if (!hasPendingOutbox(spreadsheetId)) {
     setSyncState('idle')
   }
+
+  syncPalettes(spreadsheetId)
 }

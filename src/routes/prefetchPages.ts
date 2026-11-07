@@ -1,6 +1,8 @@
 import { TAB_PAGE_LOADERS } from './pageChunks'
+import { getQuickAction } from '../components/dashboard/quickActionCatalog'
 import type { Tab } from '../components/layout/types'
 import { PRIMARY_NAV_TABS } from '../components/layout/types'
+import { useBottomNavStore } from '../stores/bottomNavStore'
 import { canPrefetchOnThisConnection } from '../utils/prefetchPolicy'
 
 const prefetchedTabs = new Set<Tab>()
@@ -29,6 +31,13 @@ export function prefetchBottomNavPages(): void {
 
   for (const tab of PRIMARY_NAV_TABS) {
     prefetchTabPage(tab)
+  }
+
+  // The pages the user put on the bar, which may be outside the default seven.
+  for (const id of useBottomNavStore.getState().ids) {
+    const tab = getQuickAction(id)?.tab
+
+    if (tab) prefetchTabPage(tab)
   }
 }
 

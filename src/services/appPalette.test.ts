@@ -9,14 +9,13 @@ import {
   syncPalettesFromSheet
 } from './appPalette'
 import { getDefaultSettings, getSettings, saveSettings } from './settings'
+import { PERIOD_SETTINGS_SHEET } from './sheetNames'
+import { initStore, setSheetAllRows } from './spreadsheetStore'
 import { setWorkspaceType } from './workspace'
 import { getPalette } from '../utils/theme'
 
-const fetchSheetRows = vi.fn()
-
 const setPeriodSetting = vi.fn()
 
-vi.mock('./sheets', () => ({ fetchSheetRows: (...args: unknown[]) => fetchSheetRows(...args) }))
 vi.mock('./periodSettings', () => ({
   setPeriodSetting: (...args: unknown[]) => setPeriodSetting(...args)
 }))
@@ -44,18 +43,18 @@ const rows = (light?: string, dark?: string) =>
   ] as string[][]
 
 describe('palettesOfRows', () => {
-  it('reads both rows and defaults a missing, empty or unknown value', () => {
+  it('reads both rows: an unknown id is the default, a missing or blank row is no opinion', () => {
     expect(palettesOfRows(rows('ocean', 'orchid'))).toEqual({ light: 'ocean', dark: 'orchid' })
-    expect(palettesOfRows(rows('ocean'))).toEqual({ light: 'ocean', dark: 'emerald' })
-    expect(palettesOfRows(rows('neon-pink', ''))).toEqual({ light: 'emerald', dark: 'emerald' })
-    expect(palettesOfRows([])).toEqual({ light: 'emerald', dark: 'emerald' })
+    expect(palettesOfRows(rows('ocean'))).toEqual({ light: 'ocean', dark: null })
+    expect(palettesOfRows(rows('neon-pink', ''))).toEqual({ light: 'emerald', dark: null })
+    expect(palettesOfRows([])).toEqual({ light: null, dark: null })
   })
 })
 
 describe('isPaletteSheet', () => {
   beforeEach(() => localStorage.clear())
 
-  it('is true for the personal sheet only', () => {
+  it('is true for a personal sheet only', () => {
     activate('personal-1')
     setWorkspaceType('building-1', 'building')
 
@@ -64,7 +63,7 @@ describe('isPaletteSheet', () => {
     expect(isPaletteSheet('')).toBe(false)
   })
 
-  it('is false for a shared account and a second personal sheet', () => {
+  it('is true for every personal sheet (a year sheet too) and false for a shared account', () => {
     saveSettings({
       ...getDefaultSettings(),
       spreadsheetId: 'personal-1',
@@ -73,7 +72,7 @@ describe('isPaletteSheet', () => {
     setWorkspaceType('shared-1', 'shared')
 
     expect(isPaletteSheet('shared-1')).toBe(false)
-    expect(isPaletteSheet('personal-2')).toBe(false)
+    expect(isPaletteSheet('personal-2')).toBe(true)
     expect(isPaletteSheet('personal-1')).toBe(true)
   })
 })
@@ -139,58 +138,110 @@ describe('changePalette', () => {
   })
 })
 
+/** The pull has filled the local mirror of the tab; the sync reads it. */
+function mirror(id: string, tabRows: string[][]): void {
+  initStore(id)
+  setSheetAllRows(id, PERIOD_SETTINGS_SHEET, tabRows)
+}
+
 describe('syncPalettesFromSheet', () => {
   beforeEach(() => {
     localStorage.clear()
-    fetchSheetRows.mockReset()
     setPeriodSetting.mockReset().mockResolvedValue(undefined)
   })
 
   it('adopts the sheet palettes (the sheet wins)', async () => {
     activate('personal-1')
-    fetchSheetRows.mockResolvedValue(rows('indigo', 'caspian'))
+    mirror('personal-1', rows('indigo', 'caspian'))
 
     await syncPalettesFromSheet('personal-1')
 
     expect(getPalette('light')).toBe('indigo')
     expect(getPalette('dark')).toBe('caspian')
+    expect(setPeriodSetting).not.toHaveBeenCalled()
   })
 
-  it('resets to the default when the sheet has no palette rows', async () => {
+  it('applies the phone app pick on a web app that still shows the default', async () => {
     activate('personal-1')
-    saveSettings({ ...getSettings()!, paletteLight: 'ocean' })
-    fetchSheetRows.mockResolvedValue(rows())
-
-    await syncPalettesFromSheet('personal-1')
-
-    expect(getPalette('light')).toBe('emerald')
-  })
-
-  it('keeps what is shown when the read fails', async () => {
-    activate('personal-1')
-    saveSettings({ ...getSettings()!, paletteLight: 'ocean' })
-    fetchSheetRows.mockRejectedValue(new Error('offline'))
+    mirror('personal-1', rows('ocean'))
 
     await syncPalettesFromSheet('personal-1')
 
     expect(getPalette('light')).toBe('ocean')
   })
 
+  it('works on a second personal sheet, not only the first', async () => {
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'personal-2',
+      spreadsheets: [entry('personal-1'), entry('personal-2')]
+    })
+    mirror('personal-2', rows('violet', 'rose'))
+
+    await syncPalettesFromSheet('personal-2')
+
+    expect(getPalette('light')).toBe('violet')
+    expect(getPalette('dark')).toBe('rose')
+  })
+
+  it('keeps the device pick for a mode the sheet has no row for and writes it there', async () => {
+    activate('personal-1')
+    saveSettings({ ...getSettings()!, paletteLight: 'ocean', paletteDark: 'navygold' })
+    mirror('personal-1', rows('ocean'))
+
+    await syncPalettesFromSheet('personal-1')
+
+    expect(getPalette('light')).toBe('ocean')
+    expect(getPalette('dark')).toBe('navygold')
+    expect(setPeriodSetting).toHaveBeenCalledTimes(1)
+    expect(setPeriodSetting).toHaveBeenCalledWith('personal-1', PALETTE_DARK_ROW, 'navygold')
+  })
+
+  it('gives a new year sheet the colours of the device instead of the default', async () => {
+    activate('personal-1')
+    saveSettings({ ...getSettings()!, paletteLight: 'ocean' })
+    mirror('personal-1', rows())
+
+    await syncPalettesFromSheet('personal-1')
+
+    expect(getPalette('light')).toBe('ocean')
+    expect(setPeriodSetting).toHaveBeenCalledWith('personal-1', PALETTE_LIGHT_ROW, 'ocean')
+    expect(setPeriodSetting).not.toHaveBeenCalledWith(
+      'personal-1',
+      PALETTE_DARK_ROW,
+      expect.anything()
+    )
+  })
+
+  it('keeps what is shown when the tab is not in the local mirror yet', async () => {
+    // A sheet no test has mirrored: the store lives in memory across tests.
+    saveSettings({
+      ...getDefaultSettings(),
+      spreadsheetId: 'personal-fresh',
+      spreadsheets: [entry('personal-fresh')],
+      paletteLight: 'ocean'
+    })
+
+    await syncPalettesFromSheet('personal-fresh')
+
+    expect(getPalette('light')).toBe('ocean')
+    expect(setPeriodSetting).not.toHaveBeenCalled()
+  })
+
   it('never reads or applies the rows of a building sheet', async () => {
     activate('building-1')
     setWorkspaceType('building-1', 'building')
-    fetchSheetRows.mockResolvedValue(rows('ocean', 'ocean'))
+    mirror('building-1', rows('ocean', 'ocean'))
 
     await syncPalettesFromSheet('building-1')
 
-    expect(fetchSheetRows).not.toHaveBeenCalled()
     expect(getPalette('light')).toBe('emerald')
   })
 
   it('sends a pending pick to the personal sheet instead of replacing it', async () => {
     activate('personal-1')
     saveSettings({ ...getSettings()!, paletteLight: 'violet', palettePending: true })
-    fetchSheetRows.mockResolvedValue(rows('ocean', 'ocean'))
+    mirror('personal-1', rows('ocean', 'ocean'))
 
     await syncPalettesFromSheet('personal-1')
 

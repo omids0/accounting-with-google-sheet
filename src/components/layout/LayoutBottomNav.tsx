@@ -1,12 +1,14 @@
 import AppIcon from '../AppIcon'
+import { resolveActiveBarTab } from './bottomNavActive'
 import { CHILD_BOTTOM_NAV_TABS, CHILD_NAV_LINKS } from './childTabs'
-import { PRIMARY_NAV_ICONS } from './navIcons'
 import { SHARED_BOTTOM_NAV_TABS, SHARED_NAV_LINKS } from './sharedTabs'
 import TabNavLink from './TabNavLink'
-import { BOTTOM_NAV_END_TABS, BOTTOM_NAV_START_TABS, TAB_TITLES, type Tab } from './types'
+import { TAB_TITLES, type Tab } from './types'
+import { useBottomNavStore } from '../../stores/bottomNavStore'
 import { cn } from '../../utils/cn'
 import { haptic } from '../../utils/haptics'
 import type { AppIconName } from '../appIcon/types'
+import { getQuickAction } from '../dashboard/quickActionCatalog'
 import {
   bottomNavCenterClass,
   bottomNavClass,
@@ -34,33 +36,36 @@ const bottomNavLinkPressClass = 'active:scale-[0.94] motion-reduce:active:scale-
 
 const sharedBottomNavClass = cn(bottomNavClass, 'grid-cols-1')
 
-const iconsOf = (links: { tab: Tab; icon: AppIconName }[]): Partial<Record<Tab, AppIconName>> =>
-  Object.fromEntries(links.map(link => [link.tab, link.icon]))
-
-const SHARED_NAV_ICONS = iconsOf(SHARED_NAV_LINKS)
-
-const CHILD_NAV_ICONS = iconsOf(CHILD_NAV_LINKS)
-
-interface BottomNavSideProps {
-  tabs: Tab[]
-  showSettings: boolean
+interface NavItem {
   tab: Tab
-  onTabChange: (tab: Tab) => void
-  icons?: Partial<Record<Tab, AppIconName>>
+  label: string
+  icon: AppIconName
 }
 
-function BottomNavSide({
-  tabs,
-  showSettings,
-  tab,
-  onTabChange,
-  icons = PRIMARY_NAV_ICONS
-}: BottomNavSideProps) {
+/** The fixed bars of a shared or child account: the tab list, titled and iconned by their links. */
+const itemsOf = (tabs: Tab[], links: { tab: Tab; icon: AppIconName }[]): NavItem[] =>
+  tabs.map(navTab => ({
+    tab: navTab,
+    label: TAB_TITLES[navTab],
+    icon: links.find(link => link.tab === navTab)?.icon ?? 'dashboard'
+  }))
+
+const SHARED_NAV_ITEMS = itemsOf(SHARED_BOTTOM_NAV_TABS, SHARED_NAV_LINKS)
+
+const CHILD_NAV_ITEMS = itemsOf(CHILD_BOTTOM_NAV_TABS, CHILD_NAV_LINKS)
+
+interface BottomNavSideProps {
+  items: NavItem[]
+  /** The bar tab that is current, if any (see resolveActiveBarTab). */
+  activeTab: Tab | undefined
+  onTabChange: (tab: Tab) => void
+}
+
+function BottomNavSide({ items, activeTab, onTabChange }: BottomNavSideProps) {
   return (
     <div className={bottomNavSideClass}>
-      {tabs.map(navTab => {
-        const active = !showSettings && tab === navTab
-        const label = TAB_TITLES[navTab]
+      {items.map(({ tab: navTab, label, icon }) => {
+        const active = activeTab === navTab
 
         return (
           <TabNavLink
@@ -72,7 +77,7 @@ function BottomNavSide({
             onNavigate={() => onTabChange(navTab)}
           >
             <span className={bottomNavTabIconClass(active)}>
-              <AppIcon name={icons[navTab] ?? 'dashboard'} />
+              <AppIcon name={icon} />
             </span>
             <span className={bottomNavTabLabelClass}>{label}</span>
           </TabNavLink>
@@ -82,6 +87,18 @@ function BottomNavSide({
   )
 }
 
+/** The personal bar: the user's six pages (Settings › «نمایش»), three on each side of «داشبورد». */
+function usePersonalNavItems(): [NavItem[], NavItem[]] {
+  const ids = useBottomNavStore(state => state.ids)
+  const items = ids.flatMap(id => {
+    const action = getQuickAction(id)
+
+    return action?.tab ? [{ tab: action.tab, label: action.label, icon: action.icon }] : []
+  })
+
+  return [items.slice(0, 3), items.slice(3)]
+}
+
 export default function LayoutBottomNav({
   showSettings,
   tab,
@@ -89,30 +106,35 @@ export default function LayoutBottomNav({
   shared,
   child
 }: LayoutBottomNavProps) {
+  const [startItems, endItems] = usePersonalNavItems()
+  const activeOf = (items: NavItem[]) =>
+    showSettings
+      ? undefined
+      : resolveActiveBarTab(
+          items.map(item => item.tab),
+          tab
+        )
+
   if (shared || child) {
+    const items = child ? CHILD_NAV_ITEMS : SHARED_NAV_ITEMS
+
     return (
       <nav className={sharedBottomNavClass} aria-label="ناوبری اصلی">
-        <BottomNavSide
-          tabs={child ? CHILD_BOTTOM_NAV_TABS : SHARED_BOTTOM_NAV_TABS}
-          showSettings={showSettings}
-          tab={tab}
-          onTabChange={onTabChange}
-          icons={child ? CHILD_NAV_ICONS : SHARED_NAV_ICONS}
-        />
+        <BottomNavSide items={items} activeTab={activeOf(items)} onTabChange={onTabChange} />
       </nav>
     )
   }
 
-  const dashboardActive = !showSettings && (tab === 'dashboard' || tab === 'records')
+  // One answer for both sides, so no two bar items are current together.
+  const activeTab = activeOf([...startItems, ...endItems])
+  // «رکوردها» lights the dashboard button unless the user put it on the bar themselves.
+  const recordsOnBar = [...startItems, ...endItems].some(item => item.tab === 'records')
+  const dashboardActive =
+    !showSettings && (tab === 'dashboard' || (tab === 'records' && !recordsOnBar))
 
   return (
     <nav className={bottomNavClass} aria-label="ناوبری اصلی">
-      <BottomNavSide
-        tabs={BOTTOM_NAV_START_TABS}
-        showSettings={showSettings}
-        tab={tab}
-        onTabChange={onTabChange}
-      />
+      <BottomNavSide items={startItems} activeTab={activeTab} onTabChange={onTabChange} />
 
       <div className={bottomNavCenterClass}>
         <TabNavLink
@@ -132,12 +154,7 @@ export default function LayoutBottomNav({
         </TabNavLink>
       </div>
 
-      <BottomNavSide
-        tabs={BOTTOM_NAV_END_TABS}
-        showSettings={showSettings}
-        tab={tab}
-        onTabChange={onTabChange}
-      />
+      <BottomNavSide items={endItems} activeTab={activeTab} onTabChange={onTabChange} />
     </nav>
   )
 }
