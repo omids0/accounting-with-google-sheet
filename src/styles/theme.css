@@ -120,6 +120,8 @@
   /* Text on filled primary (teal / gold) and on solid income/expense fills. */
   --color-on-primary: #ffffff;
   --color-on-solid: #ffffff;
+  /* <meta name="theme-color">: palettes (palettes-*.css) override it; utils/theme.ts reads it. */
+  --meta-theme-color: #0f766e;
   --btn-primary-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
   --btn-outflow-hover: #b91c1c;
   --btn-inflow-hover: #166534;
@@ -204,6 +206,7 @@
   --btn-primary-bg-hover: linear-gradient(135deg, #d6a94e, #c99a3f);
   --color-on-primary: #1a1408;
   --color-on-solid: #0a0a09;
+  --meta-theme-color: #131210;
   --btn-primary-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
   --btn-primary-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.55);
   --btn-outflow-hover: #fca5a5;

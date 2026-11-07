@@ -80,6 +80,11 @@ export interface AppSettings {
   categorySubcategories?: CategorySubcategoryMap
   currency?: CurrencyUnit
   theme?: ThemeMode
+  /** Palette ids (utils/appPalettes.ts), one per mode; synced through the personal sheet. */
+  paletteLight?: string
+  paletteDark?: string
+  /** A pick made while a non-personal sheet was open: it goes to the personal sheet on its next pull. */
+  palettePending?: boolean
   netAvailableConfig?: NetAvailableConfig
 }
 
