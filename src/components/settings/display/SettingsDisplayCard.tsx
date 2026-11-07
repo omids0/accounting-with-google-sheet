@@ -1,7 +1,9 @@
 import { Capacitor } from '@capacitor/core'
 import { useState } from 'react'
 
+import DisplayBottomNav from './DisplayBottomNav'
 import DisplayPalette from './DisplayPalette'
+import DisplayQuickActions from './DisplayQuickActions'
 import DisplaySwitchRow from './DisplaySwitchRow'
 import DisplayTextSize from './DisplayTextSize'
 import { useAppThemeMode } from '../../../hooks/useAppThemeMode'
@@ -91,6 +93,8 @@ export default function SettingsDisplayCard() {
         checked={prefs.haptics}
         onChange={prefs.setHaptics}
       />
+      <DisplayQuickActions />
+      <DisplayBottomNav />
       {Capacitor.getPlatform() === 'android' ? (
         <p className={formHintClass}>ویجت را از منوی لانچر اضافه کن.</p>
       ) : null}

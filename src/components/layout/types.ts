@@ -119,11 +119,6 @@ export const PRIMARY_NAV_TABS: Tab[] = [
   'treasury'
 ]
 
-/** Mobile bottom bar: three tabs on each side of the raised dashboard button in the middle. */
-export const BOTTOM_NAV_START_TABS: Tab[] = ['installments', 'dang', 'checks']
-
-export const BOTTOM_NAV_END_TABS: Tab[] = ['receivables', 'treasury', 'wallet']
-
 export const SPEED_DIAL_TABS: Tab[] = [
   'dashboard',
   'records',
