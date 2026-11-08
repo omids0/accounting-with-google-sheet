@@ -1,10 +1,12 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import InvoiceScanSheet from './invoiceScan/InvoiceScanSheet'
 import LineItemSheet from './LineItemSheet'
 import { useLineItemsEditor } from './useLineItemsEditor'
+import { usePendingInvoiceScan } from '../../stores/pendingInvoiceScanStore'
 import { formatPersianNumber } from '../../utils/formatMoney'
 import { itemDetailLine, type LineItem } from '../../utils/lineItems'
+import { showInfo } from '../../utils/toast'
 import AppIcon from '../AppIcon'
 import { useEntryAttachmentSink } from '../attachments/entryAttachmentSink'
 import { formFieldClass, formLabelClass } from '../ui/formStyles'
@@ -30,6 +32,8 @@ interface EntryLineItemsFieldProps {
   amount: string | number
   category: string
   disabled?: boolean
+  /** Entry form only: open «اسکن فاکتور» reading the photo the dashboard shortcut took. */
+  autoScan?: boolean
   onChange: (json: string) => void
   onAmountChange: (amount: number | '') => void
 }
@@ -40,6 +44,7 @@ export default function EntryLineItemsField({
   amount,
   category,
   disabled = false,
+  autoScan = false,
   onChange,
   onAmountChange
 }: EntryLineItemsFieldProps) {
@@ -52,8 +57,23 @@ export default function EntryLineItemsField({
 
   const { items, difference } = editor
 
-  const [scanOpen, setScanOpen] = useState(false)
+  // The photo is read from the store once, at mount (state survives a strict-mode replay), and the
+  // store forgets it at once: a later visit to the form must not scan it again.
+  const [shotFile, setShotFile] = useState<File | null>(() =>
+    autoScan ? usePendingInvoiceScan.getState().file : null
+  )
+
+  const [scanOpen, setScanOpen] = useState(shotFile !== null)
   const attachments = useEntryAttachmentSink()
+
+  useEffect(() => {
+    if (shotFile) usePendingInvoiceScan.getState().clear()
+  }, [shotFile])
+
+  const closeScan = () => {
+    setScanOpen(false)
+    setShotFile(null)
+  }
 
   /** The reviewed scan: items join the list; with none, the invoice total becomes the amount. */
   const applyScan = ({
@@ -75,10 +95,16 @@ export default function EntryLineItemsField({
 
     // The photo is the invoice's proof: keep it as «پیوست» while there is a slot.
     if (photo && attachments.add && attachments.remaining > 0) void attachments.add([photo])
+    else if (photo && attachments.add) showInfo('عکس فاکتور پیوست نشد؛ جای پیوست پر است.')
   }
 
   const scanSheet = (
-    <InvoiceScanSheet open={scanOpen} onClose={() => setScanOpen(false)} onApply={applyScan} />
+    <InvoiceScanSheet
+      open={scanOpen}
+      onClose={closeScan}
+      onApply={applyScan}
+      initialFile={shotFile}
+    />
   )
 
   const scanButton = (

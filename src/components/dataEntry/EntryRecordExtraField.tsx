@@ -16,7 +16,8 @@ export default function EntryRecordExtraField({
   values,
   setValue,
   disabled,
-  autoSuggest
+  autoSuggest,
+  autoScan
 }: {
   fieldId: string
   values: Record<string, string | number>
@@ -24,6 +25,8 @@ export default function EntryRecordExtraField({
   disabled?: boolean
   /** Prefill the counterparty from earlier records (new records only). */
   autoSuggest?: boolean
+  /** The entry form passes it so «اسکن فاکتور» can open on the dashboard shortcut's photo. */
+  autoScan?: boolean
 }) {
   if (fieldId === COUNTERPARTY_FIELD_ID) {
     return (
@@ -45,6 +48,7 @@ export default function EntryRecordExtraField({
         amount={values.amount ?? ''}
         category={String(values.category ?? '')}
         disabled={disabled}
+        autoScan={autoScan}
         onChange={json => setValue(LINE_ITEMS_FIELD_ID, json)}
         onAmountChange={amount => setValue('amount', amount)}
       />

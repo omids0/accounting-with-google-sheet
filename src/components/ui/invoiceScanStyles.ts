@@ -13,6 +13,10 @@ export const invoiceScanSourceButtonClass = cx(
 export const invoiceScanWorkingClass =
   'flex min-h-40 flex-col items-center justify-center gap-3 text-center text-[0.9rem] text-muted'
 
+/** The shot while it is read: small, so the spinner stays the point. */
+export const invoiceScanWorkingPhotoClass =
+  'h-24 max-w-full rounded-form border border-border bg-bg object-contain'
+
 export const invoiceScanPhotoClass =
   'max-h-44 w-full rounded-form border border-border bg-bg object-contain'
 

@@ -147,6 +147,7 @@ export default function StandardEntryFormFields({
       <EntryRecordExtraField
         key={id}
         fieldId={id}
+        autoScan
         values={values}
         setValue={(fieldId, next) => {
           clearFieldError?.(fieldId)
