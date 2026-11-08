@@ -15,7 +15,7 @@ function isoDay(iso: string): number {
 }
 
 /** `1405/07/15` or `05/07/15` (Jalali, two-digit years in the 1400s). */
-function jalaliToIsoSafe(rawYear: string, rawMonth: string, rawDay: string): string | null {
+export function jalaliToIsoSafe(rawYear: string, rawMonth: string, rawDay: string): string | null {
   const year = rawYear.length === 2 ? 1400 + Number(rawYear) : Number(rawYear)
   const month = Number(rawMonth)
   const day = Number(rawDay)

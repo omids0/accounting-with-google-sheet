@@ -1,9 +1,10 @@
-import { useId, useRef, type ChangeEvent } from 'react'
+import { useEffect, useId } from 'react'
 
 import AttachmentThumb from './AttachmentThumb'
+import { useEntryAttachmentSink } from './entryAttachmentSink'
+import PhotoSourceButtons from './PhotoSourceButtons'
 import type { AttachmentDraftsState } from './useAttachmentDrafts'
-import AppIcon from '../AppIcon'
-import { attachmentAddButtonClass, attachmentFieldRowClass } from '../ui/attachmentStyles'
+import { attachmentFieldRowClass } from '../ui/attachmentStyles'
 import { formFieldClass, formHintClass, formLabelClass } from '../ui/formStyles'
 
 /**
@@ -19,18 +20,15 @@ export default function AttachmentField({
   disabled?: boolean
 }) {
   const labelId = useId()
-  const cameraRef = useRef<HTMLInputElement>(null)
-  const pickerRef = useRef<HTMLInputElement>(null)
   const { drafts, preparing, remaining, addFiles, remove } = state
   const busy = disabled || preparing
 
-  const onPick = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? [])
+  // «اسکن فاکتور» attaches its photo through this field: it is the one place that knows the drafts.
+  useEffect(() => {
+    useEntryAttachmentSink.setState({ add: addFiles, remaining })
 
-    // Same file again later must still fire a change.
-    event.target.value = ''
-    void addFiles(files)
-  }
+    return () => useEntryAttachmentSink.setState({ add: null, remaining: 0 })
+  }, [addFiles, remaining])
 
   return (
     <div className={formFieldClass}>
@@ -47,47 +45,8 @@ export default function AttachmentField({
           />
         ))}
         {remaining > 0 ? (
-          <>
-            <button
-              type="button"
-              className={attachmentAddButtonClass}
-              onClick={() => cameraRef.current?.click()}
-              disabled={busy}
-              aria-label="عکس با دوربین"
-              title="عکس با دوربین"
-            >
-              <AppIcon name="camera" size={22} />
-            </button>
-            <button
-              type="button"
-              className={attachmentAddButtonClass}
-              onClick={() => pickerRef.current?.click()}
-              disabled={busy}
-              aria-label="انتخاب عکس یا PDF"
-              title="انتخاب عکس یا PDF"
-            >
-              <AppIcon name="image" size={22} />
-            </button>
-          </>
+          <PhotoSourceButtons onFiles={files => void addFiles(files)} disabled={busy} />
         ) : null}
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          tabIndex={-1}
-          onChange={onPick}
-        />
-        <input
-          ref={pickerRef}
-          type="file"
-          accept="image/*,application/pdf"
-          multiple
-          hidden
-          tabIndex={-1}
-          onChange={onPick}
-        />
       </div>
       <p className={formHintClass} aria-live="polite">
         {preparing ? 'در حال فشرده‌سازی…' : 'حداکثر ۳ · فشرده می‌شود'}
