@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 
 import { getQuickAction } from './quickActionCatalog'
+import ScanInvoiceShortcut from './ScanInvoiceShortcut'
 import { useQuickActionsStore } from '../../stores/quickActionsStore'
 import { cn } from '../../utils/cn'
 import AppIcon from '../AppIcon'
@@ -21,6 +22,7 @@ export default function DashboardQuickActions() {
         const action = getQuickAction(id)
 
         if (!action) return null
+        if (action.kind === 'scan-invoice') return <ScanInvoiceShortcut key={id} action={action} />
 
         return (
           <Link key={action.id} to={action.to} className={dashboardQuickActionClass}>

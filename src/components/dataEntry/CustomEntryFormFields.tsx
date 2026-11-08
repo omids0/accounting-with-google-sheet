@@ -49,6 +49,7 @@ export default function CustomEntryFormFields({
             <EntryRecordExtraField
               key={field.id}
               fieldId={field.id}
+              autoScan
               values={values}
               setValue={setValue}
             />

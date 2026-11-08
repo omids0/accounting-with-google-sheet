@@ -61,6 +61,8 @@ export function useLineItemsEditor({
     /** Amount not yet covered by an item; null while the amount is empty. */
     remainder: amountNumber > 0 ? amountNumber - sum : null,
     addItem: (item: LineItem) => commit([...items, item]),
+    /** One commit for many items: calling `addItem` in a loop would keep only the last. */
+    addItems: (added: LineItem[]) => commit([...items, ...added]),
     updateItem: (index: number, item: LineItem) =>
       commit(items.map((entry, i) => (i === index ? item : entry))),
     removeItem: (index: number) => commit(items.filter((_, i) => i !== index))

@@ -3,15 +3,29 @@ import type { AppIconName } from '../AppIcon'
 import { type Tab, TAB_TITLES } from '../layout/types'
 import type { dashboardQuickActionIconClass } from '../ui/dashboardCalmStyles'
 
-export interface QuickAction {
+interface QuickActionBase {
   id: string
   label: string
   icon: AppIconName
   tone: keyof typeof dashboardQuickActionIconClass
+}
+
+/** A link to a page or an entry form. */
+interface LinkQuickAction extends QuickActionBase {
+  kind?: undefined
   to: string
-  /** The page's tab; absent for the two entry forms, which the bottom bar cannot show. */
+  /** The page's tab; absent for the entry forms, which the bottom bar cannot show. */
   tab?: Tab
 }
+
+/** «اسکن فاکتور»: opens the camera, then the expense form reading the photo. Not a page. */
+interface ScanInvoiceQuickAction extends QuickActionBase {
+  kind: 'scan-invoice'
+  to?: undefined
+  tab?: undefined
+}
+
+export type QuickAction = LinkQuickAction | ScanInvoiceQuickAction
 
 /** A shortcut to a main page; the label is the page's own menu title unless a shorter one is given. */
 function pageAction(id: string, tab: Tab, icon: AppIconName, label = TAB_TITLES[tab]): QuickAction {
@@ -37,6 +51,13 @@ export const QUICK_ACTIONS: QuickAction[] = [
     tone: 'expense',
     to: getPathForTab('entry', { formType: 'expense' })
   },
+  {
+    id: 'scan-invoice',
+    label: 'اسکن فاکتور',
+    icon: 'camera',
+    tone: 'neutral',
+    kind: 'scan-invoice'
+  },
   pageAction('transfer', 'wallet-transfers', 'swap', 'انتقال'),
   pageAction('wallet', 'wallet', 'wallet'),
   pageAction('checks', 'checks', 'checks'),
@@ -54,7 +75,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
 
 export type QuickActionId = QuickAction['id']
 
-/** The bottom bar holds pages only: the entry forms are not tabs. */
+/** The bottom bar holds pages only: the entry forms and the invoice scan are not tabs. */
 export const BOTTOM_NAV_ACTIONS = QUICK_ACTIONS.filter(action => action.tab)
 
 export const QUICK_ACTION_SLOTS = 4
@@ -62,8 +83,16 @@ export const QUICK_ACTION_SLOTS = 4
 /** The bottom bar's slots: three left of the raised dashboard button and three right of it. */
 export const BOTTOM_NAV_SLOTS = 6
 
-/** «چک‌ها» gave way to «کیف پول» in the last slot (people open the wallet far more often). */
-export const DEFAULT_QUICK_ACTION_IDS: QuickActionId[] = ['income', 'expense', 'transfer', 'wallet']
+/**
+ * «کیف پول» took the last slot from «چک‌ها» (people open the wallet far more often), and «اسکن
+ * فاکتور» took «انتقال»'s (a transfer is a rare entry; it stays in the list for Settings › «نمایش»).
+ */
+export const DEFAULT_QUICK_ACTION_IDS: QuickActionId[] = [
+  'income',
+  'expense',
+  'scan-invoice',
+  'wallet'
+]
 
 /** Today's bar, in slot order (the first three sit on the start side). */
 export const DEFAULT_BOTTOM_NAV_IDS: QuickActionId[] = [
