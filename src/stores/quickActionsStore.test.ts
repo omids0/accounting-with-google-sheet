@@ -15,13 +15,25 @@ import {
 import { TAB_TITLES } from '../components/layout/types'
 
 describe('quick action catalog', () => {
-  it('shows «کیف پول» instead of «چک‌ها» by default', () => {
-    expect(DEFAULT_QUICK_ACTION_IDS).toEqual(['income', 'expense', 'transfer', 'wallet'])
+  it('shows «اسکن فاکتور» and «کیف پول» after the two entry forms by default', () => {
+    expect(DEFAULT_QUICK_ACTION_IDS).toEqual(['income', 'expense', 'scan-invoice', 'wallet'])
   })
 
-  it('has unique ids and a path for each', () => {
+  it('has unique ids and a path for each, except the invoice scan which opens the camera', () => {
     expect(new Set(QUICK_ACTIONS.map(action => action.id)).size).toBe(QUICK_ACTIONS.length)
-    for (const action of QUICK_ACTIONS) expect(action.to.startsWith('/')).toBe(true)
+    for (const action of QUICK_ACTIONS) {
+      if (action.kind === 'scan-invoice') expect(action.to).toBeUndefined()
+      else expect(action.to.startsWith('/')).toBe(true)
+    }
+  })
+
+  it('still offers «انتقال» for a slot of the user’s choice', () => {
+    expect(sanitizeQuickActionIds(['income', 'expense', 'transfer', 'wallet'])).toEqual([
+      'income',
+      'expense',
+      'transfer',
+      'wallet'
+    ])
   })
 
   it('falls back to the default for a bad stored list', () => {
@@ -64,7 +76,7 @@ describe('quick actions store', () => {
     expect(JSON.parse(localStorage.getItem(QUICK_ACTIONS_KEY) ?? 'null')).toEqual([
       'income',
       'expense',
-      'transfer',
+      'scan-invoice',
       'checks'
     ])
     expect(readQuickActionIds()[3]).toBe('checks')
@@ -102,6 +114,7 @@ describe('bottom nav', () => {
 
     expect(ids).not.toContain('income')
     expect(ids).not.toContain('expense')
+    expect(ids).not.toContain('scan-invoice')
     expect(BOTTOM_NAV_ACTIONS.some(action => action.tab === 'dashboard')).toBe(false)
   })
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import AppIcon from './AppIcon'
 import EntryTemplateChips from './dataEntry/EntryTemplateChips'
 import type { AppliedTemplate, DataEntryFormProps } from './dataEntry/types'
+import { useDropUnclaimedScan } from './dataEntry/useDropUnclaimedScan'
 import { useEntryTemplates } from './dataEntry/useEntryTemplates'
 import DataEntryForm from './DataEntryForm'
 import { FormSkeleton } from './skeleton'
@@ -41,6 +42,8 @@ export default function DataEntryPage({
   const templates = useEntryTemplates(activeForm, !hideTemplates && !bankSms)
 
   const [template, setTemplate] = useState<AppliedTemplate | null>(null)
+
+  useDropUnclaimedScan(activeForm?.id ?? '')
 
   useEffect(() => {
     const settings = getSettings()

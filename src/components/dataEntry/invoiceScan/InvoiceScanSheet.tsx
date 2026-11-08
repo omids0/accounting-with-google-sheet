@@ -8,7 +8,8 @@ import FormModal from '../../FormModal'
 import {
   invoiceScanSourceButtonClass,
   invoiceScanSourcesClass,
-  invoiceScanWorkingClass
+  invoiceScanWorkingClass,
+  invoiceScanWorkingPhotoClass
 } from '../../ui/invoiceScanStyles'
 import Spinner from '../../ui/Spinner'
 
@@ -17,6 +18,8 @@ interface InvoiceScanSheetProps {
   onClose: () => void
   /** The reviewed proposal and the photo it came from. */
   onApply: (result: { items: LineItem[]; total: number | null; photo: File | null }) => void
+  /** A photo already taken (dashboard shortcut): the sheet opens reading it. */
+  initialFile?: File | null
 }
 
 const STAGE_TEXT = {
@@ -26,8 +29,13 @@ const STAGE_TEXT = {
 } as const
 
 /** «اسکن فاکتور»: photo in, a proposal to check out. The form decides what to do with it. */
-export default function InvoiceScanSheet({ open, onClose, onApply }: InvoiceScanSheetProps) {
-  const scan = useInvoiceScan(open)
+export default function InvoiceScanSheet({
+  open,
+  onClose,
+  onApply,
+  initialFile = null
+}: InvoiceScanSheetProps) {
+  const scan = useInvoiceScan(open, initialFile)
   const sum = sumLineItems(scan.items)
   const canApply = scan.items.length > 0 || (scan.total !== null && scan.total > 0)
   const reviewing = scan.phase === 'review'
@@ -51,7 +59,6 @@ export default function InvoiceScanSheet({ open, onClose, onApply }: InvoiceScan
       saveDisabled={!canApply}
       cancelLabel={reviewing ? 'عکس دیگر' : 'انصراف'}
       onCancel={reviewing ? scan.startOver : onClose}
-      saving={scan.phase === 'working'}
     >
       {scan.phase === 'choose' ? (
         <>
@@ -72,6 +79,9 @@ export default function InvoiceScanSheet({ open, onClose, onApply }: InvoiceScan
 
       {scan.phase === 'working' ? (
         <div className={invoiceScanWorkingClass} role="status">
+          {scan.photoUrl ? (
+            <img src={scan.photoUrl} alt="عکس فاکتور" className={invoiceScanWorkingPhotoClass} />
+          ) : null}
           <Spinner size="sm" decorative />
           <span>{STAGE_TEXT[scan.stage]}</span>
           {scan.stage === 'loading' ? <span>بار اول چند ثانیه بیشتر طول می‌کشد.</span> : null}
