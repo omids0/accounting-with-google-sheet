@@ -133,7 +133,13 @@ export async function deleteDang(
         .filter((id): id is string => Boolean(id))
     )
 
-    for (const id of ids) await deleteLinkedExpenseRecord(spreadsheetId, id)
+    // A record that also pays another debt stays: it is that debt's evidence too.
+    const { isRecordSharedElsewhere } = await import('./recordLinks')
+
+    for (const id of ids) {
+      if (isRecordSharedElsewhere(spreadsheetId, id, 'expense', dang.id)) continue
+      await deleteLinkedExpenseRecord(spreadsheetId, id)
+    }
   }
   await deleteSheetRow(spreadsheetId, DANG_SHEET, rowNumber)
   if (dang) logItemActivity(spreadsheetId, 'delete', 'dang', dang.id, dang.title)

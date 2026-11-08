@@ -41,6 +41,53 @@ export function findLinkedItems(
 }
 
 /**
+ * True when the record's amount is split: it pays more than one item (debt, receivable, …), or one
+ * item only part of its amount (the other shares were taken back). Editing such a record's amount
+ * would overwrite a share with the whole amount.
+ */
+function isSplitRecord(
+  spreadsheetId: string,
+  recordId: string,
+  type: RecordType,
+  recordAmount: number
+): boolean {
+  const matches = findLinkedItems(spreadsheetId, recordId, type)
+
+  if (matches.length > 1) return true
+
+  return matches.length === 1 && (matches[0].amount ?? recordAmount) < recordAmount
+}
+
+/**
+ * True when the record pays something besides this one payment of `itemId`: another item, or a
+ * second payment of the same item. Taking that payment back must not delete the record then.
+ */
+export function isRecordSharedElsewhere(
+  spreadsheetId: string,
+  recordId: string,
+  type: RecordType,
+  itemId: string
+): boolean {
+  return findLinkedItems(spreadsheetId, recordId, type).some(
+    match => match.itemId !== itemId || match.paymentIds.length > 1
+  )
+}
+
+/** Why an edit cannot change the amount of a record that pays several things ('' when it can). */
+export function sharedAmountLockMessage(
+  spreadsheetId: string,
+  recordId: string,
+  type: RecordType,
+  before: Record<string, string | number | undefined>,
+  after: Record<string, string | number | undefined>
+): string {
+  if (recordChangeOf(before, after).amount === undefined) return ''
+  if (!isSplitRecord(spreadsheetId, recordId, type, amountOf(before))) return ''
+
+  return 'مبلغ این تراکنش بین چند پرداخت (بدهی یا طلب) تقسیم شده است؛ اول پرداخت‌ها را از صفحهٔ آن بدهی یا طلب بردار، بعد مبلغ را عوض کن.'
+}
+
+/**
  * True when ANY module (debt or receivable payment, check, installment) has a payment pointing at
  * the record. Personal books only (buildings and shared accounts keep their own flows), from the
  * local mirror. Every writer that must not offer a settled record again asks this one function.
@@ -147,9 +194,18 @@ export async function syncLinkedOnRecordUpdated(
   before: Record<string, string | number | undefined>,
   after: Record<string, string | number | undefined>
 ): Promise<string[]> {
-  const change = recordChangeOf(before, after)
+  const found = recordChangeOf(before, after)
 
-  if (change.amount === undefined && change.date === undefined) return []
+  if (found.amount === undefined && found.date === undefined) return []
+
+  // A record that pays several things keeps their shares: only its date is followed.
+  const shared =
+    found.amount !== undefined && isSplitRecord(spreadsheetId, recordId, type, amountOf(before))
+  const change: RecordChange = shared ? { date: found.date } : found
+
+  if (shared)
+    showInfo('مبلغ این تراکنش بین چند پرداخت تقسیم شده است؛ مبلغ پرداخت‌ها عوض نشد.', 7000)
+  if (change.date === undefined && change.amount === undefined) return []
 
   return runAdapters(
     spreadsheetId,

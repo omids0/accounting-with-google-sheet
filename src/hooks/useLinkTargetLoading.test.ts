@@ -19,7 +19,7 @@ vi.mock('../services/linkPayment', () => ({
   attachRecordToTarget: vi.fn(),
   linkFailureMessage: () => ''
 }))
-vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn() }))
+vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn(), showInfo: vi.fn() }))
 
 const { useLinkTarget } = await import('./useLinkTarget')
 const { clearStore, setSheetAllRows } = await import('../services/spreadsheetStore')

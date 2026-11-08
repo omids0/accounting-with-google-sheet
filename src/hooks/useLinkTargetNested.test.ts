@@ -30,7 +30,11 @@ vi.mock('../services/linkPayment', () => ({
   attachRecordToTarget: mocks.attach,
   linkFailureMessage: () => 'رکورد ذخیره شد ولی پرداخت بدهی ثبت نشد.'
 }))
-vi.mock('../utils/toast', () => ({ showError: mocks.showError, showSuccess: mocks.showSuccess }))
+vi.mock('../utils/toast', () => ({
+  showError: mocks.showError,
+  showSuccess: mocks.showSuccess,
+  showInfo: vi.fn()
+}))
 
 const { useLinkTarget } = await import('./useLinkTarget')
 

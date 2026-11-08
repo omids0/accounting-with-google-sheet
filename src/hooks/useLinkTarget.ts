@@ -1,73 +1,31 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 
+import {
+  bumpLinks,
+  getLinksVersion,
+  lastEmpty,
+  mirrorTabIsEmpty,
+  subscribeLinks
+} from './linkTargetShared'
+import { useLinkShares } from './useLinkShares'
 import type { LinkTargetItem } from '../services/linkPayment'
 import { getSettings, isConfigured } from '../services/settings'
-import {
-  CHECKS_SHEET,
-  DANG_SHEET,
-  INSTALLMENTS_SHEET,
-  RECEIVABLES_SHEET
-} from '../services/sheetNames'
-import { getSheetRowsView } from '../services/spreadsheetStore'
 import {
   childOption,
   itemOption,
   matchesRecordAmount,
   pickError,
+  sharesProblemMessage,
   type LinkTargetChildOption,
   type LinkTargetOption
 } from '../utils/linkTargetFit'
-import {
-  linkTargetKindFor,
-  type LinkTargetKind,
-  type LinkTargetKindId
-} from '../utils/linkTargetKinds'
+import { linkTargetKindFor, type LinkTargetKind } from '../utils/linkTargetKinds'
 import { parseNumeric } from '../utils/parseNumeric'
 import { roundMoney } from '../utils/roundMoney'
 import { shareInFlight } from '../utils/shareInFlight'
 import { showError, showSuccess } from '../utils/toast'
 
 export type { LinkTargetChildOption, LinkTargetOption }
-
-/**
- * Which kinds had nothing open when their list was last read (per workbook). The next card of that
- * kind shows the «nothing open» hint from its first frame, so it does not grow when the read ends.
- */
-const lastEmpty = new Map<string, boolean>()
-
-/** The tab each kind lists from. A tab the local copy holds with no rows at all has nothing open. */
-const KIND_TAB: Record<LinkTargetKindId, string> = {
-  dang: DANG_SHEET,
-  receivable: RECEIVABLES_SHEET,
-  checkPaid: CHECKS_SHEET,
-  checkReceived: CHECKS_SHEET,
-  installment: INSTALLMENTS_SHEET
-}
-
-const mirrorTabIsEmpty = (spreadsheetId: string, kindId: LinkTargetKindId): boolean => {
-  const rows = getSheetRowsView(spreadsheetId, KIND_TAB[kindId])
-
-  return rows !== null && rows.length <= 1
-}
-
-/**
- * Bumped after any link is written: every picker on the page reads its list again, so a card does
- * not offer the debt (or check, instalment) another card has just completed.
- */
-let linksVersion = 0
-
-const linkListeners = new Set<() => void>()
-
-const subscribeLinks = (listener: () => void) => {
-  linkListeners.add(listener)
-
-  return () => void linkListeners.delete(listener)
-}
-
-const bumpLinks = () => {
-  linksVersion += 1
-  linkListeners.forEach(listener => listener())
-}
 
 type LinkTargetOptions = {
   /** The record being entered. */
@@ -116,7 +74,7 @@ export function useLinkTarget({
 
   // Bumped after a save: the list is read again, so a payment just added shows its new remaining.
   const [ownVersion, setVersion] = useState(0)
-  const version = ownVersion + useSyncExternalStore(subscribeLinks, () => linksVersion)
+  const version = ownVersion + useSyncExternalStore(subscribeLinks, getLinksVersion)
 
   useEffect(() => {
     setSelectedId('')
@@ -197,8 +155,18 @@ export function useLinkTarget({
 
   const selectedChild = childOptions.find(child => child.id === childId)
 
+  // A record that may pay several items keeps its picks as shares; the others pick one item.
+  const multi = Boolean(kind?.multi)
+  const shareState = useLinkShares({ options, recordAmount, active: multi, resetKey: kindId })
+  const { reset: resetShares, picks: sharePicks } = shareState
+  const hasPick = multi ? sharePicks.length > 0 : Boolean(selectedId)
+
   /** The pick no longer fits (the amount was raised or changed): saving waits for a new answer. */
-  const error = kind ? pickError(kind, selected) : ''
+  const error = multi
+    ? sharesProblemMessage(shareState.problem, options)
+    : kind
+    ? pickError(kind, selected)
+    : ''
 
   // A save before the open items are read would quietly take «هیچ‌کدوم»: it waits for the list.
   const blocker = error || (kind && loading ? 'یک لحظه صبر کن؛ فهرست هنوز خوانده نشده است.' : '')
@@ -211,8 +179,9 @@ export function useLinkTarget({
   const reset = useCallback(() => {
     setSelectedId('')
     setChildPick('')
+    resetShares()
     setVersion(current => current + 1)
-  }, [])
+  }, [resetShares])
 
   /**
    * Adds the saved record to the picked item as its payment (the record is the payment: no second
@@ -224,7 +193,21 @@ export function useLinkTarget({
     async (record: LinkRecordInput): Promise<boolean> => {
       const spreadsheetId = getSettings()?.spreadsheetId
 
-      if (!kind || !selectedId || !spreadsheetId) return false
+      if (!kind || !hasPick || !spreadsheetId) return false
+
+      if (kind.multi) {
+        const { attachRecordToTargets, multiLinkFailureMessage } = await import(
+          '../services/linkPaymentMulti'
+        )
+
+        const result = await attachRecordToTargets(kind.id, spreadsheetId, record, sharePicks)
+
+        if (result.done.length) bumpLinks()
+        if (result.failed.length) showError(multiLinkFailureMessage(kind, result))
+        else showSuccess(kind.multi.successMessage(result.done.length))
+
+        return result.done.length > 0
+      }
 
       const payments = await import('../services/linkPayment')
 
@@ -247,7 +230,7 @@ export function useLinkTarget({
         return false
       }
     },
-    [kind, selectedId, childId]
+    [kind, hasPick, selectedId, childId, sharePicks]
   )
 
   return {
@@ -258,6 +241,12 @@ export function useLinkTarget({
     expectEmpty,
     selectedId,
     select,
+    /** The record's amount the shares must add up to (0 while blank). */
+    recordAmount,
+    /** A pick was made: an item, or at least one share of a record that pays several. */
+    hasPick,
+    /** The ticked items and their shares (kinds that pay several items only). */
+    shares: shareState,
     /** The instalments of the picked item (empty for kinds without a second level). */
     childOptions,
     childId,

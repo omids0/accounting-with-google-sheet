@@ -8,12 +8,13 @@ import type {
   PaymentFormValues,
   SettlementFormValues
 } from './types'
+import { isRecordSharedElsewhere } from '../../services/recordLinks'
 import type { SettleOptions, UnlinkChoice } from '../../services/settleOptions'
 import { isLinkedForeignRecord, type SettlePrefix } from '../../services/settleRecords'
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showSuccess } from '../../utils/toast'
+import { showError, showInfo, showSuccess } from '../../utils/toast'
 import { useSettleFlow } from '../settle/useSettleFlow'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -205,9 +206,15 @@ export function usePartialPaymentActions<T extends PartialPaymentItem>({
     const recordId = paymentsOf(item).find(p => p.id === paymentId)?.transactionRecordId ?? ''
     let unlink: UnlinkChoice | null | undefined
 
-    if (!(await settleFlow.askUnpay(Boolean(recordId)))) return
+    // A record that also pays other debts or receivables is never deleted with one of its payments.
+    const shared =
+      Boolean(recordId) && isRecordSharedElsewhere(spreadsheetId, recordId, type, item.id)
 
-    if (await isLinkedForeignRecord(spreadsheetId, type, recordId, recordPrefix)) {
+    if (!(await settleFlow.askUnpay(Boolean(recordId) && !shared))) return
+
+    if (shared) {
+      unlink = 'detach'
+    } else if (await isLinkedForeignRecord(spreadsheetId, type, recordId, recordPrefix)) {
       unlink = await settleFlow.askUnlink()
       if (!unlink) return
     }
@@ -218,6 +225,7 @@ export function usePartialPaymentActions<T extends PartialPaymentItem>({
 
       replaceItem(item, updated)
       showSuccess(labels.paymentRemoved)
+      if (shared) showInfo('این رکورد پرداخت‌های دیگر را هم پوشش می‌دهد؛ رکورد نگه داشته شد.', 7000)
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: labels.removeFailed })) return
     } finally {

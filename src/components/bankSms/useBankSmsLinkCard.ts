@@ -48,7 +48,7 @@ export function useBankSmsLinkCard({ entry, choice, type, skip, review }: LinkCa
    */
   const quickSave = () => {
     if (!entry || !choice || !active) return
-    if (link.selectedId || !link.options.length) return save()
+    if (link.hasPick || !link.options.length) return save()
 
     showInfo(`اول به «${link.kind?.fieldLabel ?? ''}» جواب بده؛ یا با دکمهٔ ثبت بدون وصل ذخیره کن.`)
     requestAnimationFrame(() => {

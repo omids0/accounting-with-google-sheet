@@ -7,7 +7,11 @@ import {
   clearRecordDeletePending,
   markRecordDeletePending
 } from '../../services/pendingRecordDeletes'
-import { syncLinkedOnRecordDeleted, syncLinkedOnRecordUpdated } from '../../services/recordLinks'
+import {
+  sharedAmountLockMessage,
+  syncLinkedOnRecordDeleted,
+  syncLinkedOnRecordUpdated
+} from '../../services/recordLinks'
 import {
   applyWalletChanges,
   prepareWalletChanges,
@@ -87,6 +91,22 @@ export async function submitRecordEdit({
   }
 
   const settings = getSettings()!
+
+  // A record that pays several debts or receivables keeps its amount until they are taken off.
+  const locked = sharedAmountLockMessage(
+    settings.spreadsheetId,
+    editingRecord.id,
+    editingForm.type,
+    editingRecord.values,
+    formValues
+  )
+
+  if (locked) {
+    showError(locked)
+
+    return false
+  }
+
   const category = String(formValues.category ?? '')
   const isVehicleExpense = editingForm.type === 'expense' && isVehicleExpenseCategory(category)
 

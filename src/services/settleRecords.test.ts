@@ -150,6 +150,14 @@ describe('unpaying a settlement', () => {
     )
   })
 
+  it('«detach» never deletes the record, even one whose title carries the module prefix', async () => {
+    stored('r1', 'بدهی: علی')
+
+    await deleteLinkedRecordWithWallet('s', 'expense', 'r1', 'بدهی: ', 'detach')
+
+    expect(deleteLinkedRecord).not.toHaveBeenCalled()
+  })
+
   it('does nothing without a linked record id', async () => {
     await deleteLinkedRecordWithWallet('s', 'expense', '', 'بدهی: ')
 

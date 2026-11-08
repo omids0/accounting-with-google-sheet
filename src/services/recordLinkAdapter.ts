@@ -12,6 +12,7 @@ import {
 } from './recordLinkCore'
 import { updateSheetRow } from './sheets'
 import { formatAmountWords } from '../utils/insightText'
+import { roundMoney } from '../utils/roundMoney'
 
 /** An item with a list of payments: a personal debt or a receivable (a check and an installment have their own adapters). */
 interface PaidItem {
@@ -86,7 +87,12 @@ export function createRecordLinkAdapter<T extends PaidItem>(
         noun,
         itemId: item.id,
         title: config.titleOf(item),
-        paymentIds: linkedPaymentIds(item.payments, recordId)
+        paymentIds: linkedPaymentIds(item.payments, recordId),
+        amount: roundMoney(
+          item.payments
+            .filter(payment => payment.transactionRecordId === recordId)
+            .reduce((sum, payment) => sum + payment.amount, 0)
+        )
       })),
 
     async onRecordDeleted(spreadsheetId, recordId) {
