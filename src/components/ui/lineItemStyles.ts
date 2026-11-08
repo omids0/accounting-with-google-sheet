@@ -8,6 +8,16 @@ export const lineItemsAddRowClass = cx(
   'hover:border-primary hover:bg-bg disabled:cursor-not-allowed disabled:opacity-60'
 )
 
+/** The dashed add row with «اسکن فاکتور» beside it. */
+export const lineItemsAddWithScanClass = 'flex items-stretch gap-2 [&>*:first-child]:flex-1'
+
+export const lineItemsScanButtonClass = cx(
+  'flex min-h-touch-min shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-form',
+  'border border-dashed border-border bg-transparent px-3.5 text-[0.9rem] font-semibold text-primary',
+  'transition-[border-color,background] duration-[var(--duration-fast)] ease-[var(--ease-out)]',
+  'hover:enabled:border-primary hover:enabled:bg-bg disabled:cursor-not-allowed disabled:opacity-60'
+)
+
 export const lineItemsHintClass = 'text-[0.75rem] font-normal text-muted'
 
 export const lineItemsListClass = 'overflow-hidden rounded-form border border-border bg-surface'

@@ -38,6 +38,13 @@ const pdfExportChunkPattern = new RegExp(
 
 export default defineConfig(({ command }) => ({
   base: basePath,
+  resolve: {
+    // The invoice reader needs ONNX Runtime's plain wasm build (about 14 MB); the default entry
+    // would ship the 28 MB GPU build next to it.
+    alias: [{ find: /^onnxruntime-web$/, replacement: 'onnxruntime-web/wasm' }]
+  },
+  // The invoice reader runs in a module worker (it imports the ONNX glue at run time).
+  worker: { format: 'es' },
   test: {
     environment: 'jsdom',
     globals: true,
@@ -135,6 +142,17 @@ export default defineConfig(({ command }) => ({
           {
             urlPattern: /^https:\/\/sheets\.googleapis\.com\/.*/i,
             handler: 'NetworkOnly'
+          },
+          {
+            // Invoice reader models (`public/ocr/<version>/`) and the ONNX wasm, about 27 MB
+            // together: cached on the first scan, then the scan works offline. Not part of the
+            // install precache.
+            urlPattern: /\/(?:ocr\/v\d+\/[^/]+|assets\/ort-wasm[^/]*\.wasm)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'invoice-ocr-models',
+              expiration: { maxEntries: 12, purgeOnQuotaError: true }
+            }
           },
           {
             // Not anchored at the start, so Workbox only matches same-origin URLs.
