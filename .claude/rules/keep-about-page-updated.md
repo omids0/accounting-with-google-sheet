@@ -1,17 +1,18 @@
 ---
 name: keep-about-page-updated
-description: Keep the About page and README.md in sync when features change
+description: Keep the About page, README.md and the backend architecture doc in sync when features change
 alwaysApply: true
 ---
 
-# Keep About Page and README Updated
+# Keep About Page, README and Architecture Doc Updated
 
-Two documents describe the app and must stay accurate together:
+Three documents describe the app and must stay accurate together:
 
 - The in-app **About** section (`src/components/about/`) documents every feature for end users, in Persian.
 - **`README.md`** introduces the whole project to developers and newcomers: what the app does, its features, stack, structure, data model, commands, environment variables, quality gates and deployment. It is in Persian.
+- **`docs/backend-architecture.md`** is the architecture of the future own backend (PostgreSQL, OTP login, Iran hosting): the tab registry (appendix A), data rules, sync, backup/restore format, domain rules, open decisions. It is in Persian and follows the current code, so it goes stale whenever the data layer or a domain rule changes.
 
-Updating one without the other is not done.
+Updating one without the others is not done.
 
 ## When to update
 
@@ -21,6 +22,16 @@ Update the About content **and** `README.md` whenever you:
 - Change what a feature does in a user-visible way
 - Add or remove settings, reports, calculators, or import/export support
 - Change platform behavior users should know about (PWA, sync, auth, lock, etc.)
+
+Update the architecture doc `docs/backend-architecture.md` whenever you (even when About and README need no change, because these changes are often internal):
+
+- Add, remove, or rename a sheet tab, a column, a header label, or an entity, or change what a column means (`sheetHeaders*.ts`, `sheetNames.ts`, `moduleSheetSpecs.ts`, form fields in `settings.ts`)
+- Change how ids, dates, money, booleans, JSON-in-cell columns or marker strings (`ثبت از پیامک`, `مرجع` keys, title prefixes) are stored or parsed
+- Change sync, outbox, conflict or merge behavior, sign-in or session handling, roles and permissions, or which tabs a workspace type may have
+- Change the backup/restore format (`manifest.json`, `formatVersion`, CSV rules, restore modes) or the Drive backup flow
+- Change a domain rule the doc records (charge calculation, wallet ledger and balance, rounding, payments, vehicle mileage, reminders, SMS pipeline and what stays on the device)
+- Add or remove a Google or other external dependency, a worker, a push channel, or a hosting assumption
+- Find or fix a behavior listed under «اشکال‌های کشف‌شده»
 
 Update `README.md` as well (About may not need a change) whenever you:
 
@@ -43,16 +54,28 @@ Update `README.md` as well (About may not need a change) whenever you:
    - «راه‌اندازی محلی» (env table), «دستورها», «کیفیت و تست», «استقرار», «سرویس‌های Cloudflare» for tooling, scripts, CI and workers.
    - Check every concrete number or name you touch (report count, size limit, sync interval, row cap, script list) against the code, not against memory.
 
+6. **Architecture doc** — edit the matching part of `docs/backend-architecture.md`:
+   - Tab or column changes: the block of that tab in «پیوست الف: رجیستری تب‌ها» (header, key, type, empty-means), plus section 5 if a rule changes.
+   - Backup and restore: section 9. Permissions and workspace types: section 6. Sync: section 8. Sign-in: section 7.
+   - Domain rules: section 10. Reminders and push: section 11. SMS: section 12. Files: section 13.
+   - Google or external dependencies: appendix B and section 15. Reusable pure logic: appendix C.
+   - Discovered or fixed quirks: section 23. A decision made or newly needed: section 21.
+   - Refresh the app version and date line at the top.
+   - Check every table, column, number and function name you touch against the code, not against memory.
+
 ## Checklist before finishing feature work
 
 - [ ] About text reflects the new or changed behavior
 - [ ] `README.md` reflects it too (features, stack, commands, env, deployment as relevant)
-- [ ] No stale references to removed features in either document
+- [ ] `docs/backend-architecture.md` reflects it too (registry, rules, backup format, sync, permissions) or the change touches none of them
+- [ ] No stale references to removed features in any of the three documents
 - [ ] Persian copy is clear and matches UI labels (e.g. tab titles in `layout/types.ts`)
-- [ ] README lines, bullets, headings and table first cells start with a Persian word, not Latin or code (a Latin start flips the line LTR)
+- [ ] README and architecture doc lines, bullets, headings and table first cells start with a Persian word, not Latin or code (a Latin start flips the line LTR). Code blocks are exempt.
 
 ## Do not
 
+- Skip the architecture doc because a change is "internal" or "only a column": the registry in the doc must match `sheetHeaders*.ts`.
 - Skip About or README updates because the change "seems small" — users and newcomers rely on them to discover capabilities.
 - Copy About's long feature text into README, or developer detail (env vars, CI, commands) into About. About is user-facing and feature-by-feature; README is the project overview.
-- Leave `README.md` describing the old behavior and plan to fix it later.
+- Leave `README.md` or `docs/backend-architecture.md` describing the old behavior and plan to fix it later.
+- Design new backend behavior in the doc that the code does not need yet. The doc records the architecture and the current structure; undecided topics go to its «برای گفتگوی بعدی» section.
