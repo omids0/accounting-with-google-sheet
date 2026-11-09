@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پالت‌های رنگی اپ</title>
+    <style>
+      /* Prototype only: not the app. Palette idea: primary + secondary hue gradient + one accent
+   (pairs from ui-ux-pro-max colors.csv: Personal Finance, Banking, Mental Health, Beauty). */
+      :root {
+        font-family: 'Vazirmatn', system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #e5e7eb;
+        color: #111827;
+      }
+      h1 {
+        font-size: 1.1rem;
+        margin: 0 0 12px;
+      }
+      h2 {
+        font-size: 0.95rem;
+        margin: 0 0 8px;
+      }
+      .set {
+        background: #fff;
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 14px;
+        max-width: 760px;
+      }
+      .set small {
+        display: block;
+        color: #6b7280;
+        margin-bottom: 10px;
+      }
+      .pick {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .pick button {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        min-width: 76px;
+        min-height: 44px;
+        padding: 8px 6px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background: #f3f4f6;
+        font: inherit;
+        font-size: 0.78rem;
+        cursor: pointer;
+      }
+      .pick button[aria-pressed='true'] {
+        border-color: #111827;
+        background: #fff;
+        font-weight: 700;
+      }
+      .dot {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: block;
+        position: relative;
+      }
+      .dot::after {
+        content: '';
+        position: absolute;
+        inset-inline-end: -2px;
+        bottom: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        background: var(--a);
+      }
+      .stage {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .stage > div {
+        width: 290px;
+      }
+      .lbl {
+        font-weight: 700;
+        margin: 0 0 6px;
+      }
+
+      /* ---- phone mock: tokens come from inline style (set by JS), same names as theme.css ---- */
+      .phone {
+        background: var(--bg);
+        color: var(--tx);
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid var(--bd);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+        --inc: #15803d;
+        --inc-bg: #f0fdf4;
+        --exp: #c81e1e;
+        --exp-bg: #fef2f2;
+      }
+      .phone.dark {
+        --inc: #4ade80;
+        --inc-bg: rgba(74, 222, 128, 0.08);
+        --exp: #f87171;
+        --exp-bg: rgba(248, 113, 113, 0.08);
+      }
+      .head {
+        background: var(--head);
+        color: #fff;
+        padding: 12px 14px;
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+      }
+      .body {
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+      .hero {
+        background: radial-gradient(circle at 12% 120%, var(--glow) 0, transparent 55%), var(--head);
+        color: #fff;
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .hero small {
+        opacity: 0.85;
+        display: block;
+      }
+      .hero b {
+        font-size: 1.35rem;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .card {
+        background: var(--sf);
+        border: 1px solid var(--bd);
+        border-radius: 12px;
+        padding: 8px 10px;
+        font-size: 0.82rem;
+      }
+      .card b {
+        display: block;
+        font-size: 1rem;
+      }
+      .inc {
+        background: var(--inc-bg);
+        color: var(--inc);
+      }
+      .exp {
+        background: var(--exp-bg);
+        color: var(--exp);
+      }
+      .quick {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        text-align: center;
+        font-size: 0.7rem;
+      }
+      .quick i {
+        display: grid;
+        place-items: center;
+        height: 38px;
+        border-radius: 12px;
+        background: var(--a);
+        color: var(--ona);
+        font-style: normal;
+        font-weight: 700;
+        margin-bottom: 2px;
+      }
+      .quick span:nth-child(even) i {
+        background: var(--soft);
+        color: var(--acc);
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+      }
+      .chip {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        background: var(--soft);
+        color: var(--acc);
+        border: 1px solid var(--bd);
+      }
+      .chip.on {
+        background: var(--acc);
+        color: var(--on);
+      }
+      .btn {
+        min-height: 44px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--btn);
+        color: var(--on);
+        font: inherit;
+        font-weight: 700;
+      }
+      .inp {
+        min-height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--bd);
+        background: var(--sf);
+        color: var(--mu);
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        font-size: 0.82rem;
+        outline: 3px solid var(--acc);
+        outline-offset: 1px;
+      }
+      .nav {
+        background: var(--sf);
+        border-top: 1px solid var(--bd);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 8px 0 10px;
+        font-size: 0.7rem;
+        color: var(--mu);
+      }
+      .nav .on {
+        color: var(--acc);
+        font-weight: 700;
+      }
+      .fab {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--btn);
+        color: var(--on);
+        display: grid;
+        place-items: center;
+        font-size: 1.4rem;
+        margin-top: -22px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>انتخاب پالت رنگی (نمونه اولیه)</h1>
+    <section class="set">
+      <h2>رنگ حالت روز</h2>
+      <small>جدا از حالت شب انتخاب می‌شود.</small>
+      <div class="pick" id="pickLight"></div>
+    </section>
+    <section class="set">
+      <h2>رنگ حالت شب</h2>
+      <small>مستقل از حالت روز: می‌شود روز «اقیانوس» و شب «نیلی‌طلا» بود.</small>
+      <div class="pick" id="pickDark"></div>
+    </section>
+    <div class="stage">
+      <div>
+        <p class="lbl">پیش‌نمایش روز</p>
+        <div id="phoneLight"></div>
+      </div>
+      <div>
+        <p class="lbl">پیش‌نمایش شب</p>
+        <div id="phoneDark"></div>
+      </div>
+    </div>
+    <script>
+      /* L = light mode: d/m/e gradient stops (white text ≥ 5:1), a = accent tile (white text ≥ 4.5:1).
+   D = dark mode: acc = accent on #141412 (≥ 6.9:1), h1/h2 = tinted header, g = hero glow, a = 2nd accent tile. */
+      const P = [
+        {
+          id: 'emerald',
+          name: 'زمرد',
+          note: 'پیش‌فرض',
+          L: {
+            d: '#0d5d57',
+            m: '#0f766e',
+            e: '#0e7c73',
+            a: '#b45309',
+            bg: '#f0fdfa',
+            bd: '#99f6e4',
+            tx: '#134e4a',
+            mu: '#38736c',
+            soft: '#ccfbf1'
+          },
+          D: {
+            acc: '#c99a3f',
+            h1: '#131210',
+            h2: '#1f1b14',
+            b1: '#c99a3f',
+            b2: '#b9892f',
+            g: 'rgba(201,154,63,.28)',
+            a: '#2dd4bf',
+            soft: '#1f1b14'
+          }
+        },
+        {
+          id: 'ocean',
+          name: 'اقیانوس',
+          note: 'آبی + سبز سود',
+          L: {
+            d: '#1e3a8a',
+            m: '#1d4ed8',
+            e: '#0369a1',
+            a: '#047857',
+            bg: '#eff6ff',
+            bd: '#bfdbfe',
+            tx: '#172554',
+            mu: '#475f8f',
+            soft: '#dbeafe'
+          },
+          D: {
+            acc: '#38bdf8',
+            h1: '#0a1630',
+            h2: '#0c3558',
+            b1: '#38bdf8',
+            b2: '#0ea5e9',
+            g: 'rgba(56,189,248,.30)',
+            a: '#34d399',
+            soft: '#101c30'
+          }
+        },
+        {
+          id: 'violet',
+          name: 'ارغوانی',
+          note: 'بنفش + سرخابی',
+          L: {
+            d: '#5b21b6',
+            m: '#7c3aed',
+            e: '#a21caf',
+            a: '#db2777',
+            bg: '#f5f3ff',
+            bd: '#ddd6fe',
+            tx: '#2e1065',
+            mu: '#6b5a99',
+            soft: '#ede9fe'
+          },
+          D: {
+            acc: '#c084fc',
+            h1: '#140f22',
+            h2: '#2a1247',
+            b1: '#c084fc',
+            b2: '#a855f7',
+            g: 'rgba(232,121,249,.30)',
+            a: '#f472b6',
+            soft: '#1c1530'
+          }
+        },
+        {
+          id: 'rose',
+          name: 'گل‌سرخ',
+          note: 'صورتی + بنفش',
+          L: {
+            d: '#9d174d',
+            m: '#be185d',
+            e: '#9333ea',
+            a: '#7c3aed',
+            bg: '#fdf2f8',
+            bd: '#fbcfe8',
+            tx: '#500724',
+            mu: '#8f4a68',
+            soft: '#fce7f3'
+          },
+          D: {
+            acc: '#f472b6',
+            h1: '#1a0d15',
+            h2: '#3a1030',
+            b1: '#f472b6',
+            b2: '#ec4899',
+            g: 'rgba(192,132,252,.30)',
+            a: '#c084fc',
+            soft: '#2a1622'
+          }
+        },
+        {
+          id: 'navygold',
+          name: 'نیلی‌طلا',
+          note: 'بانکی و باوقار',
+          L: {
+            d: '#0f172a',
+            m: '#1e3a8a',
+            e: '#1e40af',
+            a: '#a16207',
+            bg: '#f8fafc',
+            bd: '#e2e8f0',
+            tx: '#0f172a',
+            mu: '#52607a',
+            soft: '#e0e7ff'
+          },
+          D: {
+            acc: '#fbbf24',
+            h1: '#0a0f1e',
+            h2: '#14224a',
+            b1: '#fbbf24',
+            b2: '#f59e0b',
+            g: 'rgba(251,191,36,.26)',
+            a: '#60a5fa',
+            soft: '#1c1a12'
+          }
+        }
+      ]
+      const state = { light: 'emerald', dark: 'emerald' }
+      const vars = (p, dark) => {
+        if (!dark) {
+          const c = p.L
+          return `--bg:${c.bg};--bd:${c.bd};--tx:${c.tx};--mu:${c.mu};--soft:${c.soft};--sf:#fff;--acc:${c.m};--a:${c.a};--ona:#fff;--on:#fff;--glow:${c.e};
+      --head:linear-gradient(135deg,${c.d} 0%,${c.m} 55%,${c.e} 100%);--btn:linear-gradient(135deg,${c.m},${c.e})`
+        }
+        const c = p.D
+        return `--bg:#0a0a09;--bd:rgba(255,255,255,.08);--tx:#efece6;--mu:#9b968c;--soft:${c.soft};--sf:#141412;--acc:${c.acc};--a:${c.a};--ona:#0a0a09;--on:#1a1408;--glow:${c.g};
+    --head:linear-gradient(135deg,${c.h1},${c.h2});--btn:linear-gradient(135deg,${c.b1},${c.b2})`
+      }
+      const phone = (p, dark) => `<div class="phone ${dark ? 'dark' : ''}" style="${vars(p, dark)}">
+  <div class="head"><span>داشبورد</span><span>۱۴۰۵</span></div>
+  <div class="body">
+    <div class="hero"><small>دارایی قابل اتکا</small><b>۱۲٬۴۵۰٬۰۰۰ تومان</b></div>
+    <div class="row"><div class="card inc">درآمد<b>۸٬۲۰۰٬۰۰۰</b></div><div class="card exp">هزینه<b>۳٬۱۰۰٬۰۰۰</b></div></div>
+    <div class="quick"><span><i>+</i>هزینه</span><span><i>+</i>درآمد</span><span><i>⇄</i>انتقال</span><span><i>≡</i>گزارش</span></div>
+    <div class="chips"><span class="chip on">این ماه</span><span class="chip">هفته</span><span class="chip">سال</span></div>
+    <div class="inp">مبلغ را وارد کنید</div>
+    <button class="btn" type="button">ثبت تراکنش</button>
+  </div>
+  <div class="nav"><span class="on">خانه</span><span>کیف پول</span><span class="fab">+</span><span>گزارش</span><span>منو</span></div></div>`
+      const dotBg = (p, dark) =>
+        dark
+          ? `linear-gradient(135deg,${p.D.h2},${p.D.acc})`
+          : `linear-gradient(135deg,${p.L.d},${p.L.m},${p.L.e})`
+      function render() {
+        for (const mode of ['light', 'dark']) {
+          const dark = mode === 'dark',
+            box = document.getElementById(dark ? 'pickDark' : 'pickLight')
+          box.innerHTML = P.map(
+            p => `<button type="button" data-id="${p.id}" aria-pressed="${state[mode] === p.id}">
+      <span class="dot" style="background:${dotBg(p, dark)};--a:${dark ? p.D.a : p.L.a}"></span>${
+              p.name
+            }<small>${p.note}</small></button>`
+          ).join('')
+          box.querySelectorAll('button').forEach(b =>
+            b.addEventListener('click', () => {
+              state[mode] = b.dataset.id
+              render()
+            })
+          )
+          document.getElementById(dark ? 'phoneDark' : 'phoneLight').innerHTML = phone(
+            P.find(p => p.id === state[mode]),
+            dark
+          )
+        }
+      }
+      render()
+    </script>
+  </body>
+</html>

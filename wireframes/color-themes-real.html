@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پیش‌نمایش واقعی پالت‌ها</title>
+    <style>
+      /* Prototype only. Screenshots are the REAL built app (375x812, sample data) with each palette's tokens injected. */
+      :root {
+        font-family: 'Vazirmatn', system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #e5e7eb;
+        color: #111827;
+      }
+      h1 {
+        font-size: 1.1rem;
+        margin: 0 0 12px;
+      }
+      .set {
+        background: #fff;
+        border-radius: 16px;
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        max-width: 900px;
+      }
+      .set h2 {
+        font-size: 0.95rem;
+        margin: 0 0 8px;
+      }
+      .pick {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .pick button {
+        display: grid;
+        justify-items: center;
+        gap: 4px;
+        min-width: 76px;
+        min-height: 44px;
+        padding: 8px 6px;
+        border-radius: 12px;
+        border: 2px solid transparent;
+        background: #f3f4f6;
+        font: inherit;
+        font-size: 0.78rem;
+        cursor: pointer;
+      }
+      .pick button[aria-pressed='true'] {
+        border-color: #111827;
+        background: #fff;
+        font-weight: 700;
+      }
+      .dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: block;
+      }
+      .stage {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        max-width: 1200px;
+      }
+      .col h3 {
+        margin: 0 0 8px;
+        font-size: 0.95rem;
+      }
+      .shots {
+        display: flex;
+        gap: 8px;
+      }
+      .shots img {
+        width: calc((100% - 16px) / 3);
+        height: auto;
+        border-radius: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        cursor: zoom-in;
+      }
+      .shots img.big {
+        position: fixed;
+        z-index: 9;
+        inset: 2vh auto auto 50%;
+        width: auto;
+        height: 96vh;
+        transform: translateX(-50%);
+        cursor: zoom-out;
+      }
+      @media (max-width: 900px) {
+        .stage {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>پیش‌نمایش واقعی (خود اپ، داده‌ی نمونه)</h1>
+    <section class="set">
+      <h2>رنگ حالت روز</h2>
+      <div class="pick" id="pickLight"></div>
+    </section>
+    <section class="set">
+      <h2>رنگ حالت شب</h2>
+      <div class="pick" id="pickDark"></div>
+    </section>
+    <div class="stage">
+      <div class="col">
+        <h3>روز: داشبورد، ثبت هزینه، کیف پول</h3>
+        <div class="shots" id="shotsLight"></div>
+      </div>
+      <div class="col">
+        <h3>شب: داشبورد، ثبت هزینه، کیف پول</h3>
+        <div class="shots" id="shotsDark"></div>
+      </div>
+    </div>
+    <section class="set" style="margin-top: 18px; max-width: 1200px">
+      <h2>جای انتخاب در تنظیمات: تنظیمات › نمایش، زیر ردیف «تم»</h2>
+      <p style="margin: 0 0 10px; font-size: 0.8rem; color: #6b7280">
+        خود صفحه‌ی تنظیمات اپ (همان کارت «نمایش») با ردیف تازه‌ی «رنگ تم». در این عکس‌ها روز
+        «اقیانوس» و شب «نیلی‌طلا» انتخاب شده است.
+      </p>
+      <div class="settings-shots">
+        <figure>
+          <img src="real/settings-mobile-light.png" alt="تنظیمات موبایل، روشن" />
+          <figcaption>موبایل، روشن</figcaption>
+        </figure>
+        <figure>
+          <img src="real/settings-mobile-dark.png" alt="تنظیمات موبایل، تاریک" />
+          <figcaption>موبایل، تاریک</figcaption>
+        </figure>
+        <figure>
+          <img src="real/settings-desktop-light.png" alt="تنظیمات دسکتاپ، روشن" />
+          <figcaption>دسکتاپ، روشن</figcaption>
+        </figure>
+        <figure>
+          <img src="real/settings-desktop-dark.png" alt="تنظیمات دسکتاپ، تاریک" />
+          <figcaption>دسکتاپ، تاریک</figcaption>
+        </figure>
+      </div>
+    </section>
+    <style>
+      .settings-shots {
+        display: grid;
+        grid-template-columns: 240px 240px 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+      .settings-shots figure {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+      .settings-shots img {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        cursor: zoom-in;
+      }
+      .settings-shots figure:nth-child(n + 3) {
+        grid-column: 1 / -1;
+        max-width: 900px;
+      }
+      .settings-shots img.big {
+        position: fixed;
+        z-index: 9;
+        inset: 2vh auto auto 50%;
+        width: auto;
+        max-width: 96vw;
+        height: auto;
+        max-height: 96vh;
+        transform: translateX(-50%);
+        cursor: zoom-out;
+      }
+      @media (max-width: 900px) {
+        .settings-shots {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+    <script>
+      document
+        .querySelectorAll('.settings-shots img')
+        .forEach(img => img.addEventListener('click', () => img.classList.toggle('big')))
+    </script>
+    <script>
+      const P = [
+        {
+          id: 'emerald',
+          name: 'زمرد',
+          l: 'linear-gradient(135deg,#0d5d57,#0f766e,#0e7c73)',
+          d: 'linear-gradient(135deg,#1f1b14,#c99a3f)'
+        },
+        {
+          id: 'ocean',
+          name: 'اقیانوس',
+          l: 'linear-gradient(135deg,#1e3a8a,#1d4ed8,#0369a1)',
+          d: 'linear-gradient(135deg,#0c3558,#38bdf8)'
+        },
+        {
+          id: 'violet',
+          name: 'ارغوانی',
+          l: 'linear-gradient(135deg,#5b21b6,#7c3aed,#a21caf)',
+          d: 'linear-gradient(135deg,#2a1247,#c084fc)'
+        },
+        {
+          id: 'rose',
+          name: 'گل‌سرخ',
+          l: 'linear-gradient(135deg,#9d174d,#be185d,#9333ea)',
+          d: 'linear-gradient(135deg,#3a1030,#f472b6)'
+        },
+        {
+          id: 'navygold',
+          name: 'نیلی‌طلا',
+          l: 'linear-gradient(135deg,#0f172a,#1e3a8a,#1e40af)',
+          d: 'linear-gradient(135deg,#14224a,#fbbf24)'
+        },
+        {
+          id: 'indigo',
+          name: 'نیلی',
+          l: 'linear-gradient(135deg,#312e81,#4338ca,#4f46e5)',
+          d: 'linear-gradient(135deg,#1f2358,#818cf8)'
+        },
+        {
+          id: 'caspian',
+          name: 'کاسپین',
+          l: 'linear-gradient(135deg,#083344,#155e75,#0e7490)',
+          d: 'linear-gradient(135deg,#0c3340,#22d3ee)'
+        },
+        {
+          id: 'orchid',
+          name: 'ارکیده',
+          l: 'linear-gradient(135deg,#701a75,#a21caf,#c026d3)',
+          d: 'linear-gradient(135deg,#3b0f45,#e879f9)'
+        },
+        {
+          id: 'brown',
+          name: 'قهوه‌ای',
+          l: 'linear-gradient(135deg,#451a03,#78350f,#92400e)',
+          d: 'linear-gradient(135deg,#3a2410,#e0a96d)'
+        },
+        {
+          id: 'graphite',
+          name: 'گرافیت',
+          l: 'linear-gradient(135deg,#1e293b,#334155,#475569)',
+          d: 'linear-gradient(135deg,#1f2937,#cbd5e1)'
+        }
+      ]
+      const state = { light: 'emerald', dark: 'emerald' }
+      const SCREENS = [
+        ['home', 'داشبورد'],
+        ['form', 'ثبت هزینه'],
+        ['wallet', 'کیف پول']
+      ]
+      function render() {
+        for (const mode of ['light', 'dark']) {
+          const box = document.getElementById(mode === 'dark' ? 'pickDark' : 'pickLight')
+          box.innerHTML = P.map(
+            p =>
+              `<button type="button" data-id="${p.id}" aria-pressed="${
+                state[mode] === p.id
+              }"><span class="dot" style="background:${mode === 'dark' ? p.d : p.l}"></span>${
+                p.name
+              }</button>`
+          ).join('')
+          box.querySelectorAll('button').forEach(b =>
+            b.addEventListener('click', () => {
+              state[mode] = b.dataset.id
+              render()
+            })
+          )
+          const shots = document.getElementById(mode === 'dark' ? 'shotsDark' : 'shotsLight')
+          shots.innerHTML = SCREENS.map(
+            ([s, label]) => `<img src="real/${state[mode]}-${mode}-${s}.png" alt="${label}" />`
+          ).join('')
+          shots
+            .querySelectorAll('img')
+            .forEach(img => img.addEventListener('click', () => img.classList.toggle('big')))
+        }
+      }
+      render()
+    </script>
+  </body>
+</html>
