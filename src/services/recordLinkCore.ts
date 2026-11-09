@@ -17,6 +17,8 @@ export interface RecordLinkMatch {
   itemId: string
   title: string
   paymentIds: string[]
+  /** What those payments add up to, when the kind knows it (debts and receivables). */
+  amount?: number
 }
 
 /** What changed on an edited record; a key is present only when that value really changed. */

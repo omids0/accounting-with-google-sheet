@@ -22,9 +22,10 @@ vi.mock('../services/linkPayment', () => ({
     return mocks.open
   },
   attachRecordToTarget: mocks.attach,
+  isLedgerRefusal: () => false,
   linkFailureMessage: () => ''
 }))
-vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn() }))
+vi.mock('../utils/toast', () => ({ showError: vi.fn(), showSuccess: vi.fn(), showInfo: vi.fn() }))
 
 const { useLinkTarget } = await import('./useLinkTarget')
 
@@ -68,7 +69,7 @@ describe('a link written on one card refreshes the picker of every other card', 
     // Card 1 pays the debt in full; the sheet no longer lists it.
     mocks.open = []
     await act(async () => {
-      cards.one.select('d1')
+      cards.one.shares.toggle('d1')
     })
     await act(async () => {
       await cards.one.attach({ recordId: 'r1', amount: 20_000_000, date: '1405-02-03' })

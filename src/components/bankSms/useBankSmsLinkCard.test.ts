@@ -43,6 +43,7 @@ const setLink = (patch: Record<string, unknown>) => {
     kind: { fieldLabel: 'پرداخت کدام بدهی؟' },
     options: [{ id: 'd1' }],
     selectedId: '',
+    hasPick: false,
     loading: false,
     error: '',
     attach: vi.fn(),
@@ -67,7 +68,7 @@ describe('a swipe-right (quick save) on a card whose category is a link target',
   })
 
   it('saves with the link once an item is picked', async () => {
-    setLink({ selectedId: 'd1' })
+    setLink({ hasPick: true })
     await mount()
     card.quickSave()
 
@@ -84,7 +85,7 @@ describe('a swipe-right (quick save) on a card whose category is a link target',
   })
 
   it('a pick that no longer fits shows its error and saves nothing', async () => {
-    setLink({ selectedId: 'd1', error: 'مبلغ بیشتر از مانده است.' })
+    setLink({ hasPick: true, error: 'مبلغ بیشتر از مانده است.' })
     await mount()
     card.quickSave()
 

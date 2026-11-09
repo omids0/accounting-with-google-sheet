@@ -1,3 +1,4 @@
+import { toPersianDigits } from './normalizeDigits'
 import { RECEIVABLE_INCOME_CATEGORY } from './protectedCategories'
 import { CHECK_EXPENSE_CATEGORY, CHECK_INCOME_CATEGORY } from '../services/checks'
 import { DANG_EXPENSE_CATEGORY } from '../services/dangConstants'
@@ -45,6 +46,21 @@ export interface LinkTargetKind {
   childLabel?: string
   /** Added to the «link it by hand» advice when the page cannot find the record by itself. */
   manualHint?: string
+  /**
+   * One record may pay several items, each with its own share (a debt, a receivable). The picker
+   * is a sheet of rows with an amount each; the shares must add up to the record's amount.
+   */
+  multi?: MultiLinkCopy
+}
+
+/** The Persian copy of a kind whose record can pay several items. */
+export interface MultiLinkCopy {
+  /** Title of the sheet. */
+  sheetTitle: string
+  /** What the trigger shows once `count` items are picked: «۳ بدهی انتخاب شد». */
+  summary: (count: number) => string
+  /** The toast after every share was written. */
+  successMessage: (count: number) => string
 }
 
 const KINDS: LinkTargetKind[] = [
@@ -59,7 +75,12 @@ const KINDS: LinkTargetKind[] = [
     successMessage: title => `پرداخت بدهی «${title}» ثبت شد`,
     page: 'بدهی',
     noun: 'بدهی',
-    fit: 'cap'
+    fit: 'cap',
+    multi: {
+      sheetTitle: 'پرداخت کدام بدهی‌ها؟',
+      summary: count => `${toPersianDigits(String(count))} بدهی انتخاب شد`,
+      successMessage: count => `پرداخت ${toPersianDigits(String(count))} بدهی ثبت شد`
+    }
   },
   {
     id: 'receivable',
@@ -72,7 +93,12 @@ const KINDS: LinkTargetKind[] = [
     successMessage: title => `دریافت طلب «${title}» ثبت شد`,
     page: 'طلب‌ها',
     noun: 'طلب',
-    fit: 'cap'
+    fit: 'cap',
+    multi: {
+      sheetTitle: 'دریافت کدام طلب‌ها؟',
+      summary: count => `${toPersianDigits(String(count))} طلب انتخاب شد`,
+      successMessage: count => `دریافت ${toPersianDigits(String(count))} طلب ثبت شد`
+    }
   },
   {
     id: 'checkPaid',

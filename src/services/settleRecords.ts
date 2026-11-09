@@ -90,7 +90,7 @@ export async function deleteLinkedRecordWithWallet(
   prefix: SettlePrefix,
   unlink: UnlinkChoice = 'keep'
 ): Promise<boolean> {
-  if (!recordId) return true
+  if (!recordId || unlink === 'detach') return true
   if (unlink === 'keep' && (await findForeignRecord(spreadsheetId, type, recordId, prefix))) {
     return true
   }

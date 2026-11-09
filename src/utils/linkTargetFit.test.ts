@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { childOption, itemOption, matchesRecordAmount, pickError } from './linkTargetFit'
+import {
+  childOption,
+  itemOption,
+  matchesRecordAmount,
+  pickError,
+  sharesProblemMessage
+} from './linkTargetFit'
 import { linkTargetKindFor } from './linkTargetKinds'
 
 vi.mock('../services/workspace', () => ({ isPersonalWorkspace: () => true }))
@@ -16,8 +22,17 @@ const item = (remaining: number, over = {}) => ({
 })
 
 describe('itemOption', () => {
-  it('debts: disabled only when less is left than the record', () => {
+  it('debts and receivables (a record may pay several): never disabled, a smaller one is a share', () => {
     const kind = kindOf('expense', 'بدهی')
+
+    expect(itemOption(kind, item(1_000), 5_000).disabled).toBe(false)
+    expect(itemOption(kind, item(5_000), 5_000).disabled).toBe(false)
+    expect(itemOption(kind, item(1_000), 5_000).label).toContain('باقی‌مانده')
+    expect(itemOption(kind, item(1_000), 5_000).label).not.toContain('کمتر از مبلغ این رکورد')
+  })
+
+  it('a «cap» kind that pays one item only is disabled when less is left than the record', () => {
+    const kind = { ...kindOf('expense', 'بدهی'), multi: undefined }
 
     expect(itemOption(kind, item(1_000), 5_000).disabled).toBe(true)
     expect(itemOption(kind, item(5_000), 5_000).disabled).toBe(false)
@@ -81,9 +96,35 @@ describe('pickError', () => {
 
   it('names the reason per kind', () => {
     const check = kindOf('expense', 'چک')
-    const debt = kindOf('expense', 'بدهی')
+    const debt = { ...kindOf('expense', 'بدهی'), multi: undefined }
 
     expect(pickError(check, itemOption(check, item(9_000), 5_000))).toContain('یکی نیست')
     expect(pickError(debt, itemOption(debt, item(1_000), 5_000))).toContain('بیشتر از مانده')
+  })
+})
+
+describe('sharesProblemMessage', () => {
+  const options = [
+    itemOption(kindOf('expense', 'بدهی'), item(1_000, { id: 'a', title: 'وام' }), 5_000)
+  ]
+
+  it('says nothing without a problem', () => {
+    expect(sharesProblemMessage(null, options)).toBe('')
+  })
+
+  it('tells how much is missing or too much', () => {
+    expect(sharesProblemMessage({ kind: 'sum', diff: 800 }, options)).toContain(
+      'کمتر از مبلغ رکورد'
+    )
+    expect(sharesProblemMessage({ kind: 'sum', diff: -800 }, options)).toContain(
+      'بیشتر از مبلغ رکورد'
+    )
+  })
+
+  it('names the debt of a share that is empty or above what is left', () => {
+    expect(sharesProblemMessage({ kind: 'empty', id: 'a' }, options)).toContain('«وام»')
+    expect(sharesProblemMessage({ kind: 'over', id: 'a', remaining: 1_000 }, options)).toContain(
+      'نمی‌تواند بیشتر از مانده'
+    )
   })
 })

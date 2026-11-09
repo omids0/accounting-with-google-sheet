@@ -114,7 +114,13 @@ export async function deleteReceivable(
         .filter((id): id is string => Boolean(id))
     )
 
-    for (const id of ids) await deleteLinkedIncomeRecord(spreadsheetId, id)
+    // A record that also pays another receivable stays: it is that receivable's evidence too.
+    const { isRecordSharedElsewhere } = await import('./recordLinks')
+
+    for (const id of ids) {
+      if (isRecordSharedElsewhere(spreadsheetId, id, 'income', receivable.id)) continue
+      await deleteLinkedIncomeRecord(spreadsheetId, id)
+    }
   }
   await deleteSheetRow(spreadsheetId, RECEIVABLES_SHEET, rowNumber)
   if (receivable) {

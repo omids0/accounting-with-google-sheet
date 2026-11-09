@@ -1,4 +1,5 @@
 import { formatMoney } from './formatMoney'
+import type { SharesProblem } from './linkShares'
 import type { LinkTargetKind } from './linkTargetKinds'
 import { roundMoney } from './roundMoney'
 import type { LinkTargetChild, LinkTargetItem } from '../services/linkPayment'
@@ -42,8 +43,12 @@ export function itemOption(
     return { ...item, disabled: false, label: `${item.title}${extra}` }
   }
 
-  const disabled = recordAmount > 0 && item.remaining < recordAmount
   const base = `${item.title} — باقی‌مانده ${money}`
+
+  // A record that may pay several items takes a smaller one as one of its shares: never refused here.
+  if (kind.multi) return { ...item, disabled: false, label: base }
+
+  const disabled = recordAmount > 0 && item.remaining < recordAmount
 
   return { ...item, disabled, label: disabled ? `${base} (کمتر از مبلغ این رکورد)` : base }
 }
@@ -70,4 +75,24 @@ export function pickError(kind: LinkTargetKind, option: LinkTargetOption | undef
   return kind.fit === 'exact'
     ? `مبلغ ${kind.noun} (${formatMoney(option.remaining)}) با مبلغ رکورد یکی نیست`
     : `مبلغ رکورد نمی‌تواند بیشتر از مانده (${formatMoney(option.remaining)}) باشد`
+}
+
+/** Why the picked shares block the save, in the user's words ('' when they do not). */
+export function sharesProblemMessage(
+  problem: SharesProblem | null,
+  options: readonly LinkTargetOption[]
+): string {
+  if (!problem) return ''
+
+  if (problem.kind === 'sum') {
+    return problem.diff > 0
+      ? `جمع سهم‌ها ${formatMoney(problem.diff)} کمتر از مبلغ رکورد است.`
+      : `جمع سهم‌ها ${formatMoney(-problem.diff)} بیشتر از مبلغ رکورد است.`
+  }
+
+  const title = options.find(option => option.id === problem.id)?.title ?? ''
+
+  return problem.kind === 'empty'
+    ? `برای «${title}» مبلغ بنویس یا تیکش را بردار.`
+    : `سهم «${title}» نمی‌تواند بیشتر از مانده (${formatMoney(problem.remaining)}) باشد.`
 }

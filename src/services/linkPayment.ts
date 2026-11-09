@@ -256,7 +256,7 @@ export const attachRecordToTarget = (
   childId?: string
 ) => HANDLERS[kind].attach(spreadsheetId, itemId, record, childId)
 
-const isLedgerRefusal = (err: unknown): err is Error =>
+export const isLedgerRefusal = (err: unknown): err is Error =>
   err instanceof LinkPaymentError ||
   err instanceof DangPaymentError ||
   err instanceof ReceivablePaymentError

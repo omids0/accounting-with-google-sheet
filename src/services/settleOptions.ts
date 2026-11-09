@@ -12,8 +12,12 @@ export interface SettleOptions {
   bridgeAccount?: string
 }
 
-/** What unpaying does with a record the user linked instead of letting the app create one. */
-export type UnlinkChoice = 'keep' | 'delete'
+/**
+ * What unpaying does with a record the user linked instead of letting the app create one: keep it,
+ * delete it too, or `detach` (the payment goes and the record is never deleted, whatever its
+ * title: it also pays other debts or receivables).
+ */
+export type UnlinkChoice = 'keep' | 'delete' | 'detach'
 
 type SettleType = 'expense' | 'income'
 

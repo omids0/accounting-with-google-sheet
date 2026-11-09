@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 
+import LinkTargetMultiField from './LinkTargetMultiField'
 import type { LinkTargetState } from '../../hooks/useLinkTarget'
 import FormField from '../form/FormField'
 import Select, { type SelectOption } from '../form/Select'
@@ -40,6 +41,9 @@ export default function LinkTargetField({ link, disabled = false }: LinkTargetFi
   )
 
   if (!kind) return null
+
+  // A debt or receivable can be paid by one record in several shares: a sheet of rows instead.
+  if (kind.multi) return <LinkTargetMultiField link={link} disabled={disabled} />
 
   const empty = !loading && options.length === 0
 
