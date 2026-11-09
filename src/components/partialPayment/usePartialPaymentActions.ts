@@ -14,7 +14,7 @@ import { isLinkedForeignRecord, type SettlePrefix } from '../../services/settleR
 import { requireSpreadsheetId } from '../../utils/authGuard'
 import { formatMoney } from '../../utils/formatMoney'
 import { handleSheetError } from '../../utils/sheetError'
-import { showError, showInfo, showSuccess } from '../../utils/toast'
+import { showError, showSuccess } from '../../utils/toast'
 import { useSettleFlow } from '../settle/useSettleFlow'
 import { useReadOnly } from '../ui/readOnly'
 
@@ -224,8 +224,12 @@ export function usePartialPaymentActions<T extends PartialPaymentItem>({
       const updated = await removePayment(spreadsheetId, item, paymentId, unlink ?? undefined)
 
       replaceItem(item, updated)
-      showSuccess(labels.paymentRemoved)
-      if (shared) showInfo('این رکورد پرداخت‌های دیگر را هم پوشش می‌دهد؛ رکورد نگه داشته شد.', 7000)
+      // The record stays (it also pays something else): never say its transaction was deleted.
+      showSuccess(
+        shared
+          ? 'پرداخت برگردانده شد؛ این رکورد پرداخت‌های دیگر را هم پوشش می‌دهد و نگه داشته شد.'
+          : labels.paymentRemoved
+      )
     } catch (err) {
       if (handleSheetError(err, { fallbackMessage: labels.removeFailed })) return
     } finally {
